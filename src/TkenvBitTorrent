@@ -1,0 +1,8 @@
+#!/bin/bash
+#./BitTorrent -f ../simulations/omnetpp.ini -cSeeders_x2_Peers_x10 -uCmdenv && zenity --info --text="Simulation finished."
+if [[ $# != 1 ]]; then
+    echo "Usage: $0 <run>"
+    exit 1
+fi
+
+./BitTorrent -f ../simulations/MultiplePeers.ini -cMultiplePeers -uTkenv -r$1

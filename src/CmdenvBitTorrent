@@ -1,0 +1,28 @@
+#!/bin/bash
+#./BitTorrent -f ../simulations/omnetpp.ini -cSeeders_x2_Peers_x10 -uCmdenv && zenity --info --text="Simulation finished."
+if [[ $# != 1 ]]; then
+    echo "Usage: $0 <run>"
+    exit 1
+fi
+
+#Filter lines with the following pattern:
+#** Event #1   T=0   Elapsed: 0.000s (0m 00s)  0% completed   ev/sec=0
+EVENT='Event #\([0-9]\+\)'
+SIMTIME='T=\([0-9.]\+\)'
+ELAPSED='Elapsed.*(\(.*\))'
+PERCENTAGE='[ ]\+\([0-9]\+\)%'
+EVSEC='\(ev/sec=[0-9]\+\)'
+
+PATTERN='.*'$EVENT'.*'$SIMTIME'.*'$ELAPSED'.*'$PERCENTAGE'.*'$EVSEC''
+SUBST='\4\n#ev=\1\\nelapsed=\3\\nsim time=\2\\n\5'
+
+./BitTorrent -f ../simulations/MultiplePeers.ini -cMultiplePeers -uCmdenv -r$1 2> "err_r$1.log" | sed -u 's_'"$PATTERN"'_'"$SUBST"'_' | tee >(zenity --progress --percentage=0) >"out_r$1.log"
+
+if [[ ${PIPESTATUS[0]} = 0 ]]; then
+    zenity --info --text="Simulation finished."
+    exit 0
+else
+    zenity --error --text="Simulation exited with an error."
+    exit 1
+fi
+

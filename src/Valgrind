@@ -1,0 +1,11 @@
+#!/bin/bash
+EXEC_FILE="./BitTorrentSingleProcessor" # path to the simulation executable
+INI_FILE="../simulations/MultiplePeers.ini" # path to the configuration file
+#CONFIG="MultiplePeers" # name of the configuration
+CONFIG="BigScope" # name of the configuration
+ENV="Cmdenv" # Command environment
+#ENV="Tkenv" # TK environment
+LOG_DIR="./logs/run_$1"
+ERR_FILE="err.log" # the log file where all error messages will be written
+OUT_FILE="out.log" # the log file where all log messages will be written
+valgrind --log-file=valgrind.log --leak-check=yes $EXEC_FILE -f $INI_FILE -c $CONFIG -r0 -u $ENV

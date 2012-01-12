@@ -1,0 +1,20 @@
+The EbitSim is an enhanced BitTorrent simulation with the
+following features:
+
+- Multiple concurrent swarm
+- Multiple trackers
+- Timeslice processing model
+- A thousand nodes simulated
+- Use of the INET Framework
+- Modular model to allow easy configuration
+
+For now, this model does not come with documentation other
+than the comments on the code. Check the article with the
+same name, presented at MASCOTS 201, for further information.
+
+This code was built with omnetpp-4.2 and it needs an
+installation of inet-20111118. When compiling, don't forget
+to run 'make' inside the folder src/client/smc.
+
+It is highly recommended that you use the OMNeT++ IDE that
+comes with the installation.

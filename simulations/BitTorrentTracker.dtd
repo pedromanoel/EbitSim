@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!ELEMENT contentList (content+)>
+<!ELEMENT content (numOfPieces,numOfSubPieces,subPieceSize)>
+<!ELEMENT numOfPieces (#PCDATA)>
+<!ELEMENT numOfSubPieces (#PCDATA)>
+<!ELEMENT subPieceSize (#PCDATA)>
+<!ATTLIST content name ID #REQUIRED>

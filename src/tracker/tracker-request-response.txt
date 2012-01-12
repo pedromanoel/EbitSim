@@ -1,0 +1,840 @@
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=1&down_available=125000000&up_available=125000000&buffer=-2 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:39 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=2&down_available=125000000&up_available=125000000&buffer=-1&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b1 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:41 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=3&down_available=125000000&up_available=125000000&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b2 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:41 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=4&down_available=125000000&up_available=125000000&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b3 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:43 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=5&down_available=125000000&up_available=125000000&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b4 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:46 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=6&down_available=125000000&up_available=125000000&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b5 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:47 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=7 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:56:49 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+1cf
+d8:announce35:http://192.168.188.50:8082/announce7:blockID36:224.123.111.111_1234_1261402080000_77:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi114208e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces20:P’ä~¦ðÒÄ§6‚8Óö?Û@ke10:lastOffseti1904352e18:lastSequenceNumberi33798e41:longSizeOfUsefulInformationOfTheLastPiecei114208e6:offseti2018560e14:sequenceNumberi33840ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=7&down_available=125000000&up_available=125000000&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b6 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:49 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=8 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:56:51 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+311
+d8:announce35:http://192.168.188.50:8082/announce7:blockID36:224.123.111.111_1234_1261402080000_87:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4363808e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces340:ÉŽ[M7L½J¢5“^È‚Ã}0¡t“6¾BÁxUûÆ?q<—u@uad›¤@AÒß˜]<ïœb^<	‰¥Ê6í_{Nß›™Î¯jÁÆàÕûŠ®Y˜¾\š[ˆú@)Q2AHXGÓmš£«bu‹“2áódï}Û¼JSˆGw²ÁéCÀ8ël
+Ä…­dÖöóØ…o#Å¿ÈtÙ÷TnÐî0Ï‚ÞJAédfA­9±.7b©|žˆ •hmZÉ§©+²šÃßPÃ¡DNë-uÉ£-ÿ'âZ5»'v|ClFr§‹ú?‘ñ§öX3±l
+=t4‚6'x#ù„¬ƒ"Èxl½w,Gïj‹ÂB9"o"9¿÷LWã²vl1
+Þ‰åÙÔ?î®ÎÞQ³#š6gBxÙe¨Y)U^•¸«eÒ™Táºyé±ìrrØ”Ízhd²É(žcó"Œe10:lastOffseti2018560e18:lastSequenceNumberi33841e41:longSizeOfUsefulInformationOfTheLastPiecei169504e6:offseti6382368e14:sequenceNumberi35483ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=8&down_available=124862996&up_available=124961262&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b7 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:51 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=9 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:56:53 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+338
+d8:announce35:http://192.168.188.50:8082/announce7:blockID36:224.123.111.111_1234_1261402080000_97:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4727680e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces380:Ñ4ë®_ó”€;µ…‘Pñ>Ï%tJh·F/G}t?‘NðÍAab'64å¹Y›¥þ@X™ðòL³ÓÂÂ8ÕéAƒ%ˆÝ®& BgÀ©‰„Êë„ÌORæ}÷Ä–™Ê\›0î7ÁèÐvfqðë›MõŒþ(ß©ÂÑ|×ƒ²†ª$™úÑ —$;ž2¼Ý@Žü)Z7žy@'›ÕCKìT2xô×ßf¢Ðè±§ºÿÔJÁ9‚†c%Bäc¡Ž¹þüæŸ¯?HÀ­qÊ0R§—žeùñYð†?¹ÌÚ†’zÄ²‰šÒÌ«•Wò¸§Éy•Ó×\=CÎn{N!Å¿ÓåÎem­jœx!¦Þ‡b§BzÅÓ´Ì
+‘Ÿ¥5¨õ²¾æÀdÁ0È??‘¦óºPPdo›)ù¨œv×‡^Ê_wö™à‡u ³äbø™M½…œÞM5|¢p2
+¯rx½½Úm} D¼žêÚ›Ð&ó¶âKY
+ûz ·¶e10:lastOffseti6382368e18:lastSequenceNumberi35484e41:longSizeOfUsefulInformationOfTheLastPiecei9088e6:offseti11110048e14:sequenceNumberi37263ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=9&down_available=124862996&up_available=124961262&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b8 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:53 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=10 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:56:55 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+33b
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_107:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4732992e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces380:#ú±7+|†Å„»`ñ­Ìw-~#ËQx5—>=ž
+ªùŠTê® ´íeåuÕhÐ„¦[©ûb=ÌDeœ»…e3šê ì==¤ï‰ÂU©À& ²õóSµ#ó±{a,{áL9þ2e$\ÄÂY_bíírDÍæ3c`µP®¹]Å“ÉÕýùà$Ä¦œ [eq$“ìRì/œ¾øyU"›
+b¯3Ú¦/>š„¿¸`ãO‚+¢)3
+¼JÐÒÏIÒ*¯mI˜ô®GàB7¹ÙÇµ(¥6ƒþÒ{ä¬un“
+®Í•Ø!®…jºrÏbM&R~&9‰HÓAšwÎ­µIçëƒ?Œi%æIÆÕ(èÞul'`U{¡¬(
+P’dCêœ!Æ†Ç·ÆF…\2Qw1&ø:Iô±·»‰ÚŽ¬ˆBÐzã”T5ìe¸e“'÷˜Ý
+b«p¼‰Þ¿§ÓwÅ³Ïß!ÇFð&=t’KÒ-	ÎsÁ#¹ájFéHì­e10:lastOffseti11110048e18:lastSequenceNumberi37264e41:longSizeOfUsefulInformationOfTheLastPiecei14400e6:offseti15843040e14:sequenceNumberi39045ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=10&down_available=124862996&up_available=124961262&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b9 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:55 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=11 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:56:57 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2ec
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_117:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3848544e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces300:¡sü¦I™–å–M$Ô»ó`a4ÇÏK(Ÿ? w&{1zÅIós˜bÔQ¹sh1œLà» üµú
+Q®¯ ¼ž©û@ºø4€Þ*q¹‘pÎ7•/°+¶š ùlaí. d…©›*ºwsÅüþKÔÕñ®H¿Ö¤*I7ß¯|u­ïSŒ”ì´?ÆXÅ+}c˜þÛ¸ó~Ô‡
+èK”æmžiû,*¸»Œ«1f¢-{¼‘—é¢(˜û¯e4ONVô/IaÚyìš³ž!€œ
+úœŸ!,¡30«´øQçý$’írïçp•Ý­£“/7p©¦Sušœ4?ÄÚ7=DL åöôõ+¿{i‚«Øqû*k}
+LÇzèÆ“¾f6«!•gê°ž@ëKÆ¼ÆœVD
+C{²¥[çe10:lastOffseti15843040e18:lastSequenceNumberi39046e41:longSizeOfUsefulInformationOfTheLastPiecei178528e6:offseti19691584e14:sequenceNumberi40494ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=11&down_available=124862996&up_available=124961262&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b10 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:56:57 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=12 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:00 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+300
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_127:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4103520e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces320:PZÍÓä2 Jg@‘jö²;(˜C°Œ`®ƒë“çJ˜äþzˆ²¹›FÆS§VîFêr²ÊR*Ú;Kï*9<Ù@¶^Ö(ÉÈ”Í¡Á%3DZ›5Zq·íYeú!ì_½´¸È¸†=vÕìaîŠ‚ÊÙ¢‰@À®I®Ûw×ÕMû^^åMÞ!ß‰ÊÉF“"¥ðÃ˜¸…:¹ èDÐ—¤å¢3¤7²š2 ˆ[¥ttONyâ‚A#ÜÖçØá3kŸ,Ù]„7ÜCçÅËGÿ}ç¬|jÑòìÍ&—§¦eI‚“õrYùyÐß‰T$ëM;±fhz[ÔÄ«îkßÛ»´ë¢a}§¥š€h¡¼»-ø²ÁÂ->Ú/>@²“ó½<íì…?X>ó2k€
+DÐ‚Â€.ö=Nì»Ïó&IÌÀÊ`We10:lastOffseti19691584e18:lastSequenceNumberi40495e41:longSizeOfUsefulInformationOfTheLastPiecei171360e6:offseti23795104e14:sequenceNumberi42039ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=12&down_available=124862996&up_available=124961262&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b11 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:01 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=13 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:02 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2c4
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_137:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3378432e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces260:¤P@;¯%üÄe´ùBŽ¨»•Ã~Iou…ä‡ùœ î®pw›¯¬¯æ72ÒÊ‡3psŒÞ8oöžÌ“Pè*PƒiË¯À¦‘Ä0!^ÜÝÓ˜ÑÀ›m³1 •f
+®öa.Y^§zÅ›e†5$¢fŒOÍ2.œú¡“ñbVO›fš×û* v:–þ0À§z@c°dò*MÌ—˜]òd3f.¬H-©‡ß‡_i°Ç¼¼•êM€Û#Ð<fBïzF*$Ûå°LRY”Â*ä8¢[t¥CY#ógú´¨©'{­oÌª,&Mxh5ÌP”$Ø¥gl‹wå›DVÒÇ+R>O De10:lastOffseti23795104e18:lastSequenceNumberi42040e41:longSizeOfUsefulInformationOfTheLastPiecei232704e6:offseti27173536e14:sequenceNumberi43311ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=13&down_available=124862996&up_available=124961262&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b12 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:02 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=14 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:06 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+300
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_147:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4058368e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces320:í
+øŠ¼AØ%d(6jZ>}Iûh’ñéÚÆZV\ÐŠAñ«'pB‰‘õ@9üÏpÆòÅÈW,iýE_XËAz„}"[X²°£û“48ÖuëF80LÓîç»¾óN¬;iH³Ý±hS¹8q
+ }½,\Ÿªx7@q¹\I–ÏIÑ8‚Ô’ºûûŒ×ëSË¤ìT]ÉÑZ¼ài©£·wKÞóˆüÒ²d¡&®“t¤6fæ›_±
+Q\Ñý|Bê ˆ6bàî5Š,ÒAœÿø8ºM€€Úž…&Ö²ôYN'ï$râ‹M¸"=¡¨¿B}Ý‘kñ©p"Isù(Å…‘±°¢üŒpÔ„hQ…;ü€‘-åí¦ZëK¿ïñj§¦Ÿ>ä¢HØŠ'=|þjs…ó,P¹WÚ'Y2Aà,´ôe10:lastOffseti27173536e18:lastSequenceNumberi43312e41:longSizeOfUsefulInformationOfTheLastPiecei126208e6:offseti31231904e14:sequenceNumberi44839ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=14&down_available=123354370&up_available=124828633&buffer=-1&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b13 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:06 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=15 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:07 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+33b
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_157:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4807360e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces380:R¼`m’æ(º›Ã0àßáÃÖ¦øá‘ÎIã.Xu¦°…&É´õ`ÀOŒE]¦sàª]LÕHƒ@7‰ÀèO±ˆ JhJû5Ïa^‡“«1Î—æÊpô”H$•·åR&7Ø¨¯”FdÍÂf:°¡ÌŠ.ÓÁ¥™²L/D_ë„zdmw ×?Lá¡ùË0º$^bw\ì¼Õ{ƒ•ëäN*­áìŸ‡²WtM¸8µ ³`”o˜ãÉ4HÜd@i"öÿÏ,XÅ†j’‚£µ^écEæµ’YöÔ3”•™yXF7@×Fê
+±nÇšFyç¬‰É˜gËÏ[eyõ£™MàYáf!µ8m]Ùª±—ôR”Êd1qÐ'KN]¨Fƒë{8RÆ 
+þ¼?#¶
+ò½i=
+T*U@AÃ›tÙ¿±2¼˜óÿ`!é×FÐìÍ”S@×Ù¸/SÀîû«…eâmq‰ÓßôÈF@ËÄ´ñ^f.5ôqVÌöX
+ÔÏe10:lastOffseti31231904e18:lastSequenceNumberi44840e41:longSizeOfUsefulInformationOfTheLastPiecei88768e6:offseti36039264e14:sequenceNumberi46649ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=15&down_available=123354370&up_available=124828633&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b14 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:08 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=16 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:09 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2ec
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_167:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3885728e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces300:øq ê¹fg<øeø kâkª„~œXµ#¦vwéA˜}uÞ>MVAëÍ…ÚÒÕ/÷Á`1;£I*g3Üæ® éMÎD»RÔB™F[	ÿ
+¶ãX'ÊeÜiIè›ÌU×YtmNÕø‰–^¹Ç	£RìºýÚ
+ú,15QÁç¾`ÐO•2V¯nsn‰ãNFœt|NVh·'Ft´;° Ð¬“±T¤½ÓZxE#©
+wàÏ†û¸„ð‡‘¥óòFiêËã–?¶:Ö3,ùðûð5búÒÞPsˆøúÆÌz'ŠŒðè¥VÐÚ·äçî*(ñ  °JÝêeÑô_f…ÁÇV0çÝ“ƒå,è—W½Þ?ïIÛ»ÃX³|Ä‘}+Â×‚Ôe10:lastOffseti36039264e18:lastSequenceNumberi46650e41:longSizeOfUsefulInformationOfTheLastPiecei215712e6:offseti39924992e14:sequenceNumberi48112ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=16&down_available=123354370&up_available=124828633&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b15 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:09 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=17 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:11 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2ec
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_177:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3843232e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces300:ß&DëÈ‰ï69Ö`/RóÔËÉj‘/Í_¤ñ)˜$¢}C‡>ô©Ýágç0`áªó•X½ØÎÍÂRB-¶-4irõ<ñ+QŸ½ÜTCÕÉw.#%;Çy¥irÞZöa>íÅK-|¬aÿe
+¥lðe*
+ÛÛß|•délõì'ûÏ¦em©UTÄ¦––T‘(R8Û’êMš{’]‰Á‘5®f’ÄO³’ð6Ñ8Æ£gŸ,ï2ÆÂ5Ì$*|…UõÿHH4ÛÚ¤X_‘U_ûÿJÀÏæ¥è)¿m2"rI,0HsšTÁæ7^æ6Úû#ClµVC#¨w•ÈšŸ¸—hÕÚAAÒ E	q!qÊ#÷X€<|{ñhøý³`'¢lke10:lastOffseti39924992e18:lastSequenceNumberi48113e41:longSizeOfUsefulInformationOfTheLastPiecei173216e6:offseti43768224e14:sequenceNumberi49559ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=17&down_available=123354370&up_available=124828633&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b16 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:11 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=18 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:11 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2d8
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_187:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3630752e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces280:œeŒÒÂü{ã"Yjõ‘o,©l@S5ËL¥JôñÎ-ó¯äíiº¥¬«A…9wÉõ€Ý†Ð†C~°NBˆ0˜ô¢‘¾úQÆ8ÉÔ„’ÝÎ}! H,Á™Þè*,'£=Ç…=A^çbÞ"¯åbÄÜC‹1ë¤¾$‰
+Y›çÕŽ´6Pø;°í+kAƒÜ#D8†¶ªŸ¥®¯ÝË>CM…¢G'DÖÛ|L‘ @«Åï~¥,ÊRº]Œ?ÝÄc4zÂþŠ˜(šÈ´.ýÊnîŒÐ	zäK"˜®–/h%&Ç6j9M¡{SÉ_lx€úž-I1õÛ!âx‰—mÂ¥’½P}/R'Œ4è§Yfê’ @=
+e10:lastOffseti43768224e18:lastSequenceNumberi49560e41:longSizeOfUsefulInformationOfTheLastPiecei222880e6:offseti47398976e14:sequenceNumberi50926ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=18&down_available=123354370&up_available=124828633&buffer=1&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b17 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:12 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=19 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:14 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2d8
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_197:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3551072e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces280:-\ÚQS4ž:½úvó¶ó}E”tÉÈëEi¼N`44`o÷	~J«*µ–
+#·Åówòq&Â}DG¸¹õc²;›á#‹æ$RÍHe<ðƒCW|.÷ýIw%‚±¬‚‹Å`9|‘ÓmÇëÞÔµ¡ ß&@UÃñ¥³Œõ°!W¥\ìøLþ*lŠxáüóÈ@¶ŸƒŒ«ï½šwÓá½PšÔŠÄ¬¾å\—lx•¬ÆÅ£E=8tWÌJ€Ø<Œ#«xv-N¨—¨.Ã+M¥mb&Y\=ãúÐRžÌƒ“b°,@(Í®@õ‰·¤+íÖ‚ð*ìí*B
+nÕešÂ_¥(z.Œœ&Ú‘ @ÊŠÒ(Þ]bÑýJ\Gbe10:lastOffseti47398976e18:lastSequenceNumberi50927e41:longSizeOfUsefulInformationOfTheLastPiecei143200e6:offseti50950048e14:sequenceNumberi52263ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=19&down_available=123354370&up_available=124828633&buffer=0&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b18 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:14 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=20 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:15 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2d7
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_207:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3444832e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces280:ª¼Ó>9'â‘0Œ¨Qe1äÓ:Ò‘NÞ]oðu\1ÍÝ"œ>Hç¡ft×Ä^å N‹þ›ï«Â®IŸ+Niã¥2S±Æ°pŠÍ‚²ËÌ41cÒî6|¢õþBUGýÓX?¬vCKÍÆíø¨ o	'½7ùZ	fHÕrúØãß'”~hZ	µ È#Æ–*;ùÌ!³8¨REp-WUv+2GÜQ¼êà“ÎLg³³ÄúãYë¬1[é×>Ï¡y³	Áá·‡öÍx&×¾ßóËÚ’µÓÀ·46üÔOE‹½ñ1¯Ät×f>iÑSÌËùtà{áçõöerMFzo›C¯ âþ›¡4·ìx‹0‰†e10:lastOffseti50950048e18:lastSequenceNumberi52264e41:longSizeOfUsefulInformationOfTheLastPiecei36960e6:offseti54394880e14:sequenceNumberi53560ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=20&down_available=123354370&up_available=124828633&buffer=1&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b19 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:16 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=21 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:17 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+1fa
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_217:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi664000e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces60:Çö?´âf+®ÅLâ_?ê"\ÄÄrZÉ*7,Œ~BlŸ>çœS"Ë qZDíàæçiñ†~ŠK™! AXe10:lastOffseti54394880e18:lastSequenceNumberi53561e41:longSizeOfUsefulInformationOfTheLastPiecei139712e6:offseti55058880e14:sequenceNumberi53810ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=21&down_available=123354370&up_available=124828633&buffer=1&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b20 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:17 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=22 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:17 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+327
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_227:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4531136e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces360:ÿ­f]"UG¶±íª@À ¶ªÑÎ¸­á(y¤ZÏÌM–ö¦™åIáq¥/À	È„•á5§q.|Õ³äJ½ÉÂésºaºl îí™ål‚œ¬nŸWìoIWé*ÊøÆGoù§ãz¿.ÇŽf£ýÜ*÷ažÒ7+
+/·Ì1±å~£sH­¥Aí÷ñCþ(Xñœ:¤Ö|²óÁ­Aÿµ*’èúPî‘»üeIªK—ïjÑ<MàéÿÙ÷<æ¥<9läGÿt•íswÙ3‚mðž· ¼-æÒ#Çãƒœ¯£ÃfÌA°Á‘ÍõÑÂE™-ÕOJTš¶}ñ#è§@•WÜÑY¿ÕÍuN¹ûÅë‹7î ‘9´ÎÔtk¢ð½ø¾Q K"NUÎ`èœæ½šøG·…ÂÌÉw›
+¼`ùcÒòå´äÂR¨0º£¡…@ÞÙˆ±÷%cá
+\qÚµä"e10:lastOffseti55058880e18:lastSequenceNumberi53811e41:longSizeOfUsefulInformationOfTheLastPiecei74688e6:offseti59590016e14:sequenceNumberi55516ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=22&down_available=123354370&up_available=124828633&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b21 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:18 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=23 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:19 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+314
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_237:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4435520e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces340:¼q=aët`9ðçqTSÊ\+Wä§Éž
+TÑjV6I^²óÑ¿×SBž¼¡}àu1Cõc:._ÅˆkŽ9ëTZÇ"º(+Ï6ÔÔ)ÌÞ/fíÖY­¿:ÝbÜy‹fœ:±ßIb¶ºxŠ 5¶+¢Ü¸ÉsÑ 0þ¨ý\q¢£@_©,l×—€ëRFK`t0þlt©u	´M˜ì…ø[zwÄ„lÙŒÕ¤EID«[˜eÎ^6Þö}#Ëùÿ[Y%`¾ýßðùË3“í”ašuy(G†êÔ÷·OÔ46‚e-vO_çdkOçÑÎôÎî­×$S0råÿŽ%6py·yˆ´V¼«Ëà<éuX§~r(¿¤PÎ_fŸÀ¶y’Åß¹°i`àá 7Æ²b‘£ÿëå°¼If@#e10:lastOffseti59590016e18:lastSequenceNumberi55517e41:longSizeOfUsefulInformationOfTheLastPiecei241216e6:offseti64025536e14:sequenceNumberi57186ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=23&down_available=123354370&up_available=124828633&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b22 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:19 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=24 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:21 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+33c
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_247:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4871104e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces380:ä%‚Ï‡?&Æ»žõbÖÅ{%êgýcNDHœ_±d©¹›XÊm9—.>²é0=2¹û½®c‡Í
+hŸPŸljq=Í $Ç“kyÛœ&Í¤ _¨·zÒ­Grª>.F—)œ1^zEo¤è4æ¡mEeNãÖþ³ÝÇÂüUâº‘I#éwÕRÿ´K“d>„OHÇ_B¦ü2r :ŒÒTëîðI Ùâi©Ái?ü”íÛ¾«Ë])0‚ lòÍ¬‚¬Œé¾¤ÉŽ¿µ@¶Iä?¿CÚÀÎ¢Kž£ˆÎ2ZÜÐÖÕ\Ðå¼¼×€3le«€ßÕƒ·,òøàäœÂËWø"#2×“3pLkco-õzÐãã0ô^~ c}Å#s¿„0†Í±•ö4êåvÒCÜÿ&uY]4‡{+#0ª÷W©‹g óLV‰%BFaXé!Lí
+VgpŽ^øbêô^YPùÌß‘v_•hNêÅÁ½¼'-Ü&’Ny²ËÏ	e10:lastOffseti64025536e18:lastSequenceNumberi57187e41:longSizeOfUsefulInformationOfTheLastPiecei152512e6:offseti68896640e14:sequenceNumberi59020ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=24&down_available=122602389&up_available=124712635&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b23 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:21 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=25 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:23 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+300
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_257:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi4148672e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces320:|‚èê[’N@Â’Ø'¶v “#dŽa¾¬°Ù –›æÏºSòIòÔÀÔ¶¹"XÞ7•Œ’­~ÞŒPRSáŠ$=ûÓˆîÄßk`»ë6„yì»Æ¿ÔF|'ÿÍù·sº{êÈÄlm˜R\À4ˆóüžºqëfåtÊñiÕmŸ#Ï ¿Ìæè»ÓÍä1eQXZDðŸêœ•š~VŒŸÜ%Jw‹u¾ÌÐ“—£°?¡+=À#
+fnÛæ@Ëæ!	ÙZ("—ª¼¢³µp&¸—€Ul¾ˆü$s)žð$·µ[p
+vÿ>!¼Æ±;ƒ®ÁØÏÖl\›Ü„ð•ä:Ú ,¤Z9ºƒÈÊeÍ0.‚ Ñà–óy„ñDe+å³:ñËè e1~“†­QÃÖ›ì2Í•79e10:lastOffseti68896640e18:lastSequenceNumberi59021e41:longSizeOfUsefulInformationOfTheLastPiecei216512e6:offseti73045312e14:sequenceNumberi60582ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=25&down_available=122602389&up_available=124712635&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b24 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:24 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=26 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:25 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2d8
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_267:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3617472e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces280:ë…DZ×c ´c^8S-·HŠGíi!ƒÐÑÂëž¤?q’ õY¿»H§`N•'7O–Šùv~›Ý@TÎºàSlLõc+è\¼¾XÕÃf5JDz{ü¦+6fj³*
+upî¹fâÇÑ§±ÎžÀg7c+lÁdŽÛÝ¼L¥Ï1‘Áq÷·µ1uZ÷ñ–É²ª8j]g9Gd±þaì<òmûŽ¼t„ÏúúÉ[6.jí
+U—À…RŸ~C©V
+Ó¹!Þ¬ä{»|&wVš‰ÒhY4\›3ÊÆ»?›mP‹£u†àhÃ”} uèÑìú
+-çK{‹©h¶z~|ØG¬;ë…¼0CÚÌë¢Æ×«™9°…Šè¬1Âc©e10:lastOffseti73045312e18:lastSequenceNumberi60583e41:longSizeOfUsefulInformationOfTheLastPiecei209600e6:offseti76662784e14:sequenceNumberi61944ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=26&down_available=122602389&up_available=124712635&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b25 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:25 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=27 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:26 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2ec
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_277:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3800736e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces300:½Š„æÜ™¹Tú£`QÃ„æ.V¿u¸–‡—E¶d´ Úòø1}VÓô1VþÌL½}Ç`h©vâ›L©¿µc›™—¯\>‚B€ö˜’0Œr?åáB
+Ø[s¾Ž§‚óßp«”Å•ŸŠ=+§Cí‚©Þé,¿«C}ˆ4–¨MGÂ¦(ý/µ™Ñ3&EŒÓp~Ay¬)SR[€„<+F<¾Õq·„nr	ä›­Â¹#…¯ÅþÏÂâ^UÁ†­f&ä™Ñ£®†dÀA“2oß=v6X{øl"°j%‘@Dc¶f›LFÿ%ÑbOIKÜ÷%a˜M'²üäE#À„—8Ø|ÝÔuN{`#r×Z†È@DÍ’÷º¿Mj³V¾{T–È»ÒÎK8pe10:lastOffseti76662784e18:lastSequenceNumberi61945e41:longSizeOfUsefulInformationOfTheLastPiecei130720e6:offseti80463520e14:sequenceNumberi63375ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=27&down_available=122602389&up_available=124712635&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b26 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/plain
+Date: Tue, 30 Mar 2010 17:57:27 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+142
+d5:peersld2:ip13:192.168.188.37:peer_id6:c2aa034:porti6881eed2:ip14:192.168.188.347:peer_id6:ca1a344:porti6881eed2:ip14:192.168.188.197:peer_id6:c3aa194:porti6881eed2:ip14:192.168.188.667:peer_id6:c5bb664:porti6881eed2:ip14:192.168.188.507:peer_id6:50aa504:porti6881eed2:ip14:192.168.188.677:peer_id6:c6bb674:porti6881eeee
+0
+
+GET /download?content_id=224.123.111.111_1234_1261402080000&block_number=28 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: data
+Date: Tue, 30 Mar 2010 17:57:28 GMT
+Server: Default IPTVP2P Tracker
+Transfer-Encoding: chunked
+
+2d8
+d8:announce35:http://192.168.188.50:8082/announce7:blockID37:224.123.111.111_1234_1261402080000_287:comment1:C9:contentID34:224.123.111.111_1234_126140208000010:created by21:Documentaries Channel4:infod6:lengthi3574976e4:name38:224.123.111.111_1234_1261402080000.mpg12:piece lengthi262144e6:pieces280:¶HfÒ§µ|OWU¦Ìüfßñ:ñã¢ ã;xåÔüÚD\| eWÛ8>aÛÄ8ÛHyËç†ùœ¨/ª‹1¬³ÏõÀ®N×=s¥‹’ìÅ,,[ÒX‘klW~]<>~"+µìmHa˜üÏÞ 
+¼æìÃ‰+·ù`Ôœ>ë+8Í4©Üé^¥ùÙøaH•®¦å+$˜Fd™×ÖúX¢äzÄ;Ûð®©×iˆÉë¶ðå][B³d—d:é–Ë#´…®]é+že~ÕÕ=\3™¨[E:h^kVRl‰”ŽÉuøY--$Ó	”ì÷ã’aÏ®Ä~{ePHÛú™±Q\Iªð
+ ´ CáäåuŸe’#Œe10:lastOffseti80463520e18:lastSequenceNumberi63376e41:longSizeOfUsefulInformationOfTheLastPiecei167104e6:offseti84038496e14:sequenceNumberi64721ee
+0
+
+GET /announce?port=6881&ip_mask=28&peer_id=02aa02&event=started&content_id=224.123.111.111_1234_1261402080000&block_number=28&down_available=122602389&up_available=124712635&buffer=2&event=completed&contentid=224.123.111.111_1234_1261402080000&blocks=b27 HTTP/1.1
+User-Agent: Java/1.6.0_14
+Host: 192.168.188.50:8082
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive

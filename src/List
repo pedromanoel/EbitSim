@@ -1,0 +1,10 @@
+#!/bin/bash
+EXEC_FILE="./BitTorrentSingleProcessor" # path to the simulation executable
+INI_FILE="../simulations/MultiplePeers.ini" # path to the configuration file
+if [[ $# == 1 ]]; then
+    CONFIG=$1
+else
+    CONFIG="MultiplePeers" # name of the configuration
+fi
+#CONFIG="BigScope" # name of the configuration
+$EXEC_FILE -f $INI_FILE -x $CONFIG -g

@@ -1,0 +1,30 @@
+
+#
+# (cDoubleHistogram) HistogramDemo.DoubleHistogram
+#
+2936	 #= num_vals
+0 0.102482	 #= min, max
+21.6205	 #= sum
+0.451341	 #= square sum
+1	 #= transformed
+3	 #= range_mode
+2	 #= range_ext_factor
+0 0.05	 #= range
+0 22	 #= cell_under, cell_over
+100	 #= num_firstvals
+0	 #= firstvals[] exists
+12	 #= num_cells
+1	 #= cellv[] exists
+ 1619
+ 315
+ 322
+ 261
+ 185
+ 88
+ 54
+ 28
+ 17
+ 13
+ 6
+ 6
+0.00416667	 #= cellsize

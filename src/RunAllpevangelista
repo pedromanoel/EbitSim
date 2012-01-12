@@ -1,0 +1,284 @@
+#
+# This makefile was generated with the following command:
+# /home/pevangelista/programs/omnetpp-4.1/bin/opp_runall -j4 --export RunAll ./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 0..89
+#
+
+.PHONY:  r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15 r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31 r32 r33 r34 r35 r36 r37 r38 r39 r40 r41 r42 r43 r44 r45 r46 r47 r48 r49 r50 r51 r52 r53 r54 r55 r56 r57 r58 r59 r60 r61 r62 r63 r64 r65 r66 r67 r68 r69 r70 r71 r72 r73 r74 r75 r76 r77 r78 r79 r80 r81 r82 r83 r84 r85 r86 r87 r88 r89
+
+all:  r0 r1 r2 r3 r4 r5 r6 r7 r8 r9 r10 r11 r12 r13 r14 r15 r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31 r32 r33 r34 r35 r36 r37 r38 r39 r40 r41 r42 r43 r44 r45 r46 r47 r48 r49 r50 r51 r52 r53 r54 r55 r56 r57 r58 r59 r60 r61 r62 r63 r64 r65 r66 r67 r68 r69 r70 r71 r72 r73 r74 r75 r76 r77 r78 r79 r80 r81 r82 r83 r84 r85 r86 r87 r88 r89
+
+ten: r56 r63 r64 r65 r72 r73 r74 r81 r82 r83 #r0 r1 r2 r9 r10 r11 r18 r19 r20 r27 r28 r29 r36 r37 r38 r45 r46 r47 r54 r55
+fifty: r3 r4 r5 r12 r13 r14 r21 r22 r23 r30 r31 r32 r39 r40 r41 r48 r49 r50 r57 r58 r59 r66 r67 r68 r75 r76 r77 r84 r85 r86
+
+ninety: r6 r7 r8 r15 r16 r17 r24 r25 r26 r33 r34 r35 r42 r43 r44 r51 r52 r53 r60 r61 r62 r69 r70 r71 r78 r79 r80 r87 r88 r89
+
+r0:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 0 > logs/out_0.log 2> logs/err_0.log
+
+r1:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 1 > logs/out_1.log 2> logs/err_1.log
+
+r2:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 2 > logs/out_2.log 2> logs/err_2.log
+
+r3:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 3 > logs/out_3.log 2> logs/err_3.log
+
+r4:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 4 > logs/out_4.log 2> logs/err_4.log
+
+r5:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 5 > logs/out_5.log 2> logs/err_5.log
+
+r6:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 6 > logs/out_6.log 2> logs/err_6.log
+
+r7:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 7 > logs/out_7.log 2> logs/err_7.log
+
+r8:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 8 > logs/out_8.log 2> logs/err_8.log
+
+r9:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 9 > logs/out_9.log 2> logs/err_9.log
+
+r10:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 10 > logs/out_10.log 2> logs/err_10.log
+
+r11:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 11 > logs/out_11.log 2> logs/err_11.log
+
+r12:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 12 > logs/out_12.log 2> logs/err_12.log
+
+r13:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 13 > logs/out_13.log 2> logs/err_13.log
+
+r14:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 14 > logs/out_14.log 2> logs/err_14.log
+
+r15:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 15 > logs/out_15.log 2> logs/err_15.log
+
+r16:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 16 > logs/out_16.log 2> logs/err_16.log
+
+r17:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 17 > logs/out_17.log 2> logs/err_17.log
+
+r18:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 18 > logs/out_18.log 2> logs/err_18.log
+
+r19:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 19 > logs/out_19.log 2> logs/err_19.log
+
+r20:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 20 > logs/out_20.log 2> logs/err_20.log
+
+r21:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 21 > logs/out_21.log 2> logs/err_21.log
+
+r22:
+
+r22:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 22 > logs/out_22.log 2> logs/err_22.log
+
+r23:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 23 > logs/out_23.log 2> logs/err_23.log
+
+r24:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 24 > logs/out_24.log 2> logs/err_24.log
+
+r25:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 25 > logs/out_25.log 2> logs/err_25.log
+
+r26:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 26 > logs/out_26.log 2> logs/err_26.log
+
+r27:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 27 > logs/out_27.log 2> logs/err_27.log
+
+r28:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 28 > logs/out_28.log 2> logs/err_28.log
+
+r29:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 29 > logs/out_29.log 2> logs/err_29.log
+
+r30:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 30 > logs/out_30.log 2> logs/err_30.log
+
+r31:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 31 > logs/out_31.log 2> logs/err_31.log
+
+r32:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 32 > logs/out_32.log 2> logs/err_32.log
+
+r33:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 33 > logs/out_33.log 2> logs/err_33.log
+
+r34:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 34 > logs/out_34.log 2> logs/err_34.log
+
+r35:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 35 > logs/out_35.log 2> logs/err_35.log
+
+r36:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 36 > logs/out_36.log 2> logs/err_36.log
+
+r37:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 37 > logs/out_37.log 2> logs/err_37.log
+
+r38:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 38 > logs/out_38.log 2> logs/err_38.log
+
+r39:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 39 > logs/out_39.log 2> logs/err_39.log
+
+r40:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 40 > logs/out_40.log 2> logs/err_40.log
+
+r41:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 41 > logs/out_41.log 2> logs/err_41.log
+
+r42:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 42 > logs/out_42.log 2> logs/err_42.log
+
+r43:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 43 > logs/out_43.log 2> logs/err_43.log
+
+r44:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 44 > logs/out_44.log 2> logs/err_44.log
+
+r45:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 45 > logs/out_45.log 2> logs/err_45.log
+
+r46:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 46 > logs/out_46.log 2> logs/err_46.log
+
+r47:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 47 > logs/out_47.log 2> logs/err_47.log
+
+r48:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 48 > logs/out_48.log 2> logs/err_48.log
+
+r49:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 49 > logs/out_49.log 2> logs/err_49.log
+
+r50:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 50 > logs/out_50.log 2> logs/err_50.log
+
+r51:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 51 > logs/out_51.log 2> logs/err_51.log
+
+r52:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 52 > logs/out_52.log 2> logs/err_52.log
+
+r53:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 53 > logs/out_53.log 2> logs/err_53.log
+
+r54:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 54 > logs/out_54.log 2> logs/err_54.log
+
+r55:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 55 > logs/out_55.log 2> logs/err_55.log
+
+r56:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 56 > logs/out_56.log 2> logs/err_56.log
+
+r57:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 57 > logs/out_57.log 2> logs/err_57.log
+
+r58:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 58 > logs/out_58.log 2> logs/err_58.log
+
+r59:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 59 > logs/out_59.log 2> logs/err_59.log
+
+r60:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 60 > logs/out_60.log 2> logs/err_60.log
+
+r61:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 61 > logs/out_61.log 2> logs/err_61.log
+
+r62:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 62 > logs/out_62.log 2> logs/err_62.log
+
+r63:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 63 > logs/out_63.log 2> logs/err_63.log
+
+r64:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 64 > logs/out_64.log 2> logs/err_64.log
+
+r65:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 65 > logs/out_65.log 2> logs/err_65.log
+
+r66:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 66 > logs/out_66.log 2> logs/err_66.log
+
+r67:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 67 > logs/out_67.log 2> logs/err_67.log
+
+r68:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 68 > logs/out_68.log 2> logs/err_68.log
+
+r69:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 69 > logs/out_69.log 2> logs/err_69.log
+
+r70:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 70 > logs/out_70.log 2> logs/err_70.log
+
+r71:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 71 > logs/out_71.log 2> logs/err_71.log
+
+r72:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 72 > logs/out_72.log 2> logs/err_72.log
+
+r73:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 73 > logs/out_73.log 2> logs/err_73.log
+
+r74:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 74 > logs/out_74.log 2> logs/err_74.log
+
+r75:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 75 > logs/out_75.log 2> logs/err_75.log
+
+r76:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 76 > logs/out_76.log 2> logs/err_76.log
+
+r77:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 77 > logs/out_77.log 2> logs/err_77.log
+
+r78:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 78 > logs/out_78.log 2> logs/err_78.log
+
+r79:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 79 > logs/out_79.log 2> logs/err_79.log
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 80 > logs/out_80.log 2> logs/err_80.log
+
+r81:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 81 > logs/out_81.log 2> logs/err_81.log
+
+r82:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 82 > logs/out_82.log 2> logs/err_82.log
+
+r83:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 83 > logs/out_83.log 2> logs/err_83.log
+
+r84:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 84 > logs/out_84.log 2> logs/err_84.log
+
+r85:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 85 > logs/out_85.log 2> logs/err_85.log
+
+r86:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 86 > logs/out_86.log 2> logs/err_86.log
+
+r87:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 87 > logs/out_87.log 2> logs/err_87.log
+
+r88:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 88 > logs/out_88.log 2> logs/err_88.log
+
+r89:
+	./BitTorrent -f ../simulations/MultiplePeers.ini -c MultiplePeers -u Cmdenv -r 89 > logs/out_89.log 2> logs/err_89.log
+

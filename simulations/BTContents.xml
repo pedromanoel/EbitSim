@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE contentList SYSTEM "BitTorrentTracker.dtd">
+<contentList>
+   <content name="test1">
+      <numOfPieces>80</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>32768</subPieceSize>
+   </content>
+   <content name="test2">
+      <numOfPieces>16</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>32768</subPieceSize>
+   </content>
+   <content name="test3_1">
+      <numOfPieces>8</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>65536</subPieceSize>
+   </content>
+   <content name="test3_2">
+      <numOfPieces>8</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>65536</subPieceSize>
+   </content>
+   <content name="test3_3">
+      <numOfPieces>8</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>65536</subPieceSize>
+   </content>
+   <content name="test3_4">
+      <numOfPieces>8</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>65536</subPieceSize>
+   </content>
+   <content name="test4">
+      <numOfPieces>16</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>65536</subPieceSize>
+   </content>
+</contentList>

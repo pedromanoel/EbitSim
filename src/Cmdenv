@@ -1,0 +1,74 @@
+#!/bin/bash
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    echo "Usage: $0 <run> [CONFIG]"
+    exit 1
+fi
+
+# script configuration
+#EXEC_FILE="./BitTorrent" # path to the simulation executable
+EXEC_FILE="./BitTorrentSingleProcessor" # path to the simulation executable
+INI_FILE="../simulations/MultiplePeers.ini" # path to the configuration file
+if [[ $# == 2 ]]; then
+    CONFIG=$2
+else
+    CONFIG="MultiplePeers" # name of the configuration
+fi
+#CONFIG="BigScope" # name of the configuration
+ENV="Cmdenv" # Command environment
+#ENV="Tkenv" # TK environment
+LOG_DIR="./logs/run_$1"
+ERR_FILE="err.log" # the log file where all error messages will be written
+OUT_FILE="out.log" # the log file where all log messages will be written
+PWD=pwd # the directory where this script is called
+
+# error if the executable file don't exist
+if [ ! -e $EXEC_FILE ]
+then
+    echo "Executable file \"$EXEC_FILE\" not found."
+    exit 1;
+fi
+
+# error if the config file don't exist
+if [ ! -e $INI_FILE ]
+then
+    echo "Initaliazation file \"$INI_FILE\" not found."
+    exit 1;
+fi
+
+# create the log directory if it don't exist
+if [ ! -d "$LOG_DIR" ]
+then
+    mkdir -p "$LOG_DIR"
+fi
+
+#Filter lines with the following pattern:
+#** Event #1   T=0   Elapsed: 0.000s (0m 00s)  0% completed   ev/sec=0
+EVENT='Event #\([0-9]\+\)'
+SIMTIME='T=\([0-9.]\+\)'
+ELAPSED='Elapsed.*(\(.*\))'
+PERCENTAGE='[ ]\+\([0-9]\+\)%'
+EVSEC='\(ev/sec=[0-9]\+\)'
+# this pattern collects all meaningful information from the simulation output
+PATTERN='.*'$EVENT'.*'$SIMTIME'.*'$ELAPSED'.*'$PERCENTAGE'.*'$EVSEC''
+# this pattern rearranges the collected information so it can be used by zenity progress dialog
+SUBST='\4\n#ev=\1\\nelapsed=\3\\nsim time=\2\\n\5'
+
+# execute the simulation with the passed parameters and send the output to zenity progress dialog
+$EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE |
+sed -u 's_'"$PATTERN"'_'"$SUBST"'_' |
+tee >(zenity --progress --percentage=0) > $LOG_DIR/$OUT_FILE
+
+# show a dialog with information about the success of the run
+if [[ ${PIPESTATUS[0]} = 0 ]]; then
+    zenity --info --text="Simulation finished."
+
+    cd $LOG_DIR
+    ../process_log.py $ERR_FILE
+    cd $PWD
+
+    exit 0
+else
+    zenity --error --text="Simulation exited with an error."
+    exit 1
+fi
