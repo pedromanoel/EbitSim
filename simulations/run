@@ -1,4 +1,4 @@
 #!/bin/sh
 cd `dirname $0`
-../src/bittorrentsingleprocessor -n .:../src $*
-# for shared lib, use: opp_run -l ../src/bittorrentsingleprocessor -n .:../src $*
+../src/ebitsim -n .:../src $*
+# for shared lib, use: opp_run -l ../src/ebitsim -n .:../src $*

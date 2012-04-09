@@ -1,23 +1,79 @@
-all: checkmakefiles
-	cd src && $(MAKE)
+#
+# OMNeT++/OMNEST Makefile for EbitSim
+#
+# This file was generated with the command:
+#  opp_makemake -f --deep --nolink -O out -d src -X. -I/Users/pevangelista/Work/omnetpp-workspace/boost_1_46_1 -I/Users/pevangelista/Work/omnetpp-workspace/smc_6_0_1/lib/C++ -L../inet-20111118/out/$(CONFIGNAME)/src -linet -KINET_20111118_PROJ=../inet-20111118
+#
 
-clean: checkmakefiles
-	cd src && $(MAKE) clean
+# Output directory
+PROJECT_OUTPUT_DIR = out
+PROJECTRELATIVE_PATH =
+O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
-cleanall: checkmakefiles
-	cd src && $(MAKE) MODE=release clean
-	cd src && $(MAKE) MODE=debug clean
-	rm -f src/Makefile
+# Other makefile variables (-K)
+INET_20111118_PROJ=../inet-20111118
 
-makefiles:
-	cd src && opp_makemake -f --deep
+#------------------------------------------------------------------------------
 
-checkmakefiles:
-	@if [ ! -f src/Makefile ]; then \
-	echo; \
-	echo '======================================================================='; \
-	echo 'src/Makefile does not exist. Please use "make makefiles" to generate it!'; \
-	echo '======================================================================='; \
-	echo; \
-	exit 1; \
-	fi
+# Pull in OMNeT++ configuration (Makefile.inc or configuser.vc)
+
+ifneq ("$(OMNETPP_CONFIGFILE)","")
+CONFIGFILE = $(OMNETPP_CONFIGFILE)
+else
+ifneq ("$(OMNETPP_ROOT)","")
+CONFIGFILE = $(OMNETPP_ROOT)/Makefile.inc
+else
+CONFIGFILE = $(shell opp_configfilepath)
+endif
+endif
+
+ifeq ("$(wildcard $(CONFIGFILE))","")
+$(error Config file '$(CONFIGFILE)' does not exist -- add the OMNeT++ bin directory to the path so that opp_configfilepath can be found, or set the OMNETPP_CONFIGFILE variable to point to Makefile.inc)
+endif
+
+include $(CONFIGFILE)
+
+# we want to recompile everything if COPTS changes,
+# so we store COPTS into $COPTS_FILE and have object
+# files depend on it (except when "make depend" was called)
+COPTS_FILE = $O/.last-copts
+ifneq ($(MAKECMDGOALS),depend)
+ifneq ("$(COPTS)","$(shell cat $(COPTS_FILE) 2>/dev/null || echo '')")
+$(shell $(MKPATH) "$O" && echo "$(COPTS)" >$(COPTS_FILE))
+endif
+endif
+
+#------------------------------------------------------------------------------
+# User-supplied makefile fragment(s)
+# >>>
+# <<<
+#------------------------------------------------------------------------------
+
+# Main target
+
+all:  submakedirs Makefile
+	@# Do nothing
+
+submakedirs:  src_dir
+
+.PHONY: all clean cleanall depend msgheaders  src
+src: src_dir
+
+src_dir:
+	cd src && $(MAKE) all
+
+msgheaders:
+	cd src && $(MAKE) msgheaders
+
+clean:
+	-rm -rf $O
+	-rm -f EbitSim EbitSim.exe libEbitSim.so libEbitSim.a libEbitSim.dll libEbitSim.dylib
+
+	-cd src && $(MAKE) clean
+
+cleanall: clean
+	-rm -rf $(PROJECT_OUTPUT_DIR)
+
+depend:
+	-cd src && if [ -f Makefile ]; then $(MAKE) depend; fi
+
