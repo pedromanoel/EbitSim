@@ -1,0 +1,12 @@
+
+.csettings
+
+out
+
+src/EbitSim
+
+src/logs
+
+*_m.cc
+
+*_m.h
