@@ -7,7 +7,7 @@ fi
 
 # script configuration
 #EXEC_FILE="./BitTorrent" # path to the simulation executable
-EXEC_FILE="./BitTorrentSingleProcessor" # path to the simulation executable
+EXEC_FILE="./EbitSim" # path to the simulation executable
 INI_FILE="../simulations/MultiplePeers.ini" # path to the configuration file
 if [[ $# == 2 ]]; then
     CONFIG=$2
@@ -55,13 +55,13 @@ PATTERN='.*'$EVENT'.*'$SIMTIME'.*'$ELAPSED'.*'$PERCENTAGE'.*'$EVSEC''
 SUBST='\4\n#ev=\1\\nelapsed=\3\\nsim time=\2\\n\5'
 
 # execute the simulation with the passed parameters and send the output to zenity progress dialog
-$EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE |
-sed -u 's_'"$PATTERN"'_'"$SUBST"'_' |
-tee >(zenity --progress --percentage=0) > $LOG_DIR/$OUT_FILE
+$EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE #|
+#sed -u 's_'"$PATTERN"'_'"$SUBST"'_' |
+#tee >(zenity --progress --percentage=0) > $LOG_DIR/$OUT_FILE
 
 # show a dialog with information about the success of the run
-if [[ ${PIPESTATUS[0]} = 0 ]]; then
-    zenity --info --text="Simulation finished."
+#if [[ ${PIPESTATUS[0]} = 0 ]]; then
+#    zenity --info --text="Simulation finished."
 
     cd $LOG_DIR
     ../process_log.py $ERR_FILE
@@ -69,6 +69,6 @@ if [[ ${PIPESTATUS[0]} = 0 ]]; then
 
     exit 0
 else
-    zenity --error --text="Simulation exited with an error."
+#    zenity --error --text="Simulation exited with an error."
     exit 1
 fi
