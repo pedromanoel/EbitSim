@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for EbitSim
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep -Xlogs -I/Users/pevangelista/Work/omnetpp-workspace/boost_1_46_1 -I/Users/pevangelista/Work/omnetpp-workspace/smc_6_0_1/lib/C++ -I../../inet-20111118/src/networklayer/rsvp_te -I../../inet-20111118/src/transport/tcp -I../../inet-20111118/src/util -I../../inet-20111118/src/applications/tcpapp -I../../inet-20111118/src/world -I../../inet-20111118/src/transport/sctp -I../../inet-20111118/src/networklayer/ldp -I../../inet-20111118/src/transport/contract -I../../inet-20111118/src/networklayer/mpls -I../../inet-20111118/src/networklayer/ted -I../../inet-20111118/src/base -I../../inet-20111118/src/networklayer/common -I../../inet-20111118/src/linklayer/mfcore -I../../inet-20111118/src/transport/udp -I../../inet-20111118/src/applications/pingapp -I../../inet-20111118/src/networklayer/ipv4 -I../../inet-20111118/src/networklayer/ipv6 -I../../inet-20111118/src/networklayer/arp -I../../inet-20111118/src/networklayer/icmpv6 -I../../inet-20111118/src/linklayer/contract -I../../inet-20111118/src/util/headerserializers -I../../inet-20111118/src/networklayer/contract -L../../inet-20111118/out/$(CONFIGNAME)/src -linet -KINET_20111118_PROJ=../../inet-20111118
+#  opp_makemake -f --deep -I/home/pevangelista/programs/smc_6_0_1/lib/C++ -I/home/pevangelista/programs/boost_1_43_0 -I../../inet-20111118/src/networklayer/rsvp_te -I../../inet-20111118/src/transport/tcp -I../../inet-20111118/src/util -I../../inet-20111118/src/applications/tcpapp -I../../inet-20111118/src/world -I../../inet-20111118/src/transport/sctp -I../../inet-20111118/src/networklayer/ldp -I../../inet-20111118/src/transport/contract -I../../inet-20111118/src/networklayer/mpls -I../../inet-20111118/src/networklayer/ted -I../../inet-20111118/src/base -I../../inet-20111118/src/networklayer/common -I../../inet-20111118/src/linklayer/mfcore -I../../inet-20111118/src/transport/udp -I../../inet-20111118/src/applications/pingapp -I../../inet-20111118/src/networklayer/ipv4 -I../../inet-20111118/src/networklayer/ipv6 -I../../inet-20111118/src/networklayer/arp -I../../inet-20111118/src/networklayer/icmpv6 -I../../inet-20111118/src/linklayer/contract -I../../inet-20111118/src/util/headerserializers -I../../inet-20111118/src/networklayer/contract -L../../inet-20111118/out/$(CONFIGNAME)/src -linet -KINET_20111118_PROJ=../../inet-20111118
 #
 
 # Name of target to be created (-o option)
@@ -15,8 +15,8 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(CMDENV_LIBS)
 
 # C++ include paths (with -I)
 INCLUDE_PATH = \
-    -I/Users/pevangelista/Work/omnetpp-workspace/boost_1_46_1 \
-    -I/Users/pevangelista/Work/omnetpp-workspace/smc_6_0_1/lib/C++ \
+    -I/home/pevangelista/programs/smc_6_0_1/lib/C++ \
+    -I/home/pevangelista/programs/boost_1_43_0 \
     -I../../inet-20111118/src/networklayer/rsvp_te \
     -I../../inet-20111118/src/transport/tcp \
     -I../../inet-20111118/src/util \
@@ -45,8 +45,11 @@ INCLUDE_PATH = \
     -Iclient/messages \
     -Iclient/other \
     -Iclient/smc \
+    -Iclient/smc/images \
     -Iclient/smc/out \
     -Icontroller \
+    -Ilogs \
+    -Ilogs/run_0 \
     -Inodes \
     -Itracker \
     -Itracker/connection \
@@ -67,44 +70,40 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc and .msg files
 OBJS = \
-    $O/client/BitTorrentClient.o \
+    $O/client/SwarmManager.o \
     $O/client/Choker.o \
-    $O/client/ClientController.o \
     $O/client/ClientControllerSeq.o \
     $O/client/ContentManager.o \
-    $O/client/Statistics.o \
-    $O/client/SwarmManager.o \
-    $O/client/connection/PeerWireThread.o \
-    $O/client/connection/PeerWireThreadConnection.o \
+    $O/client/BitTorrentClient.o \
+    $O/client/ClientController.o \
     $O/client/connection/PeerWireThreadDownload.o \
     $O/client/connection/PeerWireThreadUpload.o \
+    $O/client/connection/PeerWireThreadConnection.o \
+    $O/client/connection/PeerWireThread.o \
     $O/client/connection/SwarmManagerThread.o \
     $O/client/other/BitField.o \
-    $O/client/other/DataRateRollingAverage.o \
-    $O/client/other/NumberBitField.o \
-    $O/client/other/PeerEntry.o \
     $O/client/other/RarestPieceCounter.o \
-    $O/client/other/TcpIp.o \
+    $O/client/other/PeerEntry.o \
+    $O/client/other/DataRateRollingAverage.o \
+    $O/client/smc/out/UploadSM_sm.o \
     $O/client/smc/out/ConnectionSM_sm.o \
     $O/client/smc/out/DownloadSM_sm.o \
-    $O/client/smc/out/UploadSM_sm.o \
     $O/controller/DataSimulationControl.o \
     $O/controller/SimulationController.o \
-    $O/nodes/GlobalStatistics.o \
     $O/tracker/TrackerApp.o \
     $O/tracker/connection/PeerConnectionThread.o \
     $O/tracker/other/PeerInfo.o \
     $O/client/messages/Application_m.o \
-    $O/client/messages/PeerWire_m.o \
     $O/client/messages/PeerWireMsgBundle_m.o \
+    $O/client/messages/PeerWire_m.o \
     $O/tracker/messages/AnnounceRequestMsg_m.o \
     $O/tracker/messages/AnnounceResponseMsg_m.o
 
 # Message files
 MSGFILES = \
     client/messages/Application.msg \
-    client/messages/PeerWire.msg \
     client/messages/PeerWireMsgBundle.msg \
+    client/messages/PeerWire.msg \
     tracker/messages/AnnounceRequestMsg.msg \
     tracker/messages/AnnounceResponseMsg.msg
 
@@ -184,8 +183,11 @@ clean:
 	-rm -f client/messages/*_m.cc client/messages/*_m.h
 	-rm -f client/other/*_m.cc client/other/*_m.h
 	-rm -f client/smc/*_m.cc client/smc/*_m.h
+	-rm -f client/smc/images/*_m.cc client/smc/images/*_m.h
 	-rm -f client/smc/out/*_m.cc client/smc/out/*_m.h
 	-rm -f controller/*_m.cc controller/*_m.h
+	-rm -f logs/*_m.cc logs/*_m.h
+	-rm -f logs/run_0/*_m.cc logs/run_0/*_m.h
 	-rm -f nodes/*_m.cc nodes/*_m.h
 	-rm -f tracker/*_m.cc tracker/*_m.h
 	-rm -f tracker/connection/*_m.cc tracker/connection/*_m.h
@@ -196,7 +198,7 @@ cleanall: clean
 	-rm -rf $(PROJECT_OUTPUT_DIR)
 
 depend:
-	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc client/*.cc client/connection/*.cc client/messages/*.cc client/other/*.cc client/smc/*.cc client/smc/out/*.cc controller/*.cc nodes/*.cc tracker/*.cc tracker/connection/*.cc tracker/messages/*.cc tracker/other/*.cc
+	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc client/*.cc client/connection/*.cc client/messages/*.cc client/other/*.cc client/smc/*.cc client/smc/images/*.cc client/smc/out/*.cc controller/*.cc logs/*.cc logs/run_0/*.cc nodes/*.cc tracker/*.cc tracker/connection/*.cc tracker/messages/*.cc tracker/other/*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/client/BitTorrentClient.o: client/BitTorrentClient.cc \
@@ -209,7 +211,6 @@ $O/client/BitTorrentClient.o: client/BitTorrentClient.cc \
 	client/other/BitField.h \
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
-	client/other/TcpIp.h \
 	client/smc/out/ConnectionSM_sm.h \
 	client/smc/out/DownloadSM_sm.h \
 	client/smc/out/UploadSM_sm.h \
@@ -236,7 +237,6 @@ $O/client/Choker.o: client/Choker.cc \
 	client/other/BitField.h \
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
-	client/other/TcpIp.h \
 	tracker/messages/AnnounceRequestMsg_m.h \
 	tracker/messages/AnnounceResponseMsg_m.h \
 	tracker/other/PeerInfo.h \
@@ -294,7 +294,6 @@ $O/client/ContentManager.o: client/ContentManager.cc \
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
 	client/other/RarestPieceCounter.h \
-	client/other/TcpIp.h \
 	tracker/messages/AnnounceRequestMsg_m.h \
 	tracker/messages/AnnounceResponseMsg_m.h \
 	tracker/other/PeerInfo.h \
@@ -306,9 +305,6 @@ $O/client/ContentManager.o: client/ContentManager.cc \
 	$(INET_20111118_PROJ)/src/transport/contract/TCPCommand_m.h \
 	$(INET_20111118_PROJ)/src/transport/contract/TCPSocket.h \
 	$(INET_20111118_PROJ)/src/transport/contract/TCPSocketMap.h
-$O/client/Statistics.o: client/Statistics.cc \
-	client/Statistics.h \
-	nodes/GlobalStatistics.h
 $O/client/SwarmManager.o: client/SwarmManager.cc \
 	client/BitTorrentClient.h \
 	client/Choker.h \
@@ -320,7 +316,6 @@ $O/client/SwarmManager.o: client/SwarmManager.cc \
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
 	client/other/RarestPieceCounter.h \
-	client/other/TcpIp.h \
 	tracker/TrackerApp.h \
 	tracker/messages/AnnounceRequestMsg_m.h \
 	tracker/messages/AnnounceResponseMsg_m.h \
@@ -345,7 +340,6 @@ $O/client/connection/PeerWireThread.o: client/connection/PeerWireThread.cc \
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
 	client/other/RarestPieceCounter.h \
-	client/other/TcpIp.h \
 	client/smc/out/ConnectionSM_sm.h \
 	client/smc/out/DownloadSM_sm.h \
 	client/smc/out/UploadSM_sm.h \
@@ -374,7 +368,6 @@ $O/client/connection/PeerWireThreadConnection.o: client/connection/PeerWireThrea
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
 	client/other/RarestPieceCounter.h \
-	client/other/TcpIp.h \
 	client/smc/out/ConnectionSM_sm.h \
 	client/smc/out/DownloadSM_sm.h \
 	client/smc/out/UploadSM_sm.h \
@@ -404,7 +397,6 @@ $O/client/connection/PeerWireThreadDownload.o: client/connection/PeerWireThreadD
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
 	client/other/RarestPieceCounter.h \
-	client/other/TcpIp.h \
 	client/smc/out/ConnectionSM_sm.h \
 	client/smc/out/DownloadSM_sm.h \
 	client/smc/out/UploadSM_sm.h \
@@ -431,7 +423,6 @@ $O/client/connection/PeerWireThreadUpload.o: client/connection/PeerWireThreadUpl
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
 	client/other/RarestPieceCounter.h \
-	client/other/TcpIp.h \
 	client/smc/out/ConnectionSM_sm.h \
 	client/smc/out/DownloadSM_sm.h \
 	client/smc/out/UploadSM_sm.h \
@@ -455,7 +446,6 @@ $O/client/connection/SwarmManagerThread.o: client/connection/SwarmManagerThread.
 	client/other/BitField.h \
 	client/other/DataRateRollingAverage.h \
 	client/other/PeerEntry.h \
-	client/other/TcpIp.h \
 	tracker/TrackerApp.h \
 	tracker/messages/AnnounceRequestMsg_m.h \
 	tracker/messages/AnnounceResponseMsg_m.h \
@@ -481,25 +471,12 @@ $O/client/other/BitField.o: client/other/BitField.cc \
 	client/other/BitField.h
 $O/client/other/DataRateRollingAverage.o: client/other/DataRateRollingAverage.cc \
 	client/other/DataRateRollingAverage.h
-$O/client/other/NumberBitField.o: client/other/NumberBitField.cc \
-	client/other/NumberBitField.h
 $O/client/other/PeerEntry.o: client/other/PeerEntry.cc \
 	client/other/DataRateRollingAverage.h \
-	client/other/PeerEntry.h \
-	client/other/TcpIp.h \
-	$(INET_20111118_PROJ)/src/base/INETDefs.h \
-	$(INET_20111118_PROJ)/src/networklayer/contract/IPAddress.h \
-	$(INET_20111118_PROJ)/src/networklayer/contract/IPv6Address.h \
-	$(INET_20111118_PROJ)/src/networklayer/contract/IPvXAddress.h
+	client/other/PeerEntry.h
 $O/client/other/RarestPieceCounter.o: client/other/RarestPieceCounter.cc \
 	client/other/BitField.h \
 	client/other/RarestPieceCounter.h
-$O/client/other/TcpIp.o: client/other/TcpIp.cc \
-	client/other/TcpIp.h \
-	$(INET_20111118_PROJ)/src/base/INETDefs.h \
-	$(INET_20111118_PROJ)/src/networklayer/contract/IPAddress.h \
-	$(INET_20111118_PROJ)/src/networklayer/contract/IPv6Address.h \
-	$(INET_20111118_PROJ)/src/networklayer/contract/IPvXAddress.h
 $O/client/smc/out/ConnectionSM_sm.o: client/smc/out/ConnectionSM_sm.cc \
 	client/connection/PeerWireThread.h \
 	client/messages/Application_m.h \
@@ -573,8 +550,6 @@ $O/controller/SimulationController.o: controller/SimulationController.cc \
 	$(INET_20111118_PROJ)/src/transport/tcp/TCPConnection.h \
 	$(INET_20111118_PROJ)/src/transport/tcp/TCPSegment.h \
 	$(INET_20111118_PROJ)/src/transport/tcp/TCPSegment_m.h
-$O/nodes/GlobalStatistics.o: nodes/GlobalStatistics.cc \
-	nodes/GlobalStatistics.h
 $O/tracker/TrackerApp.o: tracker/TrackerApp.cc \
 	client/other/BitField.h \
 	controller/DataSimulationControl.h \

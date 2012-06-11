@@ -10,11 +10,66 @@ following features:
 
 For now, this model does not come with documentation other
 than the comments on the code. Check the article with the
-same name, presented at MASCOTS 201, for further information.
+same name, presented at MASCOTS 2011, for further information.
 
-This code was built with omnetpp-4.2 and it needs an
-installation of inet-20111118. When compiling, don't forget
-to run 'make' inside the folder src/client/smc.
+DEPENDENCIES
 
-It is highly recommended that you use the OMNeT++ IDE that
-comes with the installation.
+This code was built with omnetpp-4.2.2 and it needs an
+installation of inet-20111118.
+
+They both can be found at the links:
+http://www.omnetpp.org/omnetpp
+http://inet.omnetpp.org/
+
+Extract omnetpp and inet in a folder of your choice, where the
+omnetpp workspace will be created ("~/Workspace", for example).
+
+In a fresh Ubuntu install, it is necessary to install the
+following packages to compile omnetpp:
+- default-jre
+- build-essential
+- zlib1g-dev
+- tcl8.4-dev
+- tk8.4-dev
+- tclreadline
+- blt-dev
+- libxml2-dev
+- libpcap-dev
+
+Run the following command to install these packages
+$ sudo apt-get install default-jre build-essential zlib1g-dev tcl8.4-dev\
+ tk8.4-dev tclreadline blt-dev libxml2-dev libpcap-dev
+
+In order to compile Ebitsim, it is necessary to download the smc and boost libraries:
+SMC: http://smc.sourceforge.net/
+Boost: http://www.boost.org/
+
+Extract them somewere in your home folder, such as "~/libs".
+
+INSTALLATION
+
+1. Compile omnetpp-4.2.2 by running the following commands:
+$ ./configure
+$ make
+
+If you face any problems, please refer to the omnetpp installation guide.
+
+2. Install the smc
+Create the file "~/bin/smc" with the following content:
+#!/bin/bash
+if [[ $# > 0 ]]
+then
+    java -jar PATH-TO-SMC-INSTALL/bin/Smc.jar $*
+else
+    echo "Usage: smc -{targetlanguage} {options} {smfilename}.sm"
+fi
+
+Substitute PATH-TO-SMC-INSTALL with the path where you extracted the smc
+("~/libs/smc_VERSION" if you followed the suggestion above).
+
+3. Compile the inet framework and the EBitSim project
+Open the omnetpp IDE and add the projects EBitSim and inet to the workspace.
+If you followed the suggestion from this guide, they should be at "~/Workspace".
+Run 'make' inside the folder src/client/smc.
+Compile both projects and you're set to go!
+
