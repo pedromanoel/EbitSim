@@ -89,27 +89,12 @@ module BitTorrentApp
         input tcpIn[2];
         output tcpOut[2];
     submodules:
-//        statistics: Statistics {
-//            @display("p=80,42");
-//        }
         swarmManager: SwarmManager {
             @display("p=200,120");
         }
         bitTorrentClient: BitTorrentClient {
             @display("p=200,280");
         }
-        //        notificationBoard: NotificationBoard {
-        //            @display("p=80,40");
-        //        }
-//        connectedPeerManager: ConnectedPeerManager {
-//            @display("p=80,358");
-//        }
-//        choker: Choker {
-//            @display("p=80,120");
-//        }
-//        contentManager: ContentManager {
-//            @display("p=80,280");
-//        }
         clientController: <clientControllerModule> like ClientControllerInterface {
             @display("p=80,200");
         }

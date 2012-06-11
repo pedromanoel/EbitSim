@@ -74,6 +74,7 @@
 #define __CHOKER_H__
 
 #include <omnetpp.h>
+#include <vector>
 
 class BitTorrentClient;
 class PeerEntry;
@@ -157,7 +158,6 @@ private:
     unsigned int numberOfUploadSlots;
     long optimisticCounter;
 
-
     //! Set to true to print debug messages
     bool debugFlag;
     //! The infoHash of the swarm this ContentManager is serving.
@@ -170,32 +170,13 @@ private:
     //@{
     std::set<int> regularUploadSlots;
     std::set<int> optimisticUploadSlots;
-//    std::vector<int> regularUploadSlots;
-//    std::vector<int> optimisticUploadSlots;
     //@}
 
-    //@!name Choking state sets
-    /*!
-     * Three lists control the choke state of the peers. When a Peer is inserted
-     * in one of those lists and it is not in that state, a ChokeMsg or UnchokeMsg
-     * message is sent.
-     */
-    //@{
-    //! All optimistic unchoked peers.
-//    std::set<int> optimisticUnchokedPeers;
-    //! All normal unchoked peers.
-//    std::set<int> unchokedPeers;
-    //! All choked peers.
-//    std::set<int> chokedPeers;
-    //@}
     cMessage roundTimer;
     cMessage chokeAlgorithmTimer;
     BitTorrentClient *bitTorrentClient;
 private:
     void chokeAlgorithm(bool optimisticRound = false);
-//    void changeChokingStates(PeerEntryPtrVectorIt & begin,
-//            PeerEntryPtrVectorIt & end, int numberOfRegulars,
-//            int numberOfOptimistics);
     //! Print a debug message to clog.
     void printDebugMsg(std::string s);
     void updateStatusString();

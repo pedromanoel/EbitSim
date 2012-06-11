@@ -215,7 +215,7 @@ private:
     //! The number of pieces the content is divided.
     int numberOfPieces;
     //! The number of request messages that can be sent together.
-    int requestBundleSize;
+    unsigned int requestBundleSize;
     //! Total downloaded from all Peers
     int totalBytesDownloaded;
     //! Total uploaded from all Peers

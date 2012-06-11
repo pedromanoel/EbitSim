@@ -92,201 +92,194 @@ using boost::make_tuple;
 
 // ConnectionSM's external transition callers
 void PeerWireThread::outgoingPeerWireMsg_ConnectionSM(PeerWireMsg * msg) {
-	//    if (msg != NULL) {
-	//    }
-	this->connectionSm.outgoingPeerWireMsg(msg);
+    this->connectionSm.outgoingPeerWireMsg(msg);
 }
 void PeerWireThread::outgoingPeerWireMsg_ConnectionSM(PeerWireMsgBundle * msg) {
-	if (msg != NULL) {
-		this->connectionSm.outgoingPeerWireMsg(msg);
-	}
+    if (msg != NULL) {
+        this->connectionSm.outgoingPeerWireMsg(msg);
+    }
 }
 
 // Connection State Machine transitions
 void PeerWireThread::addConnectedPeer() {
-	this->btClient->addConnectedPeer(this->infoHash, this->remotePeerId, this,
-			this->activeConnection);
-	// start an empty BitField for this connection
-	this->contentManager->addEmptyBitField(this->remotePeerId);
+    this->btClient->addConnectedPeer(this->infoHash, this->remotePeerId, this,
+            this->activeConnection);
+    // start an empty BitField for this connection
+    this->contentManager->addEmptyBitField(this->remotePeerId);
 
-	std::ostringstream out;
-	out << "Connection established.";
-	this->printDebugMsgConnection(out.str());
+    std::ostringstream out;
+    out << "Connection established.";
+    this->printDebugMsgConnection(out.str());
 }
 BitFieldMsg * PeerWireThread::getBitFieldMsg() {
-	return this->contentManager->getClientBitFieldMsg();
+    return this->contentManager->getClientBitFieldMsg();
 }
 Handshake * PeerWireThread::getHandshake() {
-	if (this->infoHash == -1 || this->remotePeerId == -1) {
-		throw std::logic_error(
-				"Trying to send a handshake with peerId or infoHash undefined.");
-	}
+    if (this->infoHash == -1 || this->remotePeerId == -1) {
+        throw std::logic_error(
+                "Trying to send a handshake with peerId or infoHash undefined.");
+    }
 
-	Handshake * handshake = new Handshake("Handshake");
-	handshake->setInfoHash(this->infoHash);
-	handshake->setPeerId(this->btClient->localPeerId);
-	handshake->setByteLength(handshake->getLength());
-	return handshake;
+    Handshake * handshake = new Handshake("Handshake");
+    handshake->setInfoHash(this->infoHash);
+    handshake->setPeerId(this->btClient->localPeerId);
+    handshake->setByteLength(handshake->getLength());
+    return handshake;
 }
 KeepAliveMsg * PeerWireThread::getKeepAliveMsg() {
-	return new KeepAliveMsg("KeepAliveMsg");
+    return new KeepAliveMsg("KeepAliveMsg");
 }
 void PeerWireThread::renewKeepAliveTimer() {
-	this->cancelEvent(&this->keepAliveTimer);
-	this->scheduleAt(simTime() + this->btClient->keepAliveInterval,
-			&this->keepAliveTimer);
+    this->cancelEvent(&this->keepAliveTimer);
+    this->scheduleAt(simTime() + this->btClient->keepAliveInterval,
+            &this->keepAliveTimer);
 }
 void PeerWireThread::renewTimeoutTimer() {
-	this->cancelEvent(&this->timeoutTimer);
-	this->scheduleAt(simTime() + this->btClient->timeoutInterval,
-			&this->timeoutTimer);
+    this->cancelEvent(&this->timeoutTimer);
+    this->scheduleAt(simTime() + this->btClient->timeoutInterval,
+            &this->timeoutTimer);
 }
 void PeerWireThread::sendPeerWireMsg(cPacket * msg) {
-	// The packet's byte length is not automatically calculated, so it must be
-	// set manually.
-	if (dynamic_cast<PeerWireMsgBundle*> (msg)) {
-		PeerWireMsgBundle* bundle = static_cast<PeerWireMsgBundle*> (msg);
-		// Set the size of the packet, then send it. Suppose that the messages
-		// inside the bundle have their size correctly set.
-		bundle->setByteLength(bundle->getBundle().length());
-	} else if (dynamic_cast<PeerWireMsg*> (msg)) {
-		PeerWireMsg * peerWireMsg = static_cast<PeerWireMsg*> (msg);
-		// Set the real payload length (constant + variable). See PeerWire.msg
-		// for more details.
-		peerWireMsg->setPayloadLen(peerWireMsg->getPayloadLen()
-				+ peerWireMsg->getVariablePayloadLen());
-		peerWireMsg->setByteLength(peerWireMsg->getPayloadLen()
-				+ peerWireMsg->getHeaderLen());
-	} else {
-		throw std::logic_error("Wrong type of message");
-	}
+    // The packet's byte length is not automatically calculated, so it must be
+    // set manually.
+    if (dynamic_cast<PeerWireMsgBundle*>(msg)) {
+        PeerWireMsgBundle* bundle = static_cast<PeerWireMsgBundle*>(msg);
+        // Set the size of the packet, then send it. Suppose that the messages
+        // inside the bundle have their size correctly set.
+        bundle->setByteLength(bundle->getBundle().length());
+    } else if (dynamic_cast<PeerWireMsg*>(msg)) {
+        PeerWireMsg * peerWireMsg = static_cast<PeerWireMsg*>(msg);
+        // Set the real payload length (constant + variable). See PeerWire.msg
+        // for more details.
+        peerWireMsg->setPayloadLen(
+                peerWireMsg->getPayloadLen()
+                        + peerWireMsg->getVariablePayloadLen());
+        peerWireMsg->setByteLength(
+                peerWireMsg->getPayloadLen() + peerWireMsg->getHeaderLen());
+    } else {
+        throw std::logic_error("Wrong type of message");
+    }
 
-	this->btClient->peerWireStatistics(msg, true);
+    this->btClient->peerWireStatistics(msg, true);
 
-	if (this->getSocket()->getState() != TCPSocket::CONNECTED) {
-		// tried to send a message, but the connection is not established.
-		// log this event and delete the message
-		std::ostringstream out;
-		out << "Tried to send message \"" << msg->getName();
-		out << "\", but the socket is not connected";
-		this->printDebugMsgConnection(out.str());
-		delete msg;
-	} else {
-		std::ostringstream out;
-		out << "Message \"" << msg->getName();
-		out << "\" sent";
-		this->printDebugMsgConnection(out.str());
-		// claim ownership over the message since it may not have been created in
-		// this module.
-		this->btClient->take(msg);
-		// send the message to the connected Peer.
-		this->getSocket()->send(msg);
-	}
+    if (this->getSocket()->getState() != TCPSocket::CONNECTED) {
+        // tried to send a message, but the connection is not established.
+        // log this event and delete the message
+        std::ostringstream out;
+        out << "Tried to send message \"" << msg->getName();
+        out << "\", but the socket is not connected";
+        this->printDebugMsgConnection(out.str());
+        delete msg;
+    } else {
+        std::ostringstream out;
+        out << "Message \"" << msg->getName();
+        out << "\" sent";
+        this->printDebugMsgConnection(out.str());
+        // claim ownership over the message since it may not have been created in
+        // this module.
+        this->btClient->take(msg);
+        // send the message to the connected Peer.
+        this->getSocket()->send(msg);
+    }
 }
 void PeerWireThread::startHandshakeTimers() {
-	this->stopHandshakeTimers();
+    this->stopHandshakeTimers();
 
-	this->scheduleAt(simTime() + this->btClient->timeoutInterval,
-			&this->timeoutTimer);
-	this->scheduleAt(simTime() + this->btClient->keepAliveInterval,
-			&this->keepAliveTimer);
+    this->scheduleAt(simTime() + this->btClient->timeoutInterval,
+            &this->timeoutTimer);
+    this->scheduleAt(simTime() + this->btClient->keepAliveInterval,
+            &this->keepAliveTimer);
 }
 void PeerWireThread::stopHandshakeTimers() {
-	this->cancelEvent(&this->timeoutTimer);
-	this->cancelEvent(&this->keepAliveTimer);
+    this->cancelEvent(&this->timeoutTimer);
+    this->cancelEvent(&this->keepAliveTimer);
 }
 void PeerWireThread::terminateThread() {
-	// abort the connection
-	this->sock->abort();
+    // abort the connection
+    this->sock->abort();
 
-	// remove the connection from the BitTorrentClient
-	if (this->infoHash != -1 && this->remotePeerId != 1) {
-		this->btClient->removePeerInfo(this->infoHash, this->remotePeerId,
-				this->sock->getConnectionId(), this->activeConnection);
-	}
+    // remove the connection from the BitTorrentClient
+    if (this->infoHash != -1 && this->remotePeerId != 1) {
+        this->btClient->removePeerInfo(this->infoHash, this->remotePeerId,
+                this->sock->getConnectionId(), this->activeConnection);
+    }
 
-	// remove the peer from the swarm related modules
-	if (this->contentManager != NULL) {
-		this->contentManager->removePeerInfo(this->remotePeerId);
-	}
-	if (this->choker != NULL) {
-		this->choker->removePeerInfo(this->remotePeerId);
-	}
+    // remove the peer from the swarm related modules
+    if (this->contentManager != NULL) {
+        this->contentManager->removePeerInfo(this->remotePeerId);
+    }
+    if (this->choker != NULL) {
+        this->choker->removePeerInfo(this->remotePeerId);
+    }
 
-	// cancel all messages that were going to be executed
-	while (!this->peerWireMessageBuffer.empty()) {
-		std::ostringstream out;
-		cObject * msg = this->peerWireMessageBuffer.pop();
-		out << "Canceled message \"" << msg->getName() << "\"";
-		this->printDebugMsg(out.str());
-		delete msg;
-	}
-	while (!this->applicationMsgQueue.empty()) {
-		std::ostringstream out;
-		cObject * appMsg = this->applicationMsgQueue.pop();
+    // cancel all messages that were going to be executed
+    while (!this->peerWireMessageBuffer.empty()) {
+        std::ostringstream out;
+        cObject * msg = this->peerWireMessageBuffer.pop();
+        out << "Canceled message \"" << msg->getName() << "\"";
+        this->printDebugMsg(out.str());
+        delete msg;
+    }
+    while (!this->applicationMsgQueue.empty()) {
+        std::ostringstream out;
+        cObject * appMsg = this->applicationMsgQueue.pop();
 
-		out << "Canceled application message \"" << appMsg->getName() << "\"";
-		this->printDebugMsg(out.str());
-		delete appMsg;
-	}
+        out << "Canceled application message \"" << appMsg->getName() << "\"";
+        this->printDebugMsg(out.str());
+        delete appMsg;
+    }
 
-	// These events where canceled already
-	//    assert(!this->keepAliveTimer.isScheduled());
-	//    assert(!this->timeoutTimer.isScheduled());
-	//    assert(!this->snubbedTimer.isScheduled());
-	//    assert(!this->downloadRateTimer.isScheduled());
-	//    assert(!this->uploadRateTimer.isScheduled());
+    // These events where canceled already
+    //    assert(!this->keepAliveTimer.isScheduled());
+    //    assert(!this->timeoutTimer.isScheduled());
+    //    assert(!this->snubbedTimer.isScheduled());
+    //    assert(!this->downloadRateTimer.isScheduled());
+    //    assert(!this->uploadRateTimer.isScheduled());
 
-	// This thread is completely detached from the Swarm, meaning that no module
-	// will issue transitions to the state machines. This thread will be deleted
-	// at the end of the processing.
-	this->terminated = true;
-
-	// schedule the message that will close this thread. The thread cannot be
-	// deleted here because this method is called from the state machine, so
-	// deleting the thread means deleting the connectionSm before exiting its
-	// method call.
-	//    this->scheduleAt(simTime(), &selfThreadDeleteTimer);
+    // This thread is completely detached from the Swarm, meaning that no module
+    // will issue transitions to the state machines. This thread will be deleted
+    // at the end of the processing.
+    this->terminated = true;
 }
 // transition guards
 bool PeerWireThread::checkHandshake(Handshake const& hs) {
-	// verify if infoHash is available
-	std::pair<Choker*, ContentManager*> modules =
-			this->btClient->swarmManager->checkSwarm(hs.getInfoHash());
+    // verify if infoHash is available
+    std::pair<Choker*, ContentManager*> modules =
+            this->btClient->swarmManager->checkSwarm(hs.getInfoHash());
 
-	// true if no peerId is expected or if the received peerId matches the expected.
-	bool validPeerId = (this->remotePeerId == -1) || (this->remotePeerId
-			== hs.getPeerId());
+    // true if no peerId is expected or if the received peerId matches the expected.
+    bool validPeerId = (this->remotePeerId == -1)
+            || (this->remotePeerId == hs.getPeerId());
 
-	bool canConnect = this->btClient->canConnect(hs.getInfoHash(),
-			hs.getPeerId(), this->activeConnection);
+    bool canConnect = this->btClient->canConnect(hs.getInfoHash(),
+            hs.getPeerId(), this->activeConnection);
 
-	bool swarmExists = modules.first && modules.second && validPeerId;
+    bool swarmExists = modules.first && modules.second && validPeerId;
 
-	if (validPeerId && canConnect && swarmExists) {
-		// set this connection's parameters
-		this->remotePeerId = hs.getPeerId();
-		this->infoHash = hs.getInfoHash();
-		// attach the swarm modules to this connection
-		this->choker = modules.first;
-		this->contentManager = modules.second;
-	} else {
-		std::ostringstream out;
-		out << "Handshake refused";
-		if (!validPeerId) {
-			out << "(invalid peerId)";
-		}
-		if (!canConnect) {
-			out << "(can't connect)";
-		}
-		if (!swarmExists) {
-			out << "(swarm don't exist)";
-		}
-		this->printDebugMsgConnection(out.str());
-	}
+    if (validPeerId && canConnect && swarmExists) {
+        // set this connection's parameters
+        this->remotePeerId = hs.getPeerId();
+        this->infoHash = hs.getInfoHash();
+        // attach the swarm modules to this connection
+        this->choker = modules.first;
+        this->contentManager = modules.second;
+    } else {
+        std::ostringstream out;
+        out << "Handshake refused";
+        if (!validPeerId) {
+            out << "(invalid peerId)";
+        }
+        if (!canConnect) {
+            out << "(can't connect)";
+        }
+        if (!swarmExists) {
+            out << "(swarm don't exist)";
+        }
+        this->printDebugMsgConnection(out.str());
+    }
 
-	return validPeerId && canConnect && swarmExists;
+    return validPeerId && canConnect && swarmExists;
 }
 bool PeerWireThread::isBitFieldEmpty() {
-	return this->contentManager->isBitFieldEmpty();
+    return this->contentManager->isBitFieldEmpty();
 }

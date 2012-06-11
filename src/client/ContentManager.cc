@@ -79,12 +79,11 @@
 
 #include "BitTorrentClient.h"
 #include "SwarmManager.h"
-//#include "Statistics.h"
 #include "PeerWire_m.h"
 #include "PeerWireMsgBundle_m.h"
 
 Piece::Piece(int pieceIndex, int numOfBlocks) :
-    downloadedBlocks(0), numOfBlocks(numOfBlocks), pieceIndex(pieceIndex) {
+        downloadedBlocks(0), numOfBlocks(numOfBlocks), pieceIndex(pieceIndex) {
     for (int i = 0; i < numOfBlocks; ++i) {
         this->blocks.insert(std::make_pair(pieceIndex, i));
     }
@@ -112,15 +111,14 @@ int Piece::getPieceIndex() const {
     return this->pieceIndex;
 }
 
-Define_Module( ContentManager);
+Define_Module(ContentManager);
 
 ContentManager::ContentManager() :
-    bitTorrentClient(NULL), /*clientController(NULL), swarmManager(NULL),
-     statistics(NULL), */subPieceSize(0), debugFlag(false), haveBundleSize(0),
-            numberOfSubPieces(0), numberOfPieces(0), requestBundleSize(0),
-            totalBytesDownloaded(0), totalBytesUploaded(0), infoHash(-1),
-            localPeerId(-1), firstMarkEmitted(false), secondMarkEmitted(false),
-            thirdMarkEmitted(false) {
+        bitTorrentClient(NULL), subPieceSize(0), debugFlag(false), haveBundleSize(
+                0), numberOfSubPieces(0), numberOfPieces(0), requestBundleSize(
+                0), totalBytesDownloaded(0), totalBytesUploaded(0), infoHash(
+                -1), localPeerId(-1), firstMarkEmitted(false), secondMarkEmitted(
+                false), thirdMarkEmitted(false) {
 }
 ContentManager::~ContentManager() {
     std::cerr << this->localPeerId << " completed ";
@@ -148,8 +146,9 @@ void ContentManager::addEmptyBitField(int peerId) {
     }
 
     // initializes all maps
-    this->peerBitFields.insert(std::make_pair(peerId, BitField(
-            this->clientBitField.size(), false)));
+    this->peerBitFields.insert(
+            std::make_pair(peerId,
+                    BitField(this->clientBitField.size(), false)));
     this->pendingRequests[peerId]; // default empty set
     //    this->requestedPieces[peerId]; // default empty set
     this->totalDownloadedByPeer[peerId] = 0;
@@ -175,7 +174,6 @@ void ContentManager::addPeerBitField(BitField const& bitField, int peerId) {
     // initializes all maps
     this->peerBitFields.insert(std::make_pair(peerId, peerBitField));
     this->pendingRequests[peerId]; // default empty set
-    //    this->requestedPieces[peerId]; // default empty set
     this->totalDownloadedByPeer[peerId] = 0;
     this->totalUploadedByPeer[peerId] = 0;
 
@@ -201,7 +199,6 @@ void ContentManager::cancelPendingRequests(int peerId) {
     out << "Canceling requested pieces: ";
     while (it != endIt) {
         currentIt = it++;
-        // pair <pieceIndex, peerId>
         if (currentIt->second == peerId) {
             this->requestedPieces.erase(currentIt);
             out << currentIt->first << " ";
@@ -232,16 +229,16 @@ BitFieldMsg* ContentManager::getClientBitFieldMsg() {
 
     return bitFieldMsg;
 }
-BitField const& ContentManager::getClientBitField() const{
-	return this->clientBitField;
+BitField const& ContentManager::getClientBitField() const {
+    return this->clientBitField;
 }
 PeerWireMsgBundle* ContentManager::getNextRequestBundle(int peerId) {
     Enter_Method("getNextRequestBundle(index: %d)", peerId);
 
     // error if the peerId is not in the pendingRequestQueues, meaning that the
     // BitField was not defined.
-    std::map<int, std::set<std::pair<int, int> > >::iterator
-            peerPendingRequestsIt = this->pendingRequests.find(peerId);
+    std::map<int, std::set<std::pair<int, int> > >::iterator peerPendingRequestsIt =
+            this->pendingRequests.find(peerId);
     if (peerPendingRequestsIt == this->pendingRequests.end()) {
         std::ostringstream out;
         out << "Peer with id '" << peerId << "' is not in the ContentManager.";
@@ -310,8 +307,7 @@ PeerWireMsgBundle* ContentManager::getNextRequestBundle(int peerId) {
 }
 PieceMsg* ContentManager::getPieceMsg(int peerId, int index, int begin,
         int reqLength) {
-    Enter_Method(
-            "getPieceMsg(peerId: %d, index: %d, begin: %d, reqLength: %d)",
+    Enter_Method("getPieceMsg(peerId: %d, index: %d, begin: %d, reqLength: %d)",
             peerId, index, begin, reqLength);
 
     if (index < 0 || index >= this->numberOfPieces) {
@@ -388,8 +384,8 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
 
     int blockIndex = begin / blockSize;
     // remove the received block from the Peer's pending request queue
-    this->pendingRequests.at(peerId).erase(std::make_pair(pieceIndex,
-            blockIndex));
+    this->pendingRequests.at(peerId).erase(
+            std::make_pair(pieceIndex, blockIndex));
 
     // ignore block if the piece is already complete
     if (!this->clientBitField.hasPiece(pieceIndex)) {
@@ -398,8 +394,10 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
         pieceIt = this->incompletePieces.lower_bound(pieceIndex);
         pieceEndIt = this->incompletePieces.end();
         if (pieceIt == pieceEndIt || pieceIt->first != pieceIndex) {
-            pieceIt = this->incompletePieces.insert(pieceIt, std::make_pair(
-                    pieceIndex, Piece(pieceIndex, this->numberOfSubPieces)));
+            pieceIt = this->incompletePieces.insert(
+                    pieceIt,
+                    std::make_pair(pieceIndex,
+                            Piece(pieceIndex, this->numberOfSubPieces)));
         }
 
         // set the block into the Piece, and verify if the piece is now complete
@@ -532,8 +530,8 @@ RequestMsg *ContentManager::createRequestMsg(int pieceIndex, int blockIndex) {
 }
 void ContentManager::generateDownloadStatistics(int pieceIndex) {
     // Gather statistics in the completion time
-    emit(this->pieceDownloadTime_Signal, simTime() - this->pieceRequestTime.at(
-            pieceIndex));
+    emit(this->pieceDownloadTime_Signal,
+            simTime() - this->pieceRequestTime.at(pieceIndex));
     // request time already used, so delete it
     this->pieceRequestTime.erase(pieceIndex);
 
@@ -557,8 +555,8 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
     } else if (this->clientBitField.full()) {
         emitSignal = true;
         markTime_Signal = this->_100_percentDownloadMarkTime_Signal;
-        emit(this->totalDownloadTime_Signal, simTime()
-                - this->downloadStartTime);
+        emit(this->totalDownloadTime_Signal,
+                simTime() - this->downloadStartTime);
 
         // send signal warning this ContentManager became a seeder
         emit(this->becameSeeder_Signal, this->infoHash);
@@ -586,7 +584,6 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
 std::list<std::pair<int, int> > ContentManager::requestAvailableBlocks(
         int peerId) {
     std::list<std::pair<int, int> > availableBlocks;
-    int numberOfBlocks;
 
     // Get a COPY of the Client BitField and use it to evaluate which pieces
     // from the current Peer are interesting.
@@ -599,8 +596,10 @@ std::list<std::pair<int, int> > ContentManager::requestAvailableBlocks(
 
     // pieces requested to other Peers aren't available, and pieces requested by
     // this Peer must be completed first, so their remaining blocks are used.
-    for (; requestedPiecesIt != requestedPiecesEndIt && availableBlocks.size()
-            < this->requestBundleSize; ++requestedPiecesIt) {
+    for (;
+            requestedPiecesIt != requestedPiecesEndIt
+                    && availableBlocks.size() < this->requestBundleSize;
+            ++requestedPiecesIt) {
         if (requestedPiecesIt->second != peerId) {
             // add the unavailable piece to the filteredClientBitField so it
             // will not be evaluated as interesting
@@ -630,8 +629,10 @@ std::list<std::pair<int, int> > ContentManager::requestAvailableBlocks(
 
             // get blocks until there are no more space available or until the
             // rarest list ends
-            for (; rarestIt != rarest.end() && availableBlocks.size()
-                    < this->requestBundleSize; ++rarestIt) {
+            for (;
+                    rarestIt != rarest.end()
+                            && availableBlocks.size() < this->requestBundleSize;
+                    ++rarestIt) {
 
                 int pieceId = *rarestIt;
                 // this piece is now requested
@@ -690,17 +691,26 @@ void ContentManager::verifyInterestOnAllPeers() {
 void ContentManager::registerEmittedSignals() {
     // Configure signals
     this->becameSeeder_Signal = registerSignal("ContentManager_BecameSeeder");
-    this->pieceDownloadTime_Signal = registerSignal("ContentManager_PieceDownloadTime");
-    this->totalDownloadTime_Signal = registerSignal("ContentManager_TotalDownloadTime");
-    this->totalBytesDownloaded_Signal = registerSignal("ContentManager_TotalBytesDownloaded");
-    this->totalBytesUploaded_Signal = registerSignal("ContentManager_TotalBytesUploaded");
+    this->pieceDownloadTime_Signal = registerSignal(
+            "ContentManager_PieceDownloadTime");
+    this->totalDownloadTime_Signal = registerSignal(
+            "ContentManager_TotalDownloadTime");
+    this->totalBytesDownloaded_Signal = registerSignal(
+            "ContentManager_TotalBytesDownloaded");
+    this->totalBytesUploaded_Signal = registerSignal(
+            "ContentManager_TotalBytesUploaded");
 
-    this->_25_percentDownloadMarkTime_Signal = registerSignal("ContentManager_25_percentDownloadMarkTime");
-    this->_50_percentDownloadMarkTime_Signal = registerSignal("ContentManager_50_percentDownloadMarkTime");
-    this->_75_percentDownloadMarkTime_Signal = registerSignal("ContentManager_75_percentDownloadMarkTime");
-    this->_100_percentDownloadMarkTime_Signal = registerSignal("ContentManager_100_percentDownloadMarkTime");
+    this->_25_percentDownloadMarkTime_Signal = registerSignal(
+            "ContentManager_25_percentDownloadMarkTime");
+    this->_50_percentDownloadMarkTime_Signal = registerSignal(
+            "ContentManager_50_percentDownloadMarkTime");
+    this->_75_percentDownloadMarkTime_Signal = registerSignal(
+            "ContentManager_75_percentDownloadMarkTime");
+    this->_100_percentDownloadMarkTime_Signal = registerSignal(
+            "ContentManager_100_percentDownloadMarkTime");
 
-    this->downloadMarkPeerId_Signal = registerSignal("ContentManager_DownloadMarkPeerId");
+    this->downloadMarkPeerId_Signal = registerSignal(
+            "ContentManager_DownloadMarkPeerId");
 }
 void ContentManager::subscribeToSignals() {
 }
@@ -737,28 +747,20 @@ void ContentManager::initialize() {
 
     // TODO allow peers to start with random BitFields.
     // will throw an error if this module is not owned by a SwarmManager
-    SwarmManager * swarmManager = check_and_cast<SwarmManager*> (
+    SwarmManager * swarmManager = check_and_cast<SwarmManager*>(
             getParentModule());
-    this->localPeerId
-            = swarmManager->getParentModule()->getParentModule()->getId();
+    this->localPeerId =
+            swarmManager->getParentModule()->getParentModule()->getId();
 
     cModule* bitTorrentClient = swarmManager->getParentModule()->getSubmodule(
             "bitTorrentClient");
-    //    cModule* statistics = swarmManager->getParentModule()->getSubmodule(
-    //            "statistics");
 
     if (bitTorrentClient == NULL) {
         throw cException("BitTorrentClient module not found");
     }
-    //    if (statistics == NULL) {
-    //        throw cException("Statistics module not found");
-    //    }
 
-    this->bitTorrentClient = check_and_cast<BitTorrentClient*> (
+    this->bitTorrentClient = check_and_cast<BitTorrentClient*>(
             bitTorrentClient);
-    //    this->clientController = check_and_cast<ClientController*> (
-    //            clientController);
-    //    this->statistics = check_and_cast<Statistics*> (statistics);
 
     // setting parameters from NED
     this->numberOfPieces = par("numOfPieces").longValue();
@@ -779,19 +781,6 @@ void ContentManager::initialize() {
 
     // create an empty RarestPieceCounter
     this->rarestPieceCounter = RarestPieceCounter(this->numberOfPieces);
-
-    //	this->downloadTime.setName("Download time");
-    //	this->requestTime.setName("Request time");
-    //	this->responseTime.setName("Response time");
-
-    //    WATCH_MAP(this->peerBitFields);
-    //    WATCH_MAP(this->pendingRequests);
-    //    WATCH_MAP(this->totalDownloadedByPeer);
-    //    WATCH_MAP(this->totalUploadedByPeer);
-    //    WATCH_SET(this->requestedPieces);
-    //    WATCH_SET(this->interestingPeers);
-    //    WATCH(this->clientBitField);
-
     this->debugFlag = par("debugFlag").boolValue();
 }
 

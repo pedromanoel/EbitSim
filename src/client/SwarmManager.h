@@ -82,10 +82,7 @@
 
 class BitTorrentClient;
 class Choker;
-//class ClientController;
-//class ConnectedPeerManager;
 class ContentManager;
-//class DataRateCollector;
 class SwarmManagerThread;
 class TorrentMetadata;
 
@@ -130,8 +127,6 @@ private:
     //! Used by the SwarmManagerThread objects to send the response to this
     //! module
     BitTorrentClient* bitTorrentClient;
-    //    DataRateCollector * dataRateCollector;
-    //    ConnectedPeerManager* connectedPeerManager;
     //@}
 //    std::map<int, SwarmEngine *> swarmEngines;
     std::map<int, SwarmEngine> swarmEngines;
@@ -145,8 +140,6 @@ private:
     bool debugFlag;
     //! True to print debug messages of the submodules.
     bool subModulesDebugFlag;
-    //! Self-message
-    //    cMessage keepAlive;
     //! The number of Peers the Client requests to the Tracker
     int numWant;
     //! The port opened for connection from other Peers
@@ -186,8 +179,6 @@ private:
      *      SwarmEngine object is not a seeder.
      */
     void setSwarm(TorrentMetadata const& torrent, bool seeder);
-    //! Open a connection with the Tracker and send the request for Peers.
-    //    void makeAnnounce(SwarmManagerThread * thread);
     //! Print a debug message to the passed ostream, which defaults to clog.
     void printDebugMsg(std::string s);
     void setStatusString(const char * s);

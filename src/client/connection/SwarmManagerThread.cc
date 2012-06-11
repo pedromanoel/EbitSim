@@ -70,7 +70,6 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-
 #include "SwarmManagerThread.h"
 
 #include <ostream>
@@ -78,19 +77,18 @@
 
 #include "BitTorrentClient.h"
 #include "SwarmManager.h"
-#include "TcpIp.h"
 //#include "DataRateCollector.h"TODO
 
-Register_Class( SwarmManagerThread);
+Register_Class(SwarmManagerThread);
 
 SwarmManagerThread::SwarmManagerThread() {
 }
 
 SwarmManagerThread::SwarmManagerThread(int numWant, int peerId, int port,
         double refreshInterval, TorrentMetadata const& torrent, bool seeder) :
-    announceRequest("Announce request"), torrent(torrent), requestTimer(
-            "re-request timeout"), refreshInterval(refreshInterval), seeder(
-            seeder) {
+        announceRequest("Announce request"), torrent(torrent), requestTimer(
+                "re-request timeout"), refreshInterval(refreshInterval), seeder(
+                seeder) {
 
     // create the announce message
     this->announceRequest.setInfoHash(torrent.infoHash);
@@ -109,11 +107,6 @@ SwarmManagerThread::~SwarmManagerThread() {
 void SwarmManagerThread::sendAnnounce(ANNOUNCE_TYPE announceType) {
     this->announceRequest.setEvent(announceType);
 
-    //SwarmManager will provide the upload and download rate information
-    //SwarmManager* swarmManager = static_cast<SwarmManager*> (this->hostmod);
-    //this->announceRequest.setDownloaded(swarmManager->getTotalDownloaded());
-    //this->announceRequest.setUploaded(swarmManager->getTotalUploaded());TODO
-
     // if the Peer was not seeding, and an A_COMPLETED annouce is being sent
     // then the Peer just became a seeder.
     this->seeder = this->seeder || (announceType == A_COMPLETED);
@@ -125,8 +118,10 @@ void SwarmManagerThread::established() {
     // create the HTTP url
     std::ostringstream url;
     url << "infohash=XXXXXXXXXXXXXXXXXXXX"; // 20 chars
-    url << "?event=" << this->getEventStr(
-            (ANNOUNCE_TYPE) this->announceRequest.getEvent());
+    url
+            << "?event="
+            << this->getEventStr(
+                    (ANNOUNCE_TYPE) this->announceRequest.getEvent());
     url << "?numwant=" << this->announceRequest.getNumWant();
     url << "?peer_id=" << this->announceRequest.getPeerId();
     url << "?port=" << this->announceRequest.getPort();
@@ -144,14 +139,14 @@ void SwarmManagerThread::established() {
     this->announceRequest.setEvent(A_NORMAL);
 }
 void SwarmManagerThread::dataArrived(cMessage *msg, bool urgent) {
-    AnnounceResponseMsg* response = check_and_cast<AnnounceResponseMsg*> (msg);
+    AnnounceResponseMsg* response = check_and_cast<AnnounceResponseMsg*>(msg);
     if (strlen(response->getFailureReason()) > 0) {
         delete msg;
         msg = NULL;
         // Error
         throw std::logic_error("Tracker returned with an Error");
     }
-    SwarmManager* swarmManager = static_cast<SwarmManager*> (this->hostmod);
+    SwarmManager* swarmManager = static_cast<SwarmManager*>(this->hostmod);
 
     std::ostringstream out;
     out << " Tracker Client received " << response->getPeersArraySize()
@@ -163,39 +158,31 @@ void SwarmManagerThread::dataArrived(cMessage *msg, bool urgent) {
     std::list<tuple<int, IPvXAddress, int> > trackerPeers;
     for (unsigned int i = 0; i < response->getPeersArraySize(); ++i) {
         PeerInfo& info = response->getPeers(i);
-        trackerPeers.push_back(make_tuple(info.getPeerId(), info.getIp(),
-                info.getPort()));
+        trackerPeers.push_back(
+                make_tuple(info.getPeerId(), info.getIp(), info.getPort()));
     }
     swarmManager->bitTorrentClient->addUnconnectedPeers(this->torrent.infoHash,
             trackerPeers);
 
     delete msg;
     msg = NULL;
-
-    // send the response to the BitTorrentClient
-    //    swarmManager->connectedPeerManager->addUnconnectedPeers(
-    //            this->torrent.infoHash, trackerPeers);
-    //    swarmManager->connectedPeerManager->makeActiveConnections(
-    //            this->torrent.infoHash);
 }
 void SwarmManagerThread::timerExpired(cMessage *timer) {
     // TODO check this out
     if (this->sock->getState() == TCPSocket::CONNECTED
             || this->sock->getState() == TCPSocket::CONNECTING) {
-        //        throw std::logic_error(
-        //                "Tried to reconnect to an already connected socket");
         // avoid a event-driven announce to be called at the same time a
         // periodic is being called
         scheduleAt(simTime() + 1, timer);
     } else {
         // renew the socket in the host's socket map
         TCPSocketMap & socketMap =
-                static_cast<SwarmManager*> (this->hostmod)->socketMap;
+                static_cast<SwarmManager*>(this->hostmod)->socketMap;
         socketMap.removeSocket(this->sock);
         this->sock->renewSocket();
         socketMap.addSocket(this->sock);
 
-        SwarmManager* swarmManager = static_cast<SwarmManager*> (this->hostmod);
+        SwarmManager* swarmManager = static_cast<SwarmManager*>(this->hostmod);
         this->sock->connect(swarmManager->trackerAddress,
                 swarmManager->trackerPort);
     }
@@ -208,11 +195,7 @@ void SwarmManagerThread::closed() {
 }
 void SwarmManagerThread::failure(int code) {
     // renew socket and retry to connect
-//    throw std::logic_error("Connection with tracker failed");
-	this->sock->abort();
-    //    this->sock->renewSocket();
-    //    SwarmManager* swarmManager = static_cast<SwarmManager*> (this->hostmod);
-    //    this->sock->connect(swarmManager->trackerAddress, swarmManager->trackerPort);
+    this->sock->abort();
 }
 
 // Private methods

@@ -76,12 +76,11 @@
 %declare class cPacket
 %declare class Handshake
 %declare class PeerWireMsg
-//%class ConnectionStateMachine
-//%header ConnectionStateMachine.h
 %class PeerWireThread
 %header PeerWireThread.h
 %start ConnectionMap::Unconnected
 
+// == Syntax ==
 //CurrentState
 //Entry{
 //    entryActions(); // executed when entrying this state
@@ -96,7 +95,6 @@
 //                actions();
 //            }
 //}
-
 // == Application transitions ==
 // DROP
 // keepAliveTimer
@@ -170,50 +168,12 @@ WaitHandshake
         Closed
             {}
 }
-//WaitBitField
-//Entry
-//{
-//    printDebugMsgConnection("Entering state WaitBitField");
-//}
-//Exit
-//{
-//    printDebugMsgConnection("Exiting state WaitBitField");
-//}
-//{
-//    // this transition is called if processBitField returns true
-//    bitFieldMsg(msg: BitFieldMsg const&)[ctxt.addBitField(msg)]
-//        Connected
-//            {
-//                addConnectedPeer();
-//                checkInterest();
-//            }
-//    // The BitField is invalid
-//    bitFieldMsg(msg: BitFieldMsg const&)
-//        Closed
-//            {}
-//    incomingPeerWireMsg()[ctxt.addEmptyBitField()]
-//        Connected
-//            {
-//                addConnectedPeer();
-//            }
-//}
-
 Connected
 Entry {
     addConnectedPeer();
     startHandshakeTimers();
-    // issue the connect transition in the UploadSM
-    //connect_UploadSM();
-    // issue the connect transition in the DownloadSM
-    //connect_DownloadSM();
 }
 {
-    //DROP
-    //    Closed
-    //        {
-                // specifically remove the Peer information from the Client
-                //removePeerFromSwarm();
-    //        }
     // every time a PeerWireMsg arrives, renew the timeout timer.
     // only close the connection when no message arrives for some time
     //incomingPeerWireMsg(msg: PeerWireMsg const&)
@@ -265,9 +225,5 @@ Default
                 sendPeerWireMsg(ctxt.getKeepAliveMsg());
                 renewKeepAliveTimer(); // sent a PeerWireMsg
             }
-    // when this timer expires, closes the connection
-    //timeout
-    //    Closed
-    //        {}
 }
 %%

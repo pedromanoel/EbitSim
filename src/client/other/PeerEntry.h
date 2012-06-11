@@ -80,7 +80,9 @@
 #ifndef PEERENTR_H_
 #define PEERENTR_H_
 
-#include "TcpIp.h"
+#include <omnetpp.h>
+#include <ostream>
+#include <string>
 #include "DataRateRollingAverage.h"
 
 class PeerWireThread;
@@ -97,37 +99,17 @@ class PeerWireThread;
 class PeerEntry {
 public:
     PeerEntry(int peerId, PeerWireThread* thread);
-//    PeerEntry(IPvXAddress const& remoteAddr, int remotePort, int peerId);
-//    PeerEntry(IPvXAddress const& localAddr, int localPort,
-//            IPvXAddress const& remoteAddr, int remotePort, int peerId/*,
-//            PeerWireThread* thread*/);
-//    PeerEntry(TcpIp const& tcpIp, int peerId);
 
     //! Return a string representation of this PeerEntry object.
     std::string str() const;
 
     //!@name PeerEntry main attributes.
     //@{
-    //! Set the local address of the PeerEntry if not already set.
-//    void setLocalAddress(IPvXAddress const& localIp, int localPort);
-    //! Return the IP of the PeerEntry.
-//    IPvXAddress const& getRemoteIp() const;
-    //! Return the port of the PeerEntry.
-//    int getRemotePort() const;
-    //! Set the TcpIp object that identifies the connection.
-//    void setTcpIp(TcpIp const& tcpIp);
-    //! Return the TcpIp object that identifies the connection.
-//    TcpIp const& getTcpIp() const;
-    //! Set the Peer id if it is not set already.
-//    void setPeerId(int peerId);
     //! Return the Id of the PeerEntry.
     int getPeerId() const;
-    //! Set the thread opened when the Peer connected with the client.
-//    void setThread(PeerWireThread* thread);
     //! Return pointer to the thread opened when this Peer connected with the client.
     PeerWireThread* getThread() const;
     //@}
-
 
     //!@name Setters for the attributes used when sorting the PeerEntry'es in the ConnectedPeerManager.
     //@{
@@ -155,18 +137,6 @@ public:
     double getUploadRate() const;
     //@}
 
-    //!@name Operators that compare the IPvXAddress and port.
-    //@{
-    //! Return true if peer is less than this object.
-//    bool operator<(PeerEntry const& peer) const;
-    //! Return true if peer is greater than this object.
-//    bool operator>(PeerEntry const& peer) const;
-    //! Return true if peer is equal to this object.
-//    bool operator==(PeerEntry const& peer) const;
-    //! Return true if peer is different from this object.
-//    bool operator!=(PeerEntry const& peer) const;
-    //@}
-
     //!@name Static methods used to sort a list of PeerEntry'es
     //@{
     //! Return true if lhs comes before rhs.
@@ -175,10 +145,6 @@ public:
     static bool sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs);
     //@}
 private:
-//    IPvXAddress remoteAddr;
-//    int remotePort;
-    //! The IP and port of this peer.
-//    TcpIp tcpIpConn;
     /*!
      * The peerId of this peer. The specification says the peerId is a 20-byte string,
      * but to simplify the code development, the peerId of the module is used instead,

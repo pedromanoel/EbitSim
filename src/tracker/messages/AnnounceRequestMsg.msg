@@ -111,13 +111,8 @@ packet AnnounceRequestMsg {
     //bool compact;               // True if the requester wants a compact response.
     double downloaded;    // The number of bytes downloaded by the requesting peer.
     int event enum(ANNOUNCE_TYPE); // The type of the event that generated this request.
-    //IPvXAddress ip;             // The real, routable IPvXAddress of the requesting peer.
-    //string key;                 // the key of the requesting peer.
-    //bool noPeerId;              // True if the requester does not want the peers' ids.
     unsigned int numWant;       // The maximum number of peers wanted.
     int peerId;                 // The Id of the requesting peer. See PeerEntry for more info on the Peer id.
     unsigned int port;          // The port that the peer is listening for connections with other peers.
     double uploaded;      // The number of bytes uploaded by the requesting peer.
-    //string trackerId;           // The Tracker Id.
-//    BitField bitfield;      // The client's BitField.
 }

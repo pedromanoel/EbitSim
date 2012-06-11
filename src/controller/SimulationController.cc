@@ -75,7 +75,7 @@
 #include <TCPConnection.h>
 #include <sstream>
 
-Define_Module( SimulationController);
+Define_Module(SimulationController);
 // private methods
 void SimulationController::printDebugMsg(std::string s) {
     if (this->debugFlag) {
@@ -126,20 +126,22 @@ SimulationController::~SimulationController() {
 void SimulationController::receiveSignal(cComponent *source,
         simsignal_t signalID, cObject *obj) {
     Enter_Method("receiveSignal");
-    DataSimulationControl *data = static_cast<DataSimulationControl *> (obj);
+    DataSimulationControl *data = static_cast<DataSimulationControl *>(obj);
     std::pair<int, int> leecher = std::make_pair(data->getPeerId(),
             data->getInfoHash());
 
     // Leecher that will request the content
     if (signalID == this->leecherSignal) {
         std::ostringstream out;
-        out << "Peer " << data->getPeerId() << " will leech on content " << data->getInfoHash();
+        out << "Peer " << data->getPeerId() << " will leech on content "
+                << data->getInfoHash();
         this->printDebugMsg(out.str());
 
         this->leechers.insert(leecher);
     } else if (signalID == this->seederSignal) {
         std::ostringstream out;
-        out << "Peer " << data->getPeerId() << " became a seeder for content " << data->getInfoHash();
+        out << "Peer " << data->getPeerId() << " became a seeder for content "
+                << data->getInfoHash();
         this->printDebugMsg(out.str());
         // the pair (peerId, infoHash) should be in the leechers set
         this->leechers.erase(leecher);
@@ -149,7 +151,8 @@ void SimulationController::receiveSignal(cComponent *source,
         if (this->leechers.empty()) {
             // give some time to close all the connections (2MSL is defaults to 2 minutes)
 
-            scheduleAt(simTime() + TCP_TIMEOUT_2MSL, new cMessage("End Simulation"));
+            scheduleAt(simTime() + TCP_TIMEOUT_2MSL,
+                    new cMessage("End Simulation"));
         }
     }
 }

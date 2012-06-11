@@ -84,17 +84,10 @@
 #include "PeerWire_m.h"
 #include "PeerWireMsgBundle_m.h"
 
-// DownloadSM's external transition callers
-//void PeerWireThread::connect_DownloadSM() {
-//    this->downloadSm.connect();
-//}
-//void PeerWireThread::disconnect_DownloadSM() {
-//    this->downloadSm.disconnect();
-//}
-
 // Download State Machine methods
 void PeerWireThread::addBitField(BitFieldMsg const& msg) {
-    this->contentManager->addPeerBitField(msg.getBitField(), this->remotePeerId);
+    this->contentManager->addPeerBitField(msg.getBitField(),
+            this->remotePeerId);
 }
 void PeerWireThread::calculateDownloadRate() {
     // get download rate from ContentManager
@@ -105,9 +98,6 @@ void PeerWireThread::calculateDownloadRate() {
 void PeerWireThread::cancelPendingRequests() {
     this->contentManager->cancelPendingRequests(this->remotePeerId);
 }
-//void PeerWireThread::checkInterest() {
-//    this->contentManager->checkInterest(this->remotePeerId);
-//}
 InterestedMsg * PeerWireThread::getInterestedMsg() {
     this->printDebugMsgDownload("Get InterestedMsg");
     return new InterestedMsg("InterestedMsg");
@@ -143,7 +133,8 @@ void PeerWireThread::renewDownloadRateTimer() {
 }
 void PeerWireThread::renewSnubbedTimer() {
     cancelEvent(&this->snubbedTimer);
-    scheduleAt(simTime() + this->btClient->snubbedInterval, &this->snubbedTimer);
+    scheduleAt(simTime() + this->btClient->snubbedInterval,
+            &this->snubbedTimer);
 }
 void PeerWireThread::setSnubbed(bool snubbed) {
     if (snubbed) {
@@ -157,10 +148,8 @@ void PeerWireThread::setSnubbed(bool snubbed) {
 void PeerWireThread::startDownloadTimers() {
     this->stopDownloadTimers();
 
-    //    // snubbed starts as false and is set to true if the timeout occurs
-    //    this->btClient->setSnubbed(false, this->infoHash, this->remotePeerId);
-
-    scheduleAt(simTime() + this->btClient->snubbedInterval, &this->snubbedTimer);
+    scheduleAt(simTime() + this->btClient->snubbedInterval,
+            &this->snubbedTimer);
 
     {
         std::stringstream out;
@@ -175,8 +164,3 @@ void PeerWireThread::stopDownloadTimers() {
     cancelEvent(&this->snubbedTimer);
     cancelEvent(&this->downloadRateTimer);
 }
-
-// transition guards
-//bool PeerWireThread::makeMoreRequests() {
-//    return this->contentManager->makeMoreRequests(this->remotePeerId);
-//}

@@ -70,7 +70,6 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-
 #ifndef __TRACKERAPP_H__
 #define __TRACKERAPP_H__
 
@@ -84,10 +83,10 @@
 #include "messages/AnnounceResponseMsg_m.h"
 
 struct TorrentMetadata {
-	int numOfPieces;
-	int numOfSubPieces;
-	int subPieceSize;
-	int infoHash;
+    int numOfPieces;
+    int numOfSubPieces;
+    int subPieceSize;
+    int infoHash;
 };
 
 typedef std::set<PeerInfo> SwarmPeerList;
@@ -95,45 +94,41 @@ typedef std::set<PeerInfo> SwarmPeerList;
 // TODO if the peer don't respond during an interval, remove it from list
 class TrackerApp: public TCPSrvHostApp {
 public:
-	friend class PeerConnectionThread;
+    friend class PeerConnectionThread;
 
-	TrackerApp();
-	virtual ~TrackerApp();
-	TorrentMetadata const& getTorrentMetaData(std::string contentName);
+    TrackerApp();
+    virtual ~TrackerApp();
+    TorrentMetadata const& getTorrentMetaData(std::string contentName);
 private:
-	bool debugFlag;
-	int totalBytesUploaded;
-	int totalBytesDownloaded;
+    bool debugFlag;
+    int totalBytesUploaded;
+    int totalBytesDownloaded;
 
-	std::map<std::string, TorrentMetadata> contents; //The key is the content name from XML file
-	std::map<int, SwarmPeerList> swarms; // The key is the infoHash
-	//	std::map<int, PeerInfo> peerList; // the key is the peer id
+    std::map<std::string, TorrentMetadata> contents; //The key is the content name from XML file
+    std::map<int, SwarmPeerList> swarms; // The key is the infoHash
 
-	//Signal
-	simsignal_t seederSignal;
+    //Signal
+    simsignal_t seederSignal;
 private:
-	//! Print a debug message to the passed ostream, which defaults to clog.
-	void printDebugMsg(std::string s);
-	std::vector<PeerInfo const*> getListOfPeers(const PeerInfo & peerInfo,
-			int infoHash, unsigned int numberOfPeers) const;
-	std::vector<PeerInfo const*> getRandomPeers(PeerInfo const& peerInfo,
-			int infoHash, unsigned int numberOfPeers) const;
-	void updatePeerStatus(PeerInfo const& peerInfo, int infoHash,
-			ANNOUNCE_TYPE status);
-	//    void updateDataExchangeStatus(const PeerInfo & peerInfo, int uploaded,
-	//            int downloaded);
-	//    void processTCPMessage(cMessage * msg);
-	void startupPeerList();
-	//!@name Signal registration and subscription methods
-	//@{
-	//! Register all signals this module is going to emit.
-	void registerEmittedSignals();
-	//! Subscribe to signals.
-	void subscribeToSignals();
-	//@}
+    //! Print a debug message to the passed ostream, which defaults to clog.
+    void printDebugMsg(std::string s);
+    std::vector<PeerInfo const*> getListOfPeers(const PeerInfo & peerInfo,
+            int infoHash, unsigned int numberOfPeers) const;
+    std::vector<PeerInfo const*> getRandomPeers(PeerInfo const& peerInfo,
+            int infoHash, unsigned int numberOfPeers) const;
+    void updatePeerStatus(PeerInfo const& peerInfo, int infoHash,
+            ANNOUNCE_TYPE status);
+    void startupPeerList();
+    //!@name Signal registration and subscription methods
+    //@{
+    //! Register all signals this module is going to emit.
+    void registerEmittedSignals();
+    //! Subscribe to signals.
+    void subscribeToSignals();
+    //@}
 protected:
-	virtual void initialize();
-	virtual void handleMessage(cMessage *msg);
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
 };
 
 #endif

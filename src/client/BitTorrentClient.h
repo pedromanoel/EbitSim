@@ -82,7 +82,6 @@ using boost::tuple;
 using boost::make_tuple;
 using boost::tie;
 
-#include "TcpIp.h"
 #include "PeerEntry.h"
 
 class PeerEntry;
@@ -222,8 +221,8 @@ private:
     //!@name Methods used by the SwarmManagerThread
     //@{
     //! Add the Peer to the ConnectedPeerManager as an unconnected Peer.
-    void addUnconnectedPeers(int infoHash, std::list<tuple<int, IPvXAddress,
-            int> > & peers);
+    void addUnconnectedPeers(int infoHash,
+            std::list<tuple<int, IPvXAddress, int> > & peers);
 
     //!@name Methods used by the PeerWireThread
     //@{
@@ -255,8 +254,6 @@ private:
     void setInterested(bool interested, int infoHash, int peerId);
     //! Set to true if the peer was not recently unchoked.
     void setOldUnchoked(bool oldUnchoke, int infoHash, int peerId);
-    //! Set to true if the Peer is unchoked by the Client.
-    //    void setUnchoked(bool unchoked, int infoHash, int peerId);
     //! Set to true if the Client is snubbed by the Peer.
     void setSnubbed(bool snubbed, int infoHash, int peerId);
     //@}
@@ -269,9 +266,9 @@ private:
         SELF_END_PEERWIRE_PROCESSING,
         SELF_KEEP_ALIVE_TIMER,
         SELF_SNUBBED_TIMER,
-//        SELF_THREAD_DELETION,
         SELF_TIMEOUT_TIMER,
-        SELF_UPLOAD_RATE_TIMER};
+        SELF_UPLOAD_RATE_TIMER
+    };
     //@}
     //!@name Pointers to other modules
     //@{
@@ -313,7 +310,7 @@ private:
      *
      * Structure: [(infoHash, peerId),]
      */
-    std::set<std::pair<int,int> > activeConnectedPeers;
+    std::set<std::pair<int, int> > activeConnectedPeers;
     /*!
      * Set with all threads created in the BitTorrentClient. Used when this
      * module is deleted at the end of the simulation to delete all unclosed
@@ -328,8 +325,6 @@ private:
     simtime_t timeoutInterval;
     //! The time, in seconds, to occur a keep-alive timeout.
     simtime_t keepAliveInterval;
-    //! The time, in seconds, to occur a old unchoke timeout.
-    //    simtime_t oldUnchokeInterval;
     //! The time, in seconds, to occur a download rate timeout.
     simtime_t downloadRateInterval;
     //! The time, in seconds, to occur a upload rate timeout.
@@ -390,7 +385,7 @@ private:
     //! TODO document this
     void attemptActiveConnections(Swarm & swarm, int infoHash);
     //! Open a TCP connection with this Peer.
-    void connect(int infoHash, const tuple<int,IPvXAddress,int> & peer);
+    void connect(int infoHash, const tuple<int, IPvXAddress, int> & peer);
     //! Close the server socket so that other Peers cannot connect with the Client.
     void closeListeningSocket();
     //! Emit a signal corresponding to reception of a message with the passed message id.
@@ -411,7 +406,8 @@ private:
     void peerWireStatistics(cMessage const*msg, bool sending);
     //! Print a debug message to the passed ostream, which defaults to clog.
     void printDebugMsg(std::string s) const;
-    void printDebugMsgConnections(std::string methodName, int infoHash, Swarm const& swarm) const;
+    void printDebugMsgConnections(std::string methodName, int infoHash,
+            Swarm const& swarm) const;
     //! TODO document this
     void removeThread(PeerWireThread *thread);
     //!@name Signal registration and subscription methods

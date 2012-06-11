@@ -97,7 +97,6 @@ public:
     void setStatus(ANNOUNCE_TYPE status);
     ANNOUNCE_TYPE getStatus();
 
-
     bool operator==(PeerInfo const& peerInfo) const;
     bool operator!=(PeerInfo const& peerInfo) const;
     /*!
@@ -106,9 +105,9 @@ public:
      */
     bool operator<(PeerInfo const& peerInfo) const;
 private:
-    int peerId;     //! The peer Id
-    IPvXAddress ip;     //! The peer IP Address
-    unsigned int port;  //! The peer TCP port number
+    int peerId; //! The peer Id
+    IPvXAddress ip; //! The peer IP Address
+    unsigned int port; //! The peer TCP port number
     ANNOUNCE_TYPE status;
 };
 

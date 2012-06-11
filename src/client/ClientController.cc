@@ -79,7 +79,7 @@
 #include "DataSimulationControl.h"
 #include "SwarmManager.h"
 
-Define_Module( ClientController);
+Define_Module(ClientController);
 
 // cListener method
 void ClientController::receiveSignal(cComponent *source, simsignal_t signalID,
@@ -93,14 +93,14 @@ void ClientController::receiveSignal(cComponent *source, simsignal_t signalID,
         if (!this->contentDownloadQueue.empty()) {
             scheduleAt(simTime(), &this->enterSwarmMsg);
         }
-        //this->contentDownloadFinished(infoHash);
     }
 }
 
 // public methods
 ClientController::ClientController() :
-    enterSwarmMsg("Enter swarm"), enterSwarmSeederMsg("Enter swarm seeding"),
-            swarmManager(NULL), localPeerId(-1), debugFlag(false) {
+        enterSwarmMsg("Enter swarm"), enterSwarmSeederMsg(
+                "Enter swarm seeding"), swarmManager(NULL), localPeerId(-1), debugFlag(
+                false) {
 }
 
 ClientController::~ClientController() {
@@ -131,7 +131,7 @@ void ClientController::initialize(int stage) {
             throw cException("SwarmManager module not found");
         }
 
-        this->swarmManager = check_and_cast<SwarmManager*> (swarmManager);
+        this->swarmManager = check_and_cast<SwarmManager*>(swarmManager);
 
         this->updateStatusString();
         this->debugFlag = par("debugFlag").boolValue();
@@ -147,7 +147,7 @@ void ClientController::initialize(int stage) {
         if (module == NULL) {
             throw std::logic_error("TrackerApp module not found");
         }
-        TrackerApp* trackerApp = check_and_cast<TrackerApp *> (module);
+        TrackerApp* trackerApp = check_and_cast<TrackerApp *>(module);
 
         // Read the list of contents this Peer will download as defined by its profile parameter.
         cXMLElementList contents =
@@ -247,7 +247,7 @@ void ClientController::handleMessage(cMessage *msg) {
                 this->swarmManager->enterSwarm(torrentMetadata, true);
                 this->contentDownloadQueue.pop_front();
             }
-        } else if (msg == &this->enterSwarmMsg){
+        } else if (msg == &this->enterSwarmMsg) {
             // enter the swarm identified by the infoHash
             TorrentMetadata & torrentInfo = this->contentDownloadQueue.front();
             this->swarmManager->enterSwarm(torrentInfo, false);

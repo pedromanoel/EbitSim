@@ -79,11 +79,11 @@
 #include "PeerInfo.h"
 
 PeerInfo::PeerInfo() :
-    peerId(-1), port(-1) {
+        peerId(-1), port(-1) {
 }
 
 PeerInfo::PeerInfo(int peerId, IPvXAddress const& ip, int port) :
-    peerId(peerId), ip(ip), port(port), status(A_NORMAL) {
+        peerId(peerId), ip(ip), port(port), status(A_NORMAL) {
 }
 
 PeerInfo::~PeerInfo() {

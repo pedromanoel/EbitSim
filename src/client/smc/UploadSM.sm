@@ -75,13 +75,11 @@
 %declare class RequestMsg
 %declare class CancelMsg
 %include PeerWire_m.h
-//%class UploadStateMachine
-//%header UploadStateMachine.h
 %class PeerWireThread
 %header PeerWireThread.h
-//%start UploadMap::Unconnected
 %start UploadMap::NotInterestingChoking
 
+// == Syntax ==
 //CurrentState
 //Entry{
 //    entryActions(); // executed when entrying this state
@@ -99,12 +97,6 @@
 %map UploadMap
 %%
 NotInterestingChoking
-Entry {
-    //printDebugMsgUpload("Entering state NotInterestingChoking");
-}
-Exit {
-    //printDebugMsgUpload("Exiting state NotInterestingChoking");
-}
 {
     interestedMsg
         InterestingChoking
@@ -119,12 +111,6 @@ Exit {
             }
 }
 InterestingChoking
-Entry {
-    //printDebugMsgUpload("Entering state InterestingChoking");
-}
-Exit {
-    //printDebugMsgUpload("Exiting state InterestingChoking");
-}
 {
     notInterestedMsg
         NotInterestingChoking
@@ -144,12 +130,6 @@ Exit {
             }
 }
 NotInterestingUnchoking
-Entry {
-    //printDebugMsgUpload("Entering state NotInterestingUnchoking");
-}
-Exit {
-    //printDebugMsgUpload("Exiting state NotInterestingUnchoking");
-}
 {
     interestedMsg
         InterestingUnchoking
@@ -165,11 +145,9 @@ Exit {
 }
 InterestingUnchoking
 Entry {
-    //printDebugMsgUpload("Entering state InterestingUnchoking");
     startUploadTimers();
 }
 Exit {
-    //printDebugMsgUpload("Exiting state InterestingUnchoking");
     stopUploadTimers();
 }
 {
@@ -217,22 +195,10 @@ Entry {
 }
 
 Default
-Entry
-{
-    //printDebugMsgUpload("Entering state Default");
-}
-Exit
-{
-    //printDebugMsgUpload("Exiting state Default");
-}
 {
     DROP
         Closed
             {}
-    //disconnect
-    //    Unconnected
-    //        {
-    //        }
     uploadRateTimer()
         nil
             {

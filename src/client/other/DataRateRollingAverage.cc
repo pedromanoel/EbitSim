@@ -82,17 +82,17 @@
 #include <stdexcept>
 
 DataRateRollingAverage::DataRateRollingAverage(int window) :
-    dataRateSum(0), dataRates(0), previousDeltaT(0), previousT(0),
-            totalDownloaded(0), window(window) {
+        dataRateSum(0), dataRates(0), previousDeltaT(0), previousT(0), totalDownloaded(
+                0), window(window) {
 }
 void DataRateRollingAverage::collect(double now, int totalDownloaded) {
     // If now is equal the previous time, than it is still calculating the current data rate
     if (now <= this->previousT) {
-        //        this->dataRates.back() += bytes / this->previousDeltaT;
         throw std::invalid_argument("Now is older than the previous time");
     }
-    this->dataRates.push_back((totalDownloaded - this->totalDownloaded) / (now
-            - this->previousT));
+    this->dataRates.push_back(
+            (totalDownloaded - this->totalDownloaded)
+                    / (now - this->previousT));
     this->previousT = now;
     this->totalDownloaded = totalDownloaded;
 

@@ -70,7 +70,6 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-
 #include "TrackerApp.h"
 
 #include <algorithm>
@@ -84,169 +83,141 @@
 #include "DataSimulationControl.h"
 #include "PeerConnectionThread.h"
 
-Define_Module( TrackerApp)
-;
+Define_Module(TrackerApp);
 
 TrackerApp::TrackerApp() :
-	debugFlag(false), totalBytesUploaded(0), totalBytesDownloaded(0) {
+        debugFlag(false), totalBytesUploaded(0), totalBytesDownloaded(0) {
 }
 TrackerApp::~TrackerApp() {
 }
 
 void TrackerApp::printDebugMsg(std::string s) {
-	if (this->debugFlag) {
-		// debug "header"
-		std::cerr << simulation.getEventNumber() << " (T=";
-		std::cerr << simulation.getSimTime() << ")(TrackerApp) - ";
-		std::cerr << "Tracker: ";
-		std::cerr << s << "\n";
-	}
+    if (this->debugFlag) {
+        // debug "header"
+        std::cerr << simulation.getEventNumber() << " (T=";
+        std::cerr << simulation.getSimTime() << ")(TrackerApp) - ";
+        std::cerr << "Tracker: ";
+        std::cerr << s << "\n";
+    }
 }
 std::vector<PeerInfo const*> TrackerApp::getListOfPeers(
-		PeerInfo const& peerInfo, int infoHash, unsigned int numberOfPeers) const {
-	std::vector<PeerInfo const*> returnList;
+        PeerInfo const& peerInfo, int infoHash,
+        unsigned int numberOfPeers) const {
+    std::vector<PeerInfo const*> returnList;
 
-	// TODO make possible to select different selection algorithms
-	returnList = this->getRandomPeers(peerInfo, infoHash, numberOfPeers);
+    // TODO make possible to select different selection algorithms
+    returnList = this->getRandomPeers(peerInfo, infoHash, numberOfPeers);
 
-	return returnList;
+    return returnList;
 }
 
 std::vector<PeerInfo const*> TrackerApp::getRandomPeers(
-		PeerInfo const& peerInfo, int infoHash, unsigned int numberOfPeers) const {
+        PeerInfo const& peerInfo, int infoHash,
+        unsigned int numberOfPeers) const {
 
-	std::vector<PeerInfo const*> returnList;
-	// the size of the peerList minus self
-	returnList.reserve(numberOfPeers - 1);
+    std::vector<PeerInfo const*> returnList;
+    // the size of the peerList minus self
+    returnList.reserve(numberOfPeers - 1);
 
-	SwarmPeerList const & peerList = this->swarms.at(infoHash);
-	SwarmPeerList::iterator it = peerList.begin();
+    SwarmPeerList const & peerList = this->swarms.at(infoHash);
+    SwarmPeerList::iterator it = peerList.begin();
 
-	// get all the pointers to the PeerInfo objects, except for self
-	for (; it != peerList.end(); ++it) {
-		if (*it != peerInfo) {
-			returnList.push_back(&(*it));
-		}
-	}
+    // get all the pointers to the PeerInfo objects, except for self
+    for (; it != peerList.end(); ++it) {
+        if (*it != peerInfo) {
+            returnList.push_back(&(*it));
+        }
+    }
 
-	// random shuffle the return list
-	std::random_shuffle(returnList.begin(), returnList.end(), intrand);
+    // random shuffle the return list
+    std::random_shuffle(returnList.begin(), returnList.end(), intrand);
 
-	// throw away the extra pointers.
-	if (numberOfPeers < returnList.size()) {
-		returnList.resize(numberOfPeers);
-	}
+    // throw away the extra pointers.
+    if (numberOfPeers < returnList.size()) {
+        returnList.resize(numberOfPeers);
+    }
 
-	return returnList;
+    return returnList;
 }
 
 // TODO save all other information
 void TrackerApp::updatePeerStatus(PeerInfo const& peerInfo, int infoHash,
-		ANNOUNCE_TYPE status) {
-	SwarmPeerList & peerList = this->swarms.at(infoHash);
-	SwarmPeerList::iterator it = peerList.find(peerInfo);
+        ANNOUNCE_TYPE status) {
+    SwarmPeerList & peerList = this->swarms.at(infoHash);
+    SwarmPeerList::iterator it = peerList.find(peerInfo);
 
-	if (it != peerList.end()) {
-		// unnecessary?
-		//        it->setStatus(status);
-		if (status == A_COMPLETED) {
-			// the peer was a leecher, and now is a seeder
-			DataSimulationControl data;
-			data.setPeerId(peerInfo.getPeerId());
-			data.setInfoHash(infoHash);
-			this->printDebugMsg("Became a seeder");
-			emit(this->seederSignal, &data);
-		}
-	}
+    if (it != peerList.end()) {
+        if (status == A_COMPLETED) {
+            // the peer was a leecher, and now is a seeder
+            DataSimulationControl data;
+            data.setPeerId(peerInfo.getPeerId());
+            data.setInfoHash(infoHash);
+            this->printDebugMsg("Became a seeder");
+            emit(this->seederSignal, &data);
+        }
+    }
 }
-
-// TODO gather statistics
-//void TrackerApp::updateDataExchangeStatus(PeerInfo const& peerInfo,
-//        int uploaded, int downloaded) {
-//
-//}
 
 void TrackerApp::initialize() {
-	this->registerEmittedSignals();
-	TCPSrvHostApp::initialize();
+    this->registerEmittedSignals();
+    TCPSrvHostApp::initialize();
 
-	this->debugFlag = par("debugFlag").boolValue();
+    this->debugFlag = par("debugFlag").boolValue();
 
-	// read all contents from the xml file.
-	cXMLElementList contentsList =
-			par("contents").xmlValue()->getChildrenByTagName("content");
+    // read all contents from the xml file.
+    cXMLElementList contentsList =
+            par("contents").xmlValue()->getChildrenByTagName("content");
 
-	if (contentsList.empty()) {
-		throw std::invalid_argument(
-				"List of contents is empty. Check the xml file");
-	}
-	cXMLElementList::iterator it = contentsList.begin();
+    if (contentsList.empty()) {
+        throw std::invalid_argument(
+                "List of contents is empty. Check the xml file");
+    }
+    cXMLElementList::iterator it = contentsList.begin();
 
-	for (; it != contentsList.end(); ++it) {
-		TorrentMetadata torrentMetadata;
-		cXMLElement * child;
+    for (; it != contentsList.end(); ++it) {
+        TorrentMetadata torrentMetadata;
+        cXMLElement * child;
 
-		// create the torrent metadata
-		child = (*it)->getFirstChildWithTag("numOfPieces");
-		torrentMetadata.numOfPieces = atoi(child->getNodeValue());
-		child = (*it)->getFirstChildWithTag("numOfSubPieces");
-		torrentMetadata.numOfSubPieces = atoi(child->getNodeValue());
-		child = (*it)->getFirstChildWithTag("subPieceSize");
-		torrentMetadata.subPieceSize = atoi(child->getNodeValue());
-		torrentMetadata.infoHash = simulation.getUniqueNumber();
-		this->swarms[torrentMetadata.infoHash];
+        // create the torrent metadata
+        child = (*it)->getFirstChildWithTag("numOfPieces");
+        torrentMetadata.numOfPieces = atoi(child->getNodeValue());
+        child = (*it)->getFirstChildWithTag("numOfSubPieces");
+        torrentMetadata.numOfSubPieces = atoi(child->getNodeValue());
+        child = (*it)->getFirstChildWithTag("subPieceSize");
+        torrentMetadata.subPieceSize = atoi(child->getNodeValue());
+        torrentMetadata.infoHash = simulation.getUniqueNumber();
+        this->swarms[torrentMetadata.infoHash];
 
-		// save a list of torrents for each video content
-		std::string contentName((*it)->getAttribute("name"));
-		this->contents[contentName] = torrentMetadata;
-	}
+        // save a list of torrents for each video content
+        std::string contentName((*it)->getAttribute("name"));
+        this->contents[contentName] = torrentMetadata;
+    }
 }
 
-//void TrackerApp::processTCPMessage(cMessage * msg) {
-//    TCPSocket *socket = socketMap.findSocketFor(msg);
-//    if (socket) {
-//        socket->processMessage(msg);
-//    } else if (msg->getKind() != TCP_I_PEER_CLOSED) {
-//        // ignore closed messages if the socket doesn't exist
-//        // new connection -- create new socket object and server process
-//        socket = new TCPSocket(msg);
-//        socket->setOutputGate(gate("tcpOut"));
-//        const char *serverThreadClass = par("serverThreadClass");
-//        TCPServerThreadBase *proc = check_and_cast<TCPServerThreadBase*> (
-//                createOne(serverThreadClass));
-//        socket->setCallbackObject(proc);
-//        proc->init(this, socket);
-//        socketMap.addSocket(socket);
-//        updateDisplay();
-//        socket->processMessage(msg);
-//    }
-//}
-
 void TrackerApp::handleMessage(cMessage* msg) {
-	if (msg->isSelfMessage()) {
-		PeerConnectionThread *thread =
-				static_cast<PeerConnectionThread *> (msg->getContextPointer());
-		if (msg->getKind() == PeerConnectionThread::SELF_CLOSE_THREAD) {
-			// remove this thread. Called when this connection is closed.
-			delete msg;
-			msg = NULL;
-			this->removeThread(thread);
-		} else {
-			thread->timerExpired(msg);
-		}
-	} else {
-		//        processTCPMessage(msg);
-		TCPSrvHostApp::handleMessage(msg);
-	}
+    if (msg->isSelfMessage()) {
+        PeerConnectionThread *thread =
+                static_cast<PeerConnectionThread *>(msg->getContextPointer());
+        if (msg->getKind() == PeerConnectionThread::SELF_CLOSE_THREAD) {
+            // remove this thread. Called when this connection is closed.
+            delete msg;
+            msg = NULL;
+            this->removeThread(thread);
+        } else {
+            thread->timerExpired(msg);
+        }
+    } else {
+        TCPSrvHostApp::handleMessage(msg);
+    }
 }
 
 TorrentMetadata const& TrackerApp::getTorrentMetaData(std::string contentName) {
-	return this->contents.at(contentName);
+    return this->contents.at(contentName);
 }
 
 void TrackerApp::registerEmittedSignals() {
-	// register the signal sent when a peer becomes a seeder
-	this->seederSignal = registerSignal("TrackerApp_BecameSeeder");
+    // register the signal sent when a peer becomes a seeder
+    this->seederSignal = registerSignal("TrackerApp_BecameSeeder");
 }
 //! Subscribe to signals.
 void TrackerApp::subscribeToSignals() {

@@ -70,7 +70,6 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-
 #ifndef SWARMMANAGERTHREAD_H_
 #define SWARMMANAGERTHREAD_H_
 
@@ -80,12 +79,12 @@
 #include "AnnounceResponseMsg_m.h"
 #include "ClientController.h"
 
-
 class SwarmManagerThread: public TCPServerThreadBase {
 public:
     SwarmManagerThread();
     SwarmManagerThread(int numWant, int peerId, int port,
-            double refreshInterval, TorrentMetadata const& torrent, bool seeder);
+            double refreshInterval, TorrentMetadata const& torrent,
+            bool seeder);
     virtual ~SwarmManagerThread();
 
     /*!

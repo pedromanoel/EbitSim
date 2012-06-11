@@ -81,40 +81,12 @@
 
 // PeerEntry method implementations
 PeerEntry::PeerEntry(int peerId, PeerWireThread* thread) :
-    peerId(peerId), thread(thread), snubbed(false), interested(false),
-            unchoked(false), oldUnchoked(false), timeOfLastUnchoke(0) {
-    //    tcpIpConn(TcpIp()), peerId(-1), /*thread(NULL), */snubbed(false),
-    //            interested(false), unchoked(false), oldUnchoked(false),
-    //            timeOfLastUnchoke(0) {
+        peerId(peerId), thread(thread), snubbed(false), interested(false), unchoked(
+                false), oldUnchoked(false), timeOfLastUnchoke(0) {
 }
-//PeerEntry::PeerEntry(IPvXAddress const& remoteAddr, int remotePort, int peerId) :
-//    remoteAddr(remoteAddr), remotePort(remotePort), peerId(peerId), snubbed(
-//            false), interested(false), unchoked(false), oldUnchoked(false),
-//            timeOfLastUnchoke(0) {
-//    tcpIpConn(remoteAddr, remotePort), peerId(peerId), /*thread(NULL), */
-//            snubbed(false), interested(false), unchoked(false), oldUnchoked(
-//                    false), timeOfLastUnchoke(0) {
-//}
-//PeerEntry::PeerEntry(IPvXAddress const& localAddr, int localPort,
-//        IPvXAddress const& remoteAddr, int remotePort, int peerId/*,
-// PeerWireThread* thread*/) :
-//    tcpIpConn(localAddr, localPort, remoteAddr, remotePort), peerId(peerId),
-//    /*thread(thread), */snubbed(false), interested(false), unchoked(false),
-//            oldUnchoked(false), timeOfLastUnchoke(0) {
-//}
-//PeerEntry::PeerEntry(TcpIp const& tcpIp, int peerId) :
-//    tcpIpConn(tcpIp), peerId(peerId), snubbed(false), interested(false),
-//            unchoked(false), oldUnchoked(false), timeOfLastUnchoke(0) {
-//}
-//bool PeerEntry::isInteresting(BitField const& bitField) {
-//    return bitField.isBitFieldInteresting(this->bitField);
-//}
 
 std::string PeerEntry::str() const {
     std::ostringstream out;
-    //    out << "id: " << this->peerId << "\n";
-    //    out << "addr: " << this->remoteAddr.str() << ":" << this->remotePort << "\n";
-    //    out << "conn: " << this->tcpIpConn.str() << "\n";
     out << "obj address: " << (void *) this << "\n";
 
     out << (this->snubbed ? "snubbed" : "not snubbed") << "\n";
@@ -130,43 +102,12 @@ std::string PeerEntry::str() const {
     return out.str();
 }
 
-// Main attributes.
-//void PeerEntry::setLocalAddress(IPvXAddress const& localIp, int localPort) {
-//    if (!this->tcpIpConn.isConnected()) {
-//        this->tcpIpConn.setOrigAddress(localIp, localPort);
-//    }
-//}
-//IPvXAddress const& PeerEntry::getRemoteIp() const {
-////    return this->tcpIpConn.getDestIp();
-//    return this->remoteAddr;
-//}
-//int PeerEntry::getRemotePort() const {
-////    return this->tcpIpConn.getDestPort();
-//    return this->remotePort;
-//}
-//void PeerEntry::setTcpIp(TcpIp const& tcpIp) {
-//    this->tcpIpConn = tcpIp;
-//}
-//TcpIp const& PeerEntry::getTcpIp() const {
-//    return this->tcpIpConn;
-//}
-//void PeerEntry::setPeerId(int peerId) {
-//    if (this->peerId == -1) {
-//        this->peerId = peerId;
-//    }
-//}
 int PeerEntry::getPeerId() const {
     return this->peerId;
 }
-//void PeerEntry::setThread(PeerWireThread* thread) {
-//	this->thread = thread;
-//}
 PeerWireThread* PeerEntry::getThread() const {
     return this->thread;
 }
-//void PeerEntry::setBitField(BitField const& bitField) {
-//    this->bitField = bitField;
-//}
 
 // Attributes used when sorting.
 void PeerEntry::setSnubbed(bool snubbed) {
@@ -193,12 +134,6 @@ bool PeerEntry::isUnchoked() const {
 void PeerEntry::setOldUnchoked(bool oldUnchoked) {
     this->oldUnchoked = oldUnchoked;
 }
-//void PeerEntry::setPendingRequests(bool pendingRequests) {
-//    this->pendindRequests = pendingRequests;
-//}
-//void PeerEntry::setBlockDownload(int index) {
-//    this->bitField.addPiece(index);
-//}
 void PeerEntry::setBytesDownloaded(double now, int bytesDownloaded) {
     this->downloadDataRate.collect(now, bytesDownloaded);
 }
@@ -211,43 +146,6 @@ double PeerEntry::getDownloadRate() const {
 double PeerEntry::getUploadRate() const {
     return this->uploadDataRate.getLastDataRate();
 }
-
-/*!
- * The PeerEntry objects are compared first by their dest address. If
- * the orig address is set and the dest addresses are equal, they are
- * compared by their orig address.
- */
-//bool PeerEntry::operator<(PeerEntry const& peer) const {
-////    return this->tcpIpConn < peer.tcpIpConn;
-//    return this->remoteAddr < peer.remoteAddr;
-//}
-/*!
- * The PeerEntry objects are compared first by their dest address. If
- * the orig address is set and the dest addresses are equal, they are
- * compared by their orig address.
- */
-//bool PeerEntry::operator>(PeerEntry const& peer) const {
-////    return this->tcpIpConn > peer.tcpIpConn;
-//    return !this->operator<(peer) && !this->operator ==(peer);
-//}
-/*!
- * The PeerEntry objects are compared first by their dest address.
- * If the orig address is set, they are also compared by their orig
- * address.
- */
-//bool PeerEntry::operator==(PeerEntry const& peer) const {
-////    return this->tcpIpConn == peer.tcpIpConn;
-//    return this->remoteAddr == peer.remoteAddr;
-//}
-/*!
- * The PeerEntry objects are compared first by their dest address.
- * If the orig address is set, they are also compared by their orig
- * address.
- */
-//bool PeerEntry::operator!=(PeerEntry const& peer) const {
-////    return this->tcpIpConn != peer.tcpIpConn;
-//    return this->remoteAddr != peer.remoteAddr;
-//}
 
 //Sorting methods
 /*!
@@ -299,21 +197,14 @@ bool PeerEntry::sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
         return true;
     }
 
-    // verify if the peers where unchoked in the last 20 seconds.
-    //    bool lhsRecent, rhsRecent;
-    //    simtime_t now = simTime(); // get the simulation time.
-    //    lhsRecent = ((now - lhs->timeOfLastUnchoke) < 20.0);
-    //    rhsRecent = ((now - rhs->timeOfLastUnchoke) < 20.0);
-
     // verify if lhs is recently unchoked or has pending requests and rhs not.
     // if so, lhs comes first.
-    if ((!lhs->oldUnchoked/* || lhs->pendindRequests*/) ^ (!rhs->oldUnchoked
-    /*|| rhs->pendindRequests*/)) { // xor
-        return (!lhs->oldUnchoked/* || lhs->pendindRequests*/);
+    if ((!lhs->oldUnchoked) ^ (!rhs->oldUnchoked)) { // xor
+        return (!lhs->oldUnchoked);
     }
 
     // verify if lhs was unchoked after rhs. If so, lhs comes first.
-    if (!lhs->oldUnchoked/* || lhs->pendindRequests*/) {// if true, it means lhs and rhs are recently unchoked or has pending requests.
+    if (!lhs->oldUnchoked) { // if true, it means lhs and rhs are recently unchoked or has pending requests.
         if (lhs->timeOfLastUnchoke < rhs->timeOfLastUnchoke) {
             return true;
         } else if (lhs->timeOfLastUnchoke > rhs->timeOfLastUnchoke) {
@@ -327,8 +218,6 @@ bool PeerEntry::sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
 
 /*!
  * Print information about this PeerEntry.
- *
- * Used by the WATCH_MAP macro defined by the OMNeT++ API.
  */
 std::ostream& operator<<(std::ostream& os, PeerEntry const& peer) {
     os << peer.str().c_str();

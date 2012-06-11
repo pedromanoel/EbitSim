@@ -92,5 +92,4 @@ simple TrackerApp extends TCPSrvHostApp
         double interval @unit(s) = default(600s);
         int maxListSize = default(50);
         double processTime @unit(s) = default(0s);
-        //int minInterval @unit(s);
 }

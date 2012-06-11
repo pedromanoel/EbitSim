@@ -84,14 +84,6 @@
 #include "Choker.h"
 #include "PeerWire_m.h"
 
-// UploadSM's external transition callers
-//void PeerWireThread::connect_UploadSM() {
-//    this->uploadSm.connect();
-//}
-//void PeerWireThread::disconnect_UploadSM() {
-//    this->uploadSm.disconnect();
-//}
-
 // Upload State Machine methods
 void PeerWireThread::cancelPiece(CancelMsg const& msg) {
     //TODO The requests are responded as soon as they arrive.
@@ -141,22 +133,12 @@ void PeerWireThread::setInterested(bool interested) {
     this->btClient->setInterested(interested, this->infoHash,
             this->remotePeerId);
 }
-//void PeerWireThread::setUnchoked(bool unchoke) {
-//    this->btClient->setUnchoked(unchoke, this->infoHash,
-//            this->remotePeerId);
-//}
 void PeerWireThread::startUploadTimers() {
     this->stopUploadTimers();
 
-    // oldUnchoked starts as false and is set to true if the timeout occurs
-    //    this->btClient->connectedPeerManager->setOldUnchoked(false,
-    //            this->remotePeerId);
-
-    //    scheduleAt(simTime() + this->btClient->oldUnchokeInterval, this->oldUnchokeTimer);
     scheduleAt(simTime() + this->btClient->uploadRateInterval,
             &this->uploadRateTimer);
 }
 void PeerWireThread::stopUploadTimers() {
-    /*cancelEvent(this->oldUnchokeTimer);*/
     cancelEvent(&this->uploadRateTimer);
 }

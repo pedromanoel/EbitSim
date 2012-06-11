@@ -70,7 +70,6 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-
 #ifndef PEERWIRETHREAD_H_
 #define PEERWIRETHREAD_H_
 
@@ -275,11 +274,6 @@ private:
     //@{
     bool processing;
     /*!
-     * Self-message used to signal the end of processing of the message at the
-     * top of the message queue.
-     */
-//    cMessage endOfProcessingTimer;
-    /*!
      * Queue of messages that are waiting to be processed.
      */
     cQueue peerWireMessageBuffer;
@@ -290,35 +284,19 @@ private:
      * insert application messages in this thread by calling sendApplicationMsg.
      */
     cQueue applicationMsgQueue;
-    /*!
-     * Pointer to the message being processed at the moment or NULL if no
-     * processing is being made.
-     */
-//    cMessage * messageInProcessing;
     //@}
 
     //!@name Self-messages
     //@{
     //! Self-message used to calculate the download rate.
-//    cMessage *downloadRateTimer;
     cMessage downloadRateTimer;
     //! Self-message used to create keep-alives.
-//    cMessage *keepAliveTimer;
     cMessage keepAliveTimer;
-    /*!
-     * Self-message used to signal the deletion of this thread.
-     */
-//    cMessage selfThreadDeleteTimer;
-    //! Self-message used to verify if the peer was recently unchoked.
-    //    cMessage* oldUnchokeTimer;
     //! Self-message used to verify if the connection is snubbed.
-//    cMessage *snubbedTimer;
     cMessage snubbedTimer;
     //! Self-message used to timeout the connection.
-//    cMessage *timeoutTimer;
     cMessage timeoutTimer;
     //! Self-message used to calculate the upload rate.
-//    cMessage *uploadRateTimer;
     cMessage uploadRateTimer;
     //@}
 private:
@@ -359,11 +337,6 @@ private:
 //    void peerSnubbed();
     //! Send a message from the Application to the state machines.
     void sendApplicationMessage(int kind);
-    //! Set the size of the packet, then send it.
-//    void sendPeerWireMsg(cPacket* msg);
-//    void sendPeerWireMsg(PeerWireMsg* msg);
-    //! Set the size of the packet, then send it.
-//    void sendPeerWireMsg(PeerWireMsgBundle* msg);
 };
 
 #endif /* PEERWIRETHREAD_H_ */

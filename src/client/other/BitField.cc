@@ -83,7 +83,7 @@
 #include <stdexcept>
 
 BitField::BitField() :
-    numberOfPieces(0), numberOfAvailable(0) {
+        numberOfPieces(0), numberOfAvailable(0) {
 }
 /*!
  * @param numberOfPieces The number of pieces in the BitField.
@@ -91,9 +91,8 @@ BitField::BitField() :
  * @param seed           True if the BitField is a seeder BitField (all pieces present).
  */
 BitField::BitField(int numberOfPieces, bool seed) :
-    numberOfPieces(numberOfPieces),
-            numberOfAvailable(seed ? numberOfPieces : 0), bitFieldVector(
-                    numberOfPieces, seed) {
+        numberOfPieces(numberOfPieces), numberOfAvailable(
+                seed ? numberOfPieces : 0), bitFieldVector(numberOfPieces, seed) {
 }
 
 BitField::~BitField() {
@@ -128,8 +127,8 @@ bool BitField::isBitFieldInteresting(BitField const& b) const {
             interesting = true;
         } else {
             // check if the other BitField has a piece I don't have
-            for (unsigned int i = 0; !interesting && (i
-                    < this->bitFieldVector.size()); ++i) {
+            for (unsigned int i = 0;
+                    !interesting && (i < this->bitFieldVector.size()); ++i) {
                 interesting = !this->bitFieldVector[i] && b.bitFieldVector[i];
             }
         }
@@ -198,13 +197,6 @@ bool BitField::operator==(BitField const& b) const {
 
     return equal;
 }
-
-//BitField & BitField::operator=(BitField const & bitField){
-//    this->numberOfPieces = bitField.numberOfPieces;
-//    this->numberOfAvailable = bitField.numberOfAvailable;
-//    this->bitFieldVector = std::vector<bool> (bitField.bitFieldVector);
-//    return *this;
-//}
 
 std::string BitField::str() const {
     std::ostringstream out;

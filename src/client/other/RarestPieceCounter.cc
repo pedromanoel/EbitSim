@@ -88,7 +88,7 @@
 RarestPieceCounter::RarestPieceCounter() {
 }
 RarestPieceCounter::RarestPieceCounter(int numberOfPieces) :
-    pieceCount(numberOfPieces, 0) {
+        pieceCount(numberOfPieces, 0) {
 }
 
 RarestPieceCounter::~RarestPieceCounter() {
@@ -143,8 +143,8 @@ std::vector<int> RarestPieceCounter::getRarestPieces(
     std::vector<int> returnedPieces;
 
     // sets are ordered, so it is easy to find the minimum and maximum values.
-    if ((*(pieces.begin()) < 0) || ((unsigned) *(pieces.rbegin())
-            >= this->pieceCount.size())) {
+    if ((*(pieces.begin()) < 0)
+            || ((unsigned) *(pieces.rbegin()) >= this->pieceCount.size())) {
         throw std::logic_error(
                 "There are pieces in the set that are outside the allowed range");
     }
@@ -173,8 +173,9 @@ std::vector<int> RarestPieceCounter::getRarestPieces(
         int retGroupBegin = 0;
 
         // random shuffle the groups of pieces with the same count
-        for (int i = 0; it != orderedList.end() && returnedPieces.size()
-                < numberOfPieces; ++it, ++i) {
+        for (int i = 0;
+                it != orderedList.end()
+                        && returnedPieces.size() < numberOfPieces; ++it, ++i) {
             // group changed
             if (lastGroupCount != it->first) {
                 // shuffle the previous group

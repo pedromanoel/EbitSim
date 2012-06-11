@@ -74,13 +74,11 @@
 
 %declare class PieceMsg
 %declare class HaveMsg
-//%class DownloadStateMachine
-//%header DownloadStateMachine.h
 %class PeerWireThread
 %header PeerWireThread.h
-//%start DownloadMap::Unconnected
 %start DownloadMap::NotInterestedChoked
 
+// == Syntax ==
 //CurrentState
 //Entry{
 //    entryActions(); // executed when entrying this state
@@ -95,7 +93,6 @@
 //                actions();
 //            }
 //}
-
 // == Application transitions ==
 // disconnect
 // downloadRateTimer
@@ -110,18 +107,6 @@
 
 %map DownloadMap
 %%
-//Unconnected
-//Entry {
-//    printDebugMsgDownload("Entering state Unconnected");
-//}
-//{
-//    connect
-//        NotInterestedChoked
-//            {}
-//    Default
-//        nil
-//            {}
-//}
 NotInterestedChoked
 Entry {
     printDebugMsgDownload("Entering state NotInterestedChoked");
@@ -131,7 +116,6 @@ Entry {
         nil
             {
                 addBitField(msg);
-                //checkInterest();
             }
     chokeMsg
         nil
@@ -219,7 +203,6 @@ Exit {
             {
                 renewSnubbedTimer();
                 processBlock(msg);
-                //verifyInterestOnAllPeers();
                 // send requests to the Peer, if possible
                 outgoingPeerWireMsg_ConnectionSM(ctxt.getRequestMsgBundle());
             }
@@ -257,7 +240,6 @@ Default
         nil
             {
                 processHaveMsg(msg);
-                //verifyInterestOnCurrentPeer();
             }
     downloadRateTimer
         nil

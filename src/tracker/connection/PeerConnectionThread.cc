@@ -87,10 +87,10 @@
 #include "AnnounceResponseMsg_m.h"
 #include "TrackerApp.h"
 
-Register_Class( PeerConnectionThread);
+Register_Class(PeerConnectionThread);
 
 PeerConnectionThread::PeerConnectionThread() :
-    trackerApp(NULL), httpResponseHeaderSize(HTTP_RESPONSE_HEADER_SIZE) {
+        trackerApp(NULL), httpResponseHeaderSize(HTTP_RESPONSE_HEADER_SIZE) {
     // TODO Auto-generated constructor stub
 
 }
@@ -99,11 +99,6 @@ PeerConnectionThread::~PeerConnectionThread() {
     // TODO Auto-generated destructor stub
 }
 void PeerConnectionThread::closed() {
-    //    std::ostringstream out;
-    //    out << "Connection with " << this->sock->getRemoteAddress();
-    //    out << ":" << this->sock->getRemotePort();
-    //    out << " closed from this side.";
-    //    this->trackerApp->printDebugMsg(out.str());
     // schedule message that will delete the thread
     // don't try to delete the thread from inside itself, because of
     // memory access errors.
@@ -113,16 +108,17 @@ void PeerConnectionThread::closed() {
     this->scheduleAt(simTime(), appMessage);
 }
 void PeerConnectionThread::processDataArrived(cMessage *msg) {
-    if (dynamic_cast<AnnounceRequestMsg*> (msg)) {
+    if (dynamic_cast<AnnounceRequestMsg*>(msg)) {
         AnnounceResponseMsg* response = this->makeResponse(
-                static_cast<AnnounceRequestMsg*> (msg));
+                static_cast<AnnounceRequestMsg*>(msg));
         this->sock->send(response);
         // Server closes the connection right after the response.
         this->sock->close();
     } else {
-    	std::ostringstream out;
-    	out << "Message '" << msg->getName() << "' has the wrong type of message.";
-    	this->printDebugMsgConnection(out.str());
+        std::ostringstream out;
+        out << "Message '" << msg->getName()
+                << "' has the wrong type of message.";
+        this->printDebugMsgConnection(out.str());
         throw std::logic_error(out.str().c_str());
     }
 }
@@ -144,28 +140,13 @@ void PeerConnectionThread::established() {
     // Do nothing
 }
 void PeerConnectionThread::failure(int code) {
-    //    std::ostringstream out;
-    //    out << "Connection with " << this->sock->getRemoteAddress();
-    //    out << ":" << this->sock->getRemotePort();
-    //    out << " failed.";
-    //    this->trackerApp->printDebugMsg(out.str());
 }
 void PeerConnectionThread::peerClosed() {
     if (this->sock->getState() == TCPSocket::CONNECTED) {
         this->sock->abort();
     }
-    //    std::ostringstream out;
-    //    out << "Connection with " << this->sock->getRemoteAddress();
-    //    out << ":" << this->sock->getRemotePort();
-    //    out << " closed from the remote side.";
-    //    this->trackerApp->printDebugMsg(out.str());
-    //    throw std::logic_error("Peer don't close the connection");
 }
 void PeerConnectionThread::statusArrived(TCPStatusInfo *status) {
-    //    std::ostringstream out;
-    //    out << "Got status from connection with " << this->sock->getRemoteAddress();
-    //    out << ":" << this->sock->getRemotePort();
-    //    this->trackerApp->printDebugMsg(out.str());
 }
 void PeerConnectionThread::timerExpired(cMessage *timer) {
     if (timer->getKind() == SELF_PROCESS_TIME) {
@@ -179,7 +160,7 @@ void PeerConnectionThread::timerExpired(cMessage *timer) {
 
 void PeerConnectionThread::init(TCPSrvHostApp* hostmodule, TCPSocket* socket) {
     TCPServerThreadBase::init(hostmodule, socket);
-    this->trackerApp = check_and_cast<TrackerApp*> (this->hostmod);
+    this->trackerApp = check_and_cast<TrackerApp*>(this->hostmod);
 }
 AnnounceResponseMsg* PeerConnectionThread::makeResponse(
         AnnounceRequestMsg* announceRequestMsg) {
@@ -223,15 +204,15 @@ AnnounceResponseMsg* PeerConnectionThread::makeResponse(
             std::string errorMessage(
                     "Swarm already have a peer with the given peerId");
             response->setFailureReason(errorMessage.c_str());
-            response->setByteLength(errorMessage.size()
-                    + httpResponseHeaderSize);
+            response->setByteLength(
+                    errorMessage.size() + httpResponseHeaderSize);
         } else if (event != A_STARTED && !elementInSet) {
             // can't respond to a peer if it not on the list
             std::string errorMessage(
                     "Swarm don't have the peer with the given peerId");
             response->setFailureReason(errorMessage.c_str());
-            response->setByteLength(errorMessage.size()
-                    + httpResponseHeaderSize);
+            response->setByteLength(
+                    errorMessage.size() + httpResponseHeaderSize);
         } else {
             switch (event) {
             case A_STARTED:
@@ -282,8 +263,9 @@ AnnounceResponseMsg* PeerConnectionThread::makeResponse(
             bencodedResponse << "ee";
             response->setBencodedResponse(bencodedResponse.str().c_str());
             // the size of the bencoded response plus the size of the http header
-            response->setByteLength(this->httpResponseHeaderSize
-                    + bencodedResponse.str().length());
+            response->setByteLength(
+                    this->httpResponseHeaderSize
+                            + bencodedResponse.str().length());
         }
     }
     return response;

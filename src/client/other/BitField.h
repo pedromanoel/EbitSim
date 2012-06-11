@@ -80,12 +80,14 @@
 #ifndef BITFIELD_H_
 #define BITFIELD_H_
 
-#include <vector>
-#include <set>
 #include <iostream>
+#include <set>
+#include <string>
+#include <vector>
 
 class BitField {
-    friend std::ostream& operator<<(std::ostream& out, BitField const& bitField);
+    friend std::ostream& operator<<(std::ostream& out,
+            BitField const& bitField);
 public:
     BitField();
     BitField(int numberOfPieces, bool seed = false);
@@ -112,8 +114,6 @@ public:
     bool operator!=(BitField const& b) const;
     //! Return true if b differs from this BitField.
     bool operator==(BitField const& b) const;
-    //! Make a local copy of a BitField and return it
-    //BitField & operator=(BitField const & bitField);
     //! Return a string representation of the BitField.
     std::string str() const;
     //! Return the completed percentage.

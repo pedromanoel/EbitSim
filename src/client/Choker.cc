@@ -80,18 +80,18 @@
 #include "BitTorrentClient.h"
 #include "PeerEntry.h"
 
-Define_Module( Choker);
+Define_Module(Choker);
 
 enum ChokerMessageType {
     ROUND_TIMER
 };
 
 Choker::Choker() :
-    roundInterval(0), optimisticRoundRateInLeech(0), optimisticRoundRateInSeed(
-            0), numberOfRegularSlots(0), numberOfOptimisticSlots(0),
-            numberOfUploadSlots(0), optimisticCounter(0), debugFlag(false),
-            infoHash(-1), localPeerId(-1), roundTimer("RoundTimer"),
-            chokeAlgorithmTimer("ChokeAlgorithmTimer"), bitTorrentClient(NULL) {
+        roundInterval(0), optimisticRoundRateInLeech(0), optimisticRoundRateInSeed(
+                0), numberOfRegularSlots(0), numberOfOptimisticSlots(0), numberOfUploadSlots(
+                0), optimisticCounter(0), debugFlag(false), infoHash(-1), localPeerId(
+                -1), roundTimer("RoundTimer"), chokeAlgorithmTimer(
+                "ChokeAlgorithmTimer"), bitTorrentClient(NULL) {
 }
 
 Choker::~Choker() {
@@ -113,26 +113,26 @@ void Choker::stopChoker() {
 void Choker::fillUploadSlots(int peerId) {
     Enter_Method("fillUploadSlots()");
 
-	std::ostringstream out;
+    std::ostringstream out;
 
-
-	out << "Peer " << peerId;
+    out << "Peer " << peerId;
 
     if (this->regularUploadSlots.size() < this->numberOfRegularSlots) {
         this->regularUploadSlots.insert(peerId);
         this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
 
     } else {
-    	out << " NOT";
+        out << " NOT";
     }
 
-	out << " unchoked to fill the upload slots";
+    out << " unchoked to fill the upload slots";
 
-	int usedRegularSlots = this->regularUploadSlots.size();
-	int totalRegularSlots = this->numberOfRegularSlots;
-	out << " Upload slots (" << usedRegularSlots << "/" << totalRegularSlots << ")";
+    int usedRegularSlots = this->regularUploadSlots.size();
+    int totalRegularSlots = this->numberOfRegularSlots;
+    out << " Upload slots (" << usedRegularSlots << "/" << totalRegularSlots
+            << ")";
 
-	this->printDebugMsg(out.str());
+    this->printDebugMsg(out.str());
 
 }
 void Choker::removePeerInfo(int peerId) {
@@ -145,9 +145,6 @@ void Choker::removePeerInfo(int peerId) {
 
     // call the next choke round
     if (count > 0) {
-        // schedule the next choke round
-        //        this->callChokerRound();
-
         std::ostringstream out;
         out << "removing peer " << peerId << " from upload slot";
         this->printDebugMsg(out.str());
@@ -155,8 +152,8 @@ void Choker::removePeerInfo(int peerId) {
 }
 
 void Choker::chokeAlgorithm(bool optimisticRound) {
-    Enter_Method("callChokeAlgorithm(%s)", optimisticRound ? "optimistic"
-            : "regular");
+    Enter_Method("callChokeAlgorithm(%s)",
+            optimisticRound ? "optimistic" : "regular");
     PeerEntryPtrVector orderedPeers;
 
     this->printDebugMsg("Calling Choke Algorithm");
@@ -181,8 +178,10 @@ void Choker::chokeAlgorithm(bool optimisticRound) {
         // unchoke the fastest peers and put the interested ones in the regular upload slots
         // run until all of the upload slots are occupied or until there are no more
         // peers to unchoke
-        for (; begin != end && this->regularUploadSlots.size()
-                < this->numberOfRegularSlots; ++begin) {
+        for (;
+                begin != end
+                        && this->regularUploadSlots.size()
+                                < this->numberOfRegularSlots; ++begin) {
             PeerEntry const* peer = (*begin);
             int peerId = peer->getPeerId();
 
@@ -214,8 +213,10 @@ void Choker::chokeAlgorithm(bool optimisticRound) {
             std::random_shuffle(begin, end, intrand);
             // run until all of the upload slots are occupied or until there are no
             // more peers to unchoke
-            for (; begin != end && this->optimisticUploadSlots.size()
-                    < this->numberOfOptimisticSlots; ++begin) {
+            for (;
+                    begin != end
+                            && this->optimisticUploadSlots.size()
+                                    < this->numberOfOptimisticSlots; ++begin) {
                 PeerEntry const* peer = (*begin);
                 int peerId = peer->getPeerId();
 
@@ -256,7 +257,6 @@ void Choker::chokeAlgorithm(bool optimisticRound) {
                     this->optimisticUploadSlots.end(), out_it);
             this->printDebugMsg(out.str());
         }
-        //        this->updateStatusString();
     }
 }
 void Choker::printDebugMsg(std::string s) {
@@ -279,10 +279,10 @@ void Choker::updateStatusString() {
 void Choker::initialize() {
 
     // will throw an error if this module is not owned by a SwarmManager
-    SwarmManager * swarmManager = check_and_cast<SwarmManager*> (
+    SwarmManager * swarmManager = check_and_cast<SwarmManager*>(
             getParentModule());
-    this->localPeerId
-            = swarmManager->getParentModule()->getParentModule()->getId();
+    this->localPeerId =
+            swarmManager->getParentModule()->getParentModule()->getId();
 
     cModule *bitTorrentClient = swarmManager->getParentModule()->getSubmodule(
             "bitTorrentClient");
@@ -290,14 +290,14 @@ void Choker::initialize() {
     if (bitTorrentClient == NULL) {
         throw cException("BitTorrentClient module not found");
     }
-    this->bitTorrentClient = check_and_cast<BitTorrentClient*> (
+    this->bitTorrentClient = check_and_cast<BitTorrentClient*>(
             bitTorrentClient);
 
     this->roundInterval = par("roundInterval");
-    this->optimisticRoundRateInLeech
-            = par("optimisticRoundRateInLeech").longValue();
-    this->optimisticRoundRateInSeed
-            = par("optimisticRoundRateInSeed").longValue();
+    this->optimisticRoundRateInLeech =
+            par("optimisticRoundRateInLeech").longValue();
+    this->optimisticRoundRateInSeed =
+            par("optimisticRoundRateInSeed").longValue();
 
     this->numberOfRegularSlots = par("numberOfRegularSlots").longValue();
     this->numberOfOptimisticSlots = par("numberOfOptimisticSlots").longValue();
@@ -305,13 +305,7 @@ void Choker::initialize() {
             + this->numberOfOptimisticSlots;
     this->infoHash = par("infoHash").longValue();
 
-    // set the size of the upload slot vector
-    //    this->regularUploadSlots.resize(this->numberOfRegularSlots, -1);
-    //    this->optimisticUploadSlots.resize(this->numberOfOptimisticSlots, -1);
-
     scheduleAt(simTime() + this->roundInterval, &this->roundTimer);
-    //    WATCH_SET(this->unchokedPeers);
-    //    WATCH_SET(this->chokedPeers);
 
     this->debugFlag = par("debugFlag").boolValue();
 }
@@ -350,6 +344,6 @@ void Choker::handleMessage(cMessage *msg) {
         // choke/unchoke the peers.
         this->chokeAlgorithm();
     } else {
-    	this->printDebugMsg("Whaaaa?");
+        this->printDebugMsg("Whaaaa?");
     }
 }
