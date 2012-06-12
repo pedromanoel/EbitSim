@@ -86,7 +86,7 @@ import inet.nodes.inet.NetworkLayer;
 //
 // Peer module.
 //
-module PeerMultiple
+module PeerMultiple like PeerInterface
 {
     parameters:
         @node();
