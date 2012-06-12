@@ -1,2 +1,2 @@
 @license(LGPL);
-package br.larc.usp.iptv;
+package br.larc.usp;

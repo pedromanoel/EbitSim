@@ -13,17 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-package br.larc.usp.iptv.simulations;
+package br.larc.usp.simulations;
 
 import ned.IdealChannel;
 import inet.nodes.inet.Router;
-import br.larc.usp.iptv.controller.SimulationController;
-import br.larc.usp.iptv.nodes.RouterThruput;
-//import br.larc.usp.iptv.nodes.GlobalStatistics;
+import br.larc.usp.controller.SimulationController;
+import br.larc.usp.nodes.RouterThruput;
+//import br.larc.usp.nodes.GlobalStatistics;
 import inet.nodes.ethernet.EtherSwitch;
-import br.larc.usp.iptv.nodes.Tracker;
-import br.larc.usp.iptv.nodes.Peer;
-import br.larc.usp.iptv.nodes.PeerMultiple;
+import br.larc.usp.nodes.Tracker;
+import br.larc.usp.nodes.Peer;
+import br.larc.usp.nodes.PeerMultiple;
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
 
 import ned.DatarateChannel;

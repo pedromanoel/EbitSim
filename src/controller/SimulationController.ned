@@ -70,7 +70,7 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-package br.larc.usp.iptv.controller;
+package br.larc.usp.controller;
 
 //
 // TODO auto-generated module

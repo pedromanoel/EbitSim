@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-package br.larc.usp.iptv.simulations;
+package br.larc.usp.simulations;
 
 network BasicNetwork
 {

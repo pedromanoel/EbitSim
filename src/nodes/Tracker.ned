@@ -70,10 +70,10 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-package br.larc.usp.iptv.nodes;
+package br.larc.usp.nodes;
 
 import inet.transport.udp.UDP;
-import br.larc.usp.iptv.tracker.TrackerApp;
+import br.larc.usp.tracker.TrackerApp;
 
 import inet.applications.tcpapp.TCPApp;
 import inet.base.NotificationBoard;
