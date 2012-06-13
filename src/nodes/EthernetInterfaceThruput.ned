@@ -70,7 +70,7 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-package br.larc.usp.iptv.nodes;
+package br.larc.usp.nodes;
 
 import inet.linklayer.ppp.ThruputMeter;
 import inet.linklayer.ethernet.EtherMAC;

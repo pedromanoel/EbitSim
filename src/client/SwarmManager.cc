@@ -180,7 +180,7 @@ void SwarmManager::setSwarm(TorrentMetadata const& torrent, bool seeder) {
         // create ContentManager
         ContentManager* contentManager;
         cModuleType *contentManagerType = cModuleType::get(
-                "br.larc.usp.iptv.client.ContentManager");
+                "br.larc.usp.client.ContentManager");
         {
             std::ostringstream name;
             name << "contentManager-" << torrent.infoHash;
@@ -203,7 +203,7 @@ void SwarmManager::setSwarm(TorrentMetadata const& torrent, bool seeder) {
         // create Choker
         Choker* choker;
         cModuleType *chokerManagerType = cModuleType::get(
-                "br.larc.usp.iptv.client.Choker");
+                "br.larc.usp.client.Choker");
         {
             std::ostringstream name;
             name << "choker-" << torrent.infoHash;

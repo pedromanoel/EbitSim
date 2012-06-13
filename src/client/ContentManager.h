@@ -95,7 +95,7 @@ class SwarmManager;
  * Peers actually exchange blocks, not pieces. In the real implementations, the
  * content size cannot be ensured to be a multiple of the piece size, making the
  * last piece not necessarily the same size as the others. This simulation don't
- * take that into consideration, that is, the content size is aways a multiple
+ * take that into consideration, that is, the content size is always a multiple
  * of the piece size.
  * <pre>
  * ┌───────────────────────┐

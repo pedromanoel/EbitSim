@@ -70,9 +70,9 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-package br.larc.usp.iptv.client;
+package br.larc.usp.client;
 
-import br.larc.usp.iptv.client.ClientControllerInterface;
+import br.larc.usp.client.ClientControllerInterface;
 //import inet.base.NotificationBoard;
 
 

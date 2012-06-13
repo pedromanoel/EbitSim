@@ -71,7 +71,7 @@
 // EXCLUSION MAY NOT APPLY TO YOU.
 
 
-package br.larc.usp.iptv.tracker;
+package br.larc.usp.tracker;
 
 import inet.applications.tcpapp.TCPSrvHostApp;
 
