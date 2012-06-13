@@ -327,7 +327,7 @@ PieceMsg* ContentManager::getPieceMsg(int peerId, int index, int begin,
     // sent this block to the Peer with the passed peerId
     this->totalUploadedByPeer[peerId] += reqLength;
     this->totalBytesUploaded += reqLength;
-    emit(this->totalBytesUploaded_Signal, totalBytesUploaded);
+    emit(this->totalBytesUploaded_Signal, this->totalBytesUploaded);
 
     // fill in the pieceMessage attributes from the request.
     pieceMsg->setIndex(index);
@@ -381,6 +381,12 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
     if (pieceIndex < 0 || pieceIndex >= this->numberOfPieces) {
         throw std::out_of_range("The piece index is out of bounds");
     }
+
+    // update bytes counter
+    this->totalDownloadedByPeer[peerId] += blockSize;
+    this->totalBytesDownloaded += blockSize;
+    emit(this->totalBytesDownloaded_Signal, this->totalBytesDownloaded);
+
 
     int blockIndex = begin / blockSize;
     // remove the received block from the Peer's pending request queue
@@ -532,28 +538,29 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
     // Gather statistics in the completion time
     emit(this->pieceDownloadTime_Signal,
             simTime() - this->pieceRequestTime.at(pieceIndex));
+    emit(this->downloadPiece_Signal, pieceIndex);
     // request time already used, so delete it
     this->pieceRequestTime.erase(pieceIndex);
 
     simsignal_t markTime_Signal;
-    bool emitSignal = false;
+    bool emitCompletionSignal = false;
 
     // download statistics
     // when one of the download marks is reached, send the corresponding signal
     if (!this->firstMarkEmitted
             && this->clientBitField.getCompletedPercentage() >= 25.0) {
-        this->firstMarkEmitted = emitSignal = true;
+        this->firstMarkEmitted = emitCompletionSignal = true;
         markTime_Signal = this->_25_percentDownloadMarkTime_Signal;
     } else if (!this->secondMarkEmitted
             && this->clientBitField.getCompletedPercentage() >= 50.0) {
-        this->secondMarkEmitted = emitSignal = true;
+        this->secondMarkEmitted = emitCompletionSignal = true;
         markTime_Signal = this->_50_percentDownloadMarkTime_Signal;
     } else if (!this->thirdMarkEmitted
             && this->clientBitField.getCompletedPercentage() >= 75.0) {
-        this->thirdMarkEmitted = emitSignal = true;
+        this->thirdMarkEmitted = emitCompletionSignal = true;
         markTime_Signal = this->_75_percentDownloadMarkTime_Signal;
     } else if (this->clientBitField.full()) {
-        emitSignal = true;
+        emitCompletionSignal = true;
         markTime_Signal = this->_100_percentDownloadMarkTime_Signal;
         emit(this->totalDownloadTime_Signal,
                 simTime() - this->downloadStartTime);
@@ -562,7 +569,7 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
         emit(this->becameSeeder_Signal, this->infoHash);
     }
 
-    if (emitSignal) {
+    if (emitCompletionSignal) {
         simtime_t downloadInterval = simTime() - this->downloadStartTime;
 
         std::ostringstream out;
@@ -711,6 +718,8 @@ void ContentManager::registerEmittedSignals() {
 
     this->downloadMarkPeerId_Signal = registerSignal(
             "ContentManager_DownloadMarkPeerId");
+    this->downloadPiece_Signal = registerSignal(
+            "ContentManager_DownloadPiece");
 }
 void ContentManager::subscribeToSignals() {
 }

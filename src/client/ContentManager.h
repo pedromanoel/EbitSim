@@ -278,11 +278,11 @@ private:
 
     //!@name Signals
     //@{
-    simsignal_t becameSeeder_Signal;
-    simsignal_t pieceDownloadTime_Signal;
+    simsignal_t becameSeeder_Signal; // t seeder
+    simsignal_t pieceDownloadTime_Signal; // dt last piece download
     simsignal_t totalBytesDownloaded_Signal;
-    simsignal_t totalBytesUploaded_Signal;
-    simsignal_t totalDownloadTime_Signal;
+    simsignal_t totalBytesUploaded_Signal; // inc bytes
+    simsignal_t totalDownloadTime_Signal; // dt download time
 
     //    simsignal_t startDownloadMarkTime_Signal;
     simsignal_t _25_percentDownloadMarkTime_Signal;
@@ -290,7 +290,14 @@ private:
     simsignal_t _75_percentDownloadMarkTime_Signal;
     simsignal_t _100_percentDownloadMarkTime_Signal;
 
+    // t this peerId downloaded a piece
     simsignal_t downloadMarkPeerId_Signal;
+
+    // t this piece was downloaded
+    simsignal_t downloadPiece_Signal;
+
+    // FIXME use these completion marks instead of the bools below
+    // enum {_0, _25, _50, _75} mark;
 
     bool firstMarkEmitted;
     bool secondMarkEmitted;

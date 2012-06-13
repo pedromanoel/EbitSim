@@ -98,6 +98,11 @@ simple ContentManager
             interpolationmode=linear;
             record=vector
         );
+        @statistic[ContentManager_DownloadPiece](
+            title="Pieces Downloaded";
+            interpolationmode=linear;
+            record=vector
+        );
         // X axis
 //        @statistic[ContentManager_DownloadMarkPeerId](
 //            title="Download Time Abscissa";
