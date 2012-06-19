@@ -70,20 +70,20 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-#include "ClientControllerSeq.h"
+#include "ClientController.h"
 
 #include <IPAddressResolver.h>
 #include <cxmlelement.h>
 #include <cstring>
 
-#include "DataSimulationControl.h"
+//#include "DataSimulationControl.h"
 #include "SwarmManager.h"
 
-Define_Module(ClientControllerSeq);
+Define_Module(ClientController);
 
 // cListener method
-void ClientControllerSeq::receiveSignal(cComponent *source,
-        simsignal_t signalID, long infoHash) {
+void ClientController::receiveSignal(cComponent *source, simsignal_t signalID,
+        long infoHash) {
 
     if (signalID == this->seederSignal) {
         std::ostringstream out;
@@ -97,28 +97,29 @@ void ClientControllerSeq::receiveSignal(cComponent *source,
 }
 
 // public methods
-ClientControllerSeq::ClientControllerSeq() :
+ClientController::ClientController() :
         enterSwarmMsg("Enter swarm"), enterSwarmSeederMsg(
                 "Enter swarm seeding"), swarmManager(NULL), localPeerId(-1), debugFlag(
                 false) {
 }
 
-ClientControllerSeq::~ClientControllerSeq() {
+ClientController::~ClientController() {
     cancelEvent(&this->enterSwarmMsg);
     cancelEvent(&this->enterSwarmSeederMsg);
 }
-int ClientControllerSeq::getPeerId() const {
+int ClientController::getPeerId() const {
     return this->localPeerId;
 }
 // Private methods
-int ClientControllerSeq::numInitStages() const {
+int ClientController::numInitStages() const {
     return 4;
 }
 
 // Starting point of the simulation
-void ClientControllerSeq::initialize(int stage) {
+void ClientController::initialize(int stage) {
     if (stage == 0) {
         this->registerEmittedSignals();
+        this->subscribeToSignals();
 
         // Make the peerId equal to the module id, which is unique throughout the simulation.
         this->localPeerId = this->getParentModule()->getParentModule()->getId();
@@ -173,42 +174,22 @@ void ClientControllerSeq::initialize(int stage) {
             // file. It can be used to count how many leechers there are in the
             // beginning of the simulation.
             if (!seeder) {
-                DataSimulationControl data;
-                data.setPeerId(this->localPeerId);
-                data.setInfoHash(torrent.infoHash);
-                emit(this->leecherSignal, &data);
+//                DataSimulationControl data;
+//                data.setPeerId(this->localPeerId);
+//                data.setInfoHash(torrent.infoHash);
+//                emit(this->leecherSignal, &data);
             }
             this->contentDownloadQueue.push_back(torrent);
         }
 
-        // if this btapp is defined, start downloading after its completion, or else
-        // start from the startTime parameter
-        char const* startAfter = par("startAfter").stringValue();
-
-        if (strcmp(startAfter, "") != 0) {
-            cModule * startAfterModule =
-                    getParentModule()->getParentModule()->getSubmodule(
-                            startAfter);
-            if (startAfterModule == NULL) {
-                throw std::logic_error(
-                        "startAfter BitTorrentApp module not found");
-            }
-            // subscribe to the seeder signal from the 'start after' module
-            this->seederSignal = registerSignal("ContentManager_BecameSeeder");
-            startAfterModule->subscribe(this->seederSignal, this);
+        if (seeder) {
+            // Will enter all swarms that this client is seeding at the
+            // begining of the simulation.
+            scheduleAt(simTime(), &this->enterSwarmSeederMsg);
         } else {
-            this->seederSignal = registerSignal("ContentManager_BecameSeeder");
-            getParentModule()->subscribe(this->seederSignal, this);
-
-            if (seeder) {
-                // Will enter all swarms that this client is seeding at the
-                // begining of the simulation.
-                scheduleAt(simTime(), &this->enterSwarmSeederMsg);
-            } else {
-                // will schedule the entry to the first swarm on the queue
-                scheduleAt(simTime() + par("startTime").doubleValue(),
-                        &this->enterSwarmMsg);
-            }
+            // will schedule the entry to the first swarm on the queue
+            scheduleAt(simTime() + par("startTime").doubleValue(),
+                    &this->enterSwarmMsg);
         }
 
     } else if (stage == 3) {
@@ -224,27 +205,27 @@ void ClientControllerSeq::initialize(int stage) {
     }
 }
 // Private methods
-void ClientControllerSeq::printDebugMsg(std::string s) {
+void ClientController::printDebugMsg(std::string s) {
     if (this->debugFlag) {
         // debug "header"
         std::cerr << simulation.getEventNumber() << " (T=";
-        std::cerr << simulation.getSimTime() << ")(ClientControllerSeq) - ";
+        std::cerr << simulation.getSimTime() << ")(ClientController) - ";
         std::cerr << "Peer " << this->localPeerId << ": ";
         std::cerr << s << "\n";
     }
 }
-void ClientControllerSeq::updateStatusString() {
+void ClientController::updateStatusString() {
     if (ev.isGUI()) {
         std::ostringstream out;
         out << "peerId: " << this->localPeerId;
         getDisplayString().setTagArg("t", 0, out.str().c_str());
     }
 }
-void ClientControllerSeq::registerEmittedSignals() {
+void ClientController::registerEmittedSignals() {
     // signal that this Client entered a swarm
-    this->leecherSignal = registerSignal("ClientControllerSeq_EnterLeecher");
+    this->leecherSignal = registerSignal("ClientController_EnterLeecher");
 }
-void ClientControllerSeq::subscribeToSignals() {
+void ClientController::subscribeToSignals() {
     // subscribe to the BitTorrentApp module, since this signal comes from
     // the ContentManager, inside the SwarmManager.
     this->seederSignal = registerSignal("ContentManager_BecameSeeder");
@@ -256,7 +237,7 @@ void ClientControllerSeq::subscribeToSignals() {
 // TODO make creation of Peers dynamic? Research memory consumption gains
 // TODO add stopTimer (to tell when the Client will leave the swarm)
 // TODO add seedTimer (to tell how long the Client will be seeding). Maybe utilize the stopTimer.
-void ClientControllerSeq::handleMessage(cMessage *msg) {
+void ClientController::handleMessage(cMessage *msg) {
     if (msg->isSelfMessage()) {
         if (msg == &this->enterSwarmSeederMsg) {
             // Will seed all contents in the contentDowloadQueue

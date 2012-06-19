@@ -70,12 +70,12 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-package br.larc.usp.client;
+package br.larc.usp.controller;
 
 //
 // TODO auto-generated module
 //
-simple ClientController like ClientControllerInterface
+simple ClientController
 {
     parameters:
         @display("i=block/user");

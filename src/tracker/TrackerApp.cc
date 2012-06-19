@@ -80,7 +80,7 @@
 
 #include "AnnounceRequestMsg_m.h"
 #include "AnnounceResponseMsg_m.h"
-#include "DataSimulationControl.h"
+//#include "DataSimulationControl.h"
 #include "PeerConnectionThread.h"
 
 Define_Module(TrackerApp);
@@ -149,11 +149,11 @@ void TrackerApp::updatePeerStatus(PeerInfo const& peerInfo, int infoHash,
     if (it != peerList.end()) {
         if (status == A_COMPLETED) {
             // the peer was a leecher, and now is a seeder
-            DataSimulationControl data;
-            data.setPeerId(peerInfo.getPeerId());
-            data.setInfoHash(infoHash);
-            this->printDebugMsg("Became a seeder");
-            emit(this->seederSignal, &data);
+//            DataSimulationControl data;
+//            data.setPeerId(peerInfo.getPeerId());
+//            data.setInfoHash(infoHash);
+//            this->printDebugMsg("Became a seeder");
+//            emit(this->seederSignal, &data);
         }
     }
 }
