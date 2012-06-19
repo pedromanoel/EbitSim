@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ $# != 1 ]]
+then
+	echo "$0 FILE.vec"
+	exit 1
+fi
+
+INPUT_FILE=$1
+OUT_DIR="./csv"
+OUT_FILE="$OUT_DIR/${INPUT_FILE%.vec}.csv"
+
+# extract the vector for all peers and save it to csv
+scavetool v -p "DownloadPiece:vector" -F csv -O $OUT_FILE $INPUT_FILE
+
+# rename the elements in the first row of the csv file 
+sed '1{s/X/Time/;s/,[^,]*\[\([0-9]\+\)\][^,]*/,Peer\1/g}' $OUT_FILE --in-place

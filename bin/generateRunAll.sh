@@ -1,8 +1,8 @@
 #!/bin/bash
 
-EXEC_FILE="./BitTorrentSingleProcessor" # path to the simulation executable
-INI_FILE="../simulations/MultiplePeers.ini" # path to the configuration file
-CONFIG="MultiplePeers" # name of the configuration
+EXEC_FILE="../src/EbitSim" # path to the simulation executable
+INI_FILE="../simulations/BasicConfig.ini" # path to the configuration file
+CONFIG="BasicTopology" # name of the configuration
 LOG_DIR="./logs"
 
 if [[ $# != 1 ]]; then
