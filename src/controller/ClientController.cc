@@ -75,40 +75,25 @@
 #include <IPAddressResolver.h>
 #include <cxmlelement.h>
 #include <cstring>
+#include <boost/lexical_cast.hpp>
+#include <ctopology.h>
 
-//#include "DataSimulationControl.h"
 #include "SwarmManager.h"
+#include "UserCommand_m.h"
 
 Define_Module(ClientController);
 
 // cListener method
-void ClientController::receiveSignal(cComponent *source, simsignal_t signalID,
-        long infoHash) {
-
-    if (signalID == this->seederSignal) {
-        std::ostringstream out;
-        out << "Became seeder of the swarm " << infoHash;
-        this->printDebugMsg(out.str());
-        // Start downloading next content
-        if (!this->contentDownloadQueue.empty()) {
-            scheduleAt(simTime(), &this->enterSwarmMsg);
-        }
-    }
-}
+//void ClientController::receiveSignal(cComponent *source, simsignal_t signalID,
+//    long infoHash) {
+//}
 
 // public methods
 ClientController::ClientController() :
-        enterSwarmMsg("Enter swarm"), enterSwarmSeederMsg(
-                "Enter swarm seeding"), swarmManager(NULL), localPeerId(-1), debugFlag(
-                false) {
+        debugFlag(false) {
 }
 
 ClientController::~ClientController() {
-    cancelEvent(&this->enterSwarmMsg);
-    cancelEvent(&this->enterSwarmSeederMsg);
-}
-int ClientController::getPeerId() const {
-    return this->localPeerId;
 }
 // Private methods
 int ClientController::numInitStages() const {
@@ -117,120 +102,123 @@ int ClientController::numInitStages() const {
 
 // Starting point of the simulation
 void ClientController::initialize(int stage) {
-    if (stage == 0) {
-        this->registerEmittedSignals();
-        this->subscribeToSignals();
+    if (stage == 3) {
+        // get the parameters
+        std::string sTrackerAddress = par("trackerAddress").stringValue();
+        int trackerPort = par("trackerPort").longValue();
+        bool debugFlag = par("debugFlag").boolValue();
+        double seederPercentage = par("seederPercentage").doubleValue();
+        simtime_t startTime = par("startTime").doubleValue();
+        cXMLElement * profile = par("profile").xmlValue();
 
-        // Make the peerId equal to the module id, which is unique throughout the simulation.
-        this->localPeerId = this->getParentModule()->getParentModule()->getId();
+        // verify parameters
+        if (seederPercentage <= 0.0 || seederPercentage >= 1.0) {
+            throw cException("The percentage of Seeders is invalid");
+        }
+        cXMLElementList contentList = profile->getChildrenByTagName("content");
+        if (contentList.empty()) {
+            throw cException("List of contents is empty. Check the xml file");
+        }
+        // throw an error if unable to resolve
+        IPvXAddress trackerAddress = IPAddressResolver().resolve(
+            sTrackerAddress.c_str(), IPAddressResolver::ADDR_IPv4);
 
         // get references to other modules
-        cModule *swarmManager = getParentModule()->getSubmodule("swarmManager");
+        TrackerApp* trackerApp = check_and_cast<TrackerApp *>(
+            simulation.getModuleByPath(
+                sTrackerAddress.append(".trackerApp").c_str()));
 
-        if (swarmManager == NULL) {
-            throw cException("SwarmManager module not found");
+        // For each content in the profile, schedule the start messages.
+        cXMLElementList::iterator it = contentList.begin();
+        for (int num = 0; it != contentList.end(); ++it, ++num) {
+            using boost::lexical_cast;
+
+            char const* contentName =
+                (*it)->getFirstChildWithTag("name")->getNodeValue();
+            simtime_t interarrival = lexical_cast<double>(
+                (*it)->getFirstChildWithTag("interarrival")->getNodeValue());
+
+            // This simulates the phase where the Client get the the .torrent
+            // files from the torrent repository server.
+            TorrentMetadata const& torrentMetadata =
+                trackerApp->getTorrentMetaData(contentName);
+
+            scheduleStartMessages(startTime, interarrival, seederPercentage,
+                torrentMetadata, trackerAddress, trackerPort);
+
         }
-
-        this->swarmManager = check_and_cast<SwarmManager*>(swarmManager);
 
         this->updateStatusString();
-        this->debugFlag = par("debugFlag").boolValue();
-    } else if (stage == 1) {
-        // Acquire the torrent metadata directly from the Tracker. The Tracker's
-        // address is defined in the SwarmManager module
-        std::string trackerAppPath =
-                this->swarmManager->par("connectAddress").stringValue();
-        trackerAppPath += ".trackerApp";
 
-        // Get a pointer the Tracker module
-        cModule * module = simulation.getModuleByPath(trackerAppPath.c_str());
-        if (module == NULL) {
-            throw std::logic_error("TrackerApp module not found");
-        }
-        TrackerApp* trackerApp = check_and_cast<TrackerApp *>(module);
-
-        // Read the list of contents this Peer will download as defined by its profile parameter.
-        cXMLElementList contents =
-                par("profile").xmlValue()->getChildrenByTagName("content");
-        if (contents.empty()) {
-            throw std::invalid_argument(
-                    "List of contents is empty. Check the xml file");
-        }
-        cXMLElementList::iterator it = contents.begin();
-
-        // This Peer will seed all of the contents present in the profile.
-        bool seeder = par("seeder").boolValue();
-
-        for (; it != contents.end(); ++it) {
-            cXMLElement * contentNode = (*it)->getFirstChild();
-            std::string contentName = contentNode->getNodeValue();
-
-            // This simulates the phase where the Client get the the .torrent files
-            // from the torrent repository server.
-            TorrentMetadata const& torrent = trackerApp->getTorrentMetaData(
-                    contentName);
-
-            // emit this signal warning that this peer is leeching this torrent
-            // file. It can be used to count how many leechers there are in the
-            // beginning of the simulation.
-            if (!seeder) {
-//                DataSimulationControl data;
-//                data.setPeerId(this->localPeerId);
-//                data.setInfoHash(torrent.infoHash);
-//                emit(this->leecherSignal, &data);
-            }
-            this->contentDownloadQueue.push_back(torrent);
-        }
-
-        if (seeder) {
-            // Will enter all swarms that this client is seeding at the
-            // begining of the simulation.
-            scheduleAt(simTime(), &this->enterSwarmSeederMsg);
-        } else {
-            // will schedule the entry to the first swarm on the queue
-            scheduleAt(simTime() + par("startTime").doubleValue(),
-                    &this->enterSwarmMsg);
-        }
-
-    } else if (stage == 3) {
-        if (this->debugFlag) {
-            IPAddressResolver resolver;
-            cModule* peerModule = this->getParentModule()->getParentModule();
-            std::ostringstream out;
-            out << "Address of peer[" << peerModule->getIndex();
-            out << "] peerId = " << this->localPeerId << " is ";
-            out << resolver.addressOf(peerModule);
-            this->printDebugMsg(out.str());
-        }
+//        cMessage *msg = new cMessage("Leave Swarm");
+//        msg->setKind(USER_COMMAND_LEAVE_SWARM);
+//        LeaveSwarmCommand * leaveSwarmCommand = new LeaveSwarmCommand();
+//        LeaveSwarmCommand->setInfoHash(infoHash);
+//        msg->setControlInfo(leaveSwarmCommand);
     }
 }
 // Private methods
+
+void ClientController::scheduleStartMessages(simtime_t const& startTime,
+    simtime_t const& interarrivalTime, double seederPercentage,
+    TorrentMetadata const& torrentMetadata, IPvXAddress const& trackerAddress,
+    int trackerPort) {
+    cTopology topo;
+    topo.extractByProperty("peer");
+
+    int numNodes = topo.getNumNodes();
+    // round up to 1
+    int numSeeders = (numNodes * seederPercentage) < 1? 1 : numNodes * seederPercentage;
+
+    simtime_t enterTime = startTime;
+
+    for (int i = 0; i < topo.getNumNodes(); ++i) {
+        SwarmManager * swarmManager = check_and_cast<SwarmManager *>(
+            topo.getNode(i)->getModule()->getSubmodule("swarmManager"));
+
+        // The first numSeeders will start immediately
+        bool seeder = i < numSeeders;
+
+        cMessage *msg = new cMessage("Enter Swarm");
+        msg->setKind(USER_COMMAND_ENTER_SWARM);
+        msg->setContextPointer(swarmManager);
+        EnterSwarmCommand * enterSwarmCommand = new EnterSwarmCommand();
+        enterSwarmCommand->setSeeder(seeder);
+        enterSwarmCommand->setTorrentMetadata(torrentMetadata);
+        enterSwarmCommand->setTrackerAddress(trackerAddress);
+        enterSwarmCommand->setTrackerPort(trackerPort);
+        msg->setControlInfo(enterSwarmCommand);
+
+        // all seeders start at the beginning of the simulation
+        if (seeder) {
+            scheduleAt(simTime(), msg);
+        } else {
+            scheduleAt(enterTime, msg);
+            enterTime += exponential(interarrivalTime);
+        }
+    }
+
+}
 void ClientController::printDebugMsg(std::string s) {
     if (this->debugFlag) {
-        // debug "header"
-        std::cerr << simulation.getEventNumber() << " (T=";
-        std::cerr << simulation.getSimTime() << ")(ClientController) - ";
-        std::cerr << "Peer " << this->localPeerId << ": ";
-        std::cerr << s << "\n";
+//        // debug "header"
+//        std::cerr << simulation.getEventNumber() << " (T=";
+//        std::cerr << simulation.getSimTime() << ")(ClientController) - ";
+//        std::cerr << "Peer " << this->localPeerId << ": ";
+//        std::cerr << s << "\n";
     }
 }
 void ClientController::updateStatusString() {
     if (ev.isGUI()) {
-        std::ostringstream out;
-        out << "peerId: " << this->localPeerId;
-        getDisplayString().setTagArg("t", 0, out.str().c_str());
+//        std::ostringstream out;
+//        out << "peerId: " << this->localPeerId;
+//        getDisplayString().setTagArg("t", 0, out.str().c_str());
     }
 }
-void ClientController::registerEmittedSignals() {
-    // signal that this Client entered a swarm
-    this->leecherSignal = registerSignal("ClientController_EnterLeecher");
-}
-void ClientController::subscribeToSignals() {
-    // subscribe to the BitTorrentApp module, since this signal comes from
-    // the ContentManager, inside the SwarmManager.
-    this->seederSignal = registerSignal("ContentManager_BecameSeeder");
-    getParentModule()->subscribe(this->seederSignal, this);
-}
+//void ClientController::registerEmittedSignals() {
+//}
+//void ClientController::subscribeToSignals() {
+//}
 
 // Protected methods
 // TODO add startTimer (to tell when the Client will enter the swarm)
@@ -238,27 +226,11 @@ void ClientController::subscribeToSignals() {
 // TODO add stopTimer (to tell when the Client will leave the swarm)
 // TODO add seedTimer (to tell how long the Client will be seeding). Maybe utilize the stopTimer.
 void ClientController::handleMessage(cMessage *msg) {
-    if (msg->isSelfMessage()) {
-        if (msg == &this->enterSwarmSeederMsg) {
-            // Will seed all contents in the contentDowloadQueue
-            while (!this->contentDownloadQueue.empty()) {
-                TorrentMetadata & torrentMetadata =
-                        this->contentDownloadQueue.front();
-                this->swarmManager->enterSwarm(torrentMetadata, true);
-                this->contentDownloadQueue.pop_front();
-            }
-        } else if (msg == &this->enterSwarmMsg) {
-            // enter the swarm identified by the infoHash
-            TorrentMetadata & torrentInfo = this->contentDownloadQueue.front();
-            this->swarmManager->enterSwarm(torrentInfo, false);
-
-            std::ostringstream out;
-            out << "Entering swarm " << torrentInfo.infoHash;
-            this->printDebugMsg(out.str());
-
-            this->contentDownloadQueue.pop_front();
-        }
-    } else {
+    if (!msg->isSelfMessage()) {
         throw cException("This module doesn't process messages");
     }
+    SwarmManager * swarmManager =
+        static_cast<SwarmManager *>(msg->getContextPointer());
+    // Send the scheduled message directly to the swarm manager module
+    sendDirect(msg, swarmManager, "userCommand");
 }

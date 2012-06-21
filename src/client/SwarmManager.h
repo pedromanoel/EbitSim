@@ -94,16 +94,8 @@ public:
 
     //!@name Swarm management
     //@{
-    /*!
-     * Connect with the Tracker and send the first announce message. If the
-     * Client started as a seeder, the first announce message is of type
-     * COMPLETE, being of type NORMAL otherwise.
-     */
-    void enterSwarm(TorrentMetadata const& torrentInfo, bool seeder);
     //! Connect with the Tracker and send a COMPLETE announce message.
     void finishedDownload(int infoHash);
-    //! Connect with the Tracker and send an STOP announce message.
-    void leaveSwarm(int infoHash);
     //@}
 
     //!@name
@@ -120,7 +112,7 @@ public:
 
     void stopChoker(int infoHash);
 private:
-    class SwarmEngine;
+    class SwarmModules;
 
     //!@name Pointers to other modules.
     //@{
@@ -128,10 +120,13 @@ private:
     //! module
     BitTorrentClient* bitTorrentClient;
     //@}
-//    std::map<int, SwarmEngine *> swarmEngines;
-    std::map<int, SwarmEngine> swarmEngines;
+    std::map<int, SwarmModules> swarmModulesMap;
     std::map<int, SwarmManagerThread*> swarmThreads;
 
+    /*! The id of this peer. In the real implementation, it is a 20-byte string.
+     * At http://wiki.theory.org/BitTorrentSpecification#peer_id there is a brief explanation
+     * on how BitTorrent clients generate the peer_id.
+     */
     int localPeerId;
 
     //!@name Module's parameters
@@ -146,48 +141,45 @@ private:
     int port;
     //! Time between two announces.
     double refreshInterval;
-
-    IPvXAddress trackerAddress;
-    int trackerPort;
-    //@}
-    //!@name Signals to provide statistics
-    //@{
-    simsignal_t downloadRateSignal;
-    simsignal_t uploadRateSignal;
-    /*!
-     * Signal emitted the instant the Client Controller gives the order to enter
-     * the swarm
-     */
-    simsignal_t enterSwarmSignal;
-    /*!
-     * Signal emitted when the client receives the first list of Peers from the tracker.
-     */
-    simsignal_t enteredSwarmSignal;
+    //! The IP address of the Tracer Host
+    // IPvXAddress trackerAddress;
+    //! The port used by the TrackerApp
+    // int trackerPort;
     //@}
 
 private:
+    //!@name Related to user commands
+    //@{
     /*!
-     * Create a new SwarmEngine object and insert it in the swarmEngine map.
-     * If the swarm already exists, do nothing.
-     *
-     * @param [in] torrent Contain information about the content.
-     * @param [in] seeder If true, create a ContentManager with all of the
-     *      content. If the SwarmEngine already exists, verify if the Content
-     *      Manager module is in the seed state.
-     * @exception std::logic_error Can't change the state of a SwarmEngine from
-     *      leecher to seeder. Thrown when seeder is true, but the existing
-     *      SwarmEngine object is not a seeder.
+     * Connect with the Tracker and send the first announce message. If the
+     * Client started as a seeder, the first announce message is of type
+     * COMPLETE, being of type NORMAL otherwise.
      */
-    void setSwarm(TorrentMetadata const& torrent, bool seeder);
+    void enterSwarm(TorrentMetadata const& torrentInfo, bool seeder,
+            IPvXAddress const& trackerAddress, int trackerPort);
+    //! Connect with the Tracker and send an STOP announce message.
+    void leaveSwarm(int infoHash);
+    //@}
+
     //! Print a debug message to the passed ostream, which defaults to clog.
     void printDebugMsg(std::string s);
     void setStatusString(const char * s);
 
-    //!@name Signal registration and subscription methods
+private:
+    //!@name Signals to provide statistics.
     //@{
+    simsignal_t downloadRateSignal;
+    simsignal_t uploadRateSignal;
+    //!Signal emitted when the swarm is created.
+    simsignal_t enterSwarmSignal;
+    //! Signal emitted when the client receives first response from the tracker.
+    simsignal_t enteredSwarmSignal;
+    //@}
+
     //! Register all signals this module is going to emit.
     void registerEmittedSignals();
     //@}
+
 
 protected:
     void handleMessage(cMessage *msg);

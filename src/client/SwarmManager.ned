@@ -148,9 +148,9 @@ simple SwarmManager extends TCPSrvHostApp
         // own parameters
         bool debugFlag = default(false);
         bool subModulesDebugFlag = default(false);
-        string connectAddress = default("tracker");  // tracker address
-        int connectPort = default(8082); //The port number to connect to
         // The number of Peers the Client requests to the Tracker
         int numWant = default(50);
         double refreshInterval @unit(s) = default(180s);
+    gates:
+        input userCommand @directIn;
 }

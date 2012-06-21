@@ -89,45 +89,35 @@ class ClientController: public cListener, public cSimpleModule {
 public:
     //!@name cListener method
     //@{
-    void receiveSignal(cComponent *source, simsignal_t signalID, long infoHash);
+    // void receiveSignal(cComponent *source, simsignal_t signalID, long infoHash);
     //@}
 public:
     ClientController();
     virtual ~ClientController();
     int getPeerId() const;
 private:
-    //! Self message that signals the Client to enter a swarm.
-    cMessage enterSwarmMsg;
-    //! Self message that signals the Client to enter all swarms it is seeding.
-    cMessage enterSwarmSeederMsg;
-    SwarmManager* swarmManager;
-
-    //! A list of metadata for contents the Client will download. These
-    //! contents are downloaded one at a time, from the front to the back.
-    std::list<TorrentMetadata> contentDownloadQueue;
-
-    /*! The id of this peer. In the real implementation, it is a 20-byte string.
-     * At http://wiki.theory.org/BitTorrentSpecification#peer_id there is a brief explanation
-     * on how BitTorrent clients generate the peer_id.
-     */
-    int localPeerId;
     //! Set to true to print debug messages
     bool debugFlag;
-    //! Signal emitted to warn that a Peer will download a content during the simulation.
-    simsignal_t leecherSignal;
-    //! This controller subscribes to this signal in order to know when a peer
-    //! becomes a seeder.
-    simsignal_t seederSignal;
 private:
+    /*! Return the torrent metadata for the passed content. Must be called after
+     * init stage 0.
+     */
+    TorrentMetadata getTorrentMetadata(const char* content);
+
+    void scheduleStartMessages(simtime_t const& startTime,
+        simtime_t const& interarrivalTime, double seederPercentage,
+        TorrentMetadata const& torrentMetadata,
+        IPvXAddress const& trackerAddress, int trackerPort);
+
     //! Print a debug message to clog.
     void printDebugMsg(std::string s);
     void updateStatusString();
     //!@name Signal registration and subscription methods
     //@{
     //! Register all signals this module is going to emit.
-    void registerEmittedSignals();
-    //! Subscribe to signals.
-    void subscribeToSignals();
+//    void registerEmittedSignals();
+//    //! Subscribe to signals.
+//    void subscribeToSignals();
     //@}
 protected:
     int numInitStages() const;

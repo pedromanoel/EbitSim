@@ -5,68 +5,18 @@
       <!-- Test single swarm -->
       <content>
          <name>test1</name>
-      </content>
-   </profile>
-   <profile name="test1_seeder">
-      <!-- Test single swarm -->
-      <content>
-         <name>test1</name>
-         <seeder />
+         <interarrival>10</interarrival>
       </content>
    </profile>
    <profile name="test2">
       <!-- Test two swarms at the same time -->
       <content>
          <name>test1</name>
+         <interarrival>60</interarrival>
       </content>
       <content>
          <name>test2</name>
-      </content>
-   </profile>
-   <profile name="test2_seeder">
-      <!-- Test two swarms at the same time -->
-      <content>
-         <name>test1</name>
-         <seeder />
-      </content>
-      <content>
-         <name>test2</name>
-         <seeder />
-      </content>
-   </profile>
-   <profile name="test3">
-      <!-- Test two swarms at the same time -->
-      <content>
-         <name>test3_1</name>
-      </content>
-      <content>
-         <name>test3_2</name>
-      </content>
-      <content>
-         <name>test3_3</name>
-      </content>
-      <content>
-         <name>test3_4</name>
-      </content>
-   </profile>
-   <profile name="test3_1">
-      <content>
-         <name>test3_1</name>
-      </content>
-   </profile>
-   <profile name="test3_2">
-      <content>
-         <name>test3_2</name>
-      </content>
-   </profile>
-   <profile name="test3_3">
-      <content>
-         <name>test3_3</name>
-      </content>
-   </profile>
-   <profile name="test3_4">
-      <content>
-         <name>test3_4</name>
+         <interarrival>30</interarrival>
       </content>
    </profile>
 </profileList>

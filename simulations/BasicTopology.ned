@@ -14,9 +14,9 @@
 // 
 package br.larc.usp.simulations;
 
+import br.larc.usp.controller.ClientController;
 import br.larc.usp.nodes.Peer;
 import br.larc.usp.nodes.RouterThruput;
-import br.larc.usp.controller.SimulationController;
 import br.larc.usp.nodes.PeerInterface;
 import br.larc.usp.nodes.Tracker;
 
@@ -28,31 +28,16 @@ import inet.networklayer.autorouting.FlatNetworkConfigurator;
 network BasicTopology extends BasicNetwork
 {
     parameters:
-        @statistic[SwarmManager_EnteredSwarm](
-            title="Enter Swarm Instant";
-            record=vector
-        );
-        @statistic[ContentManager_100_percentDownloadMarkTime](
-            title="100% Download Time Ordinate";
-            unit=s;
-            record=vector, histogram
-        );
-        
+        @statistic[SwarmManager_EnteredSwarm](title="Enter Swarm Instant"; record=vector);
+        @statistic[ContentManager_100_percentDownloadMarkTime](title="100% Download Time Ordinate"; unit=s; record=vector,histogram);
+
     submodules:
-        tracker: Tracker {
-            @display("p=306,29");
-        }
-        peer[numPeers]: <> like PeerInterface {
-            @display("p=,,ri,100,100");
-        }
-        routerThruput: RouterThruput {
-            @display("p=150,150");
-        }
-        flatNetworkConfigurator: FlatNetworkConfigurator {
-            @display("p=306,90");
-        }
-        simulationController: SimulationController {
-            @display("p=79,98");
+        tracker: Tracker;
+        peer[numPeers]: <> like PeerInterface;
+        routerThruput: RouterThruput;
+        flatNetworkConfigurator: FlatNetworkConfigurator;
+        clientController: ClientController {
+            @display("p=296,200");
         }
     connections:
         for i=0..numPeers-1 {

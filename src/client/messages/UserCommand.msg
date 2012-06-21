@@ -1,3 +1,4 @@
+cplusplus {{
 // EbitSim - Enhanced BitTorrent Simulation
 // This program is under the terms of the Creative Commons
 // Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)
@@ -70,19 +71,28 @@
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
 
-package br.larc.usp.controller;
+#include "TrackerApp.h"
+#include <IPvXAddress.h>
+}}
 
-//
-// TODO auto-generated module
-//
-simple ClientController
-{
-    parameters:
-        @display("i=block/user");
-        bool debugFlag = default(false);
-        xml profile;
-        double seederPercentage;
-        double startTime @unit(s) = default(10s); // the entry time of the first peer
-        string trackerAddress = default("tracker");  // tracker address
-        int trackerPort = default(8082); //The port number to connect to
+class noncobject TorrentMetadata;
+class noncobject IPvXAddress;
+
+enum UserCommandKind {
+    USER_COMMAND_ENTER_SWARM = 0;
+    USER_COMMAND_LEAVE_SWARM = 1;
+}
+
+class UserCommand {
+}
+
+class EnterSwarmCommand extends UserCommand {
+    TorrentMetadata torrentMetadata;
+    bool seeder;
+    IPvXAddress trackerAddress;
+    int trackerPort;
+}
+
+class LeaveSwarmCommand extends UserCommand  {
+    int infoHash;
 }

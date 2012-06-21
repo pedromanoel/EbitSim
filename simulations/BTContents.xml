@@ -2,7 +2,7 @@
 <!DOCTYPE contentList SYSTEM "BitTorrentTracker.dtd">
 <contentList>
    <content name="test1">
-      <numOfPieces>80</numOfPieces>
+      <numOfPieces>800</numOfPieces>
       <numOfSubPieces>8</numOfSubPieces>
       <subPieceSize>32768</subPieceSize>
    </content>

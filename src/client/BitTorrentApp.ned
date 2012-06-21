@@ -72,10 +72,6 @@
 
 package br.larc.usp.client;
 
-import br.larc.usp.client.ClientControllerInterface;
-//import inet.base.NotificationBoard;
-
-
 //
 // TODO auto-generated module
 //
@@ -83,20 +79,17 @@ module BitTorrentApp
 {
     parameters:
         @peer(); // used by the Tracker to find all Peers in the simulation
-        @display("i=bittorrent;bgb=250,410");
+        @display("i=bittorrent");
         string clientControllerModule = default("");
     gates:
         input tcpIn[2];
         output tcpOut[2];
     submodules:
         swarmManager: SwarmManager {
-            @display("p=200,120");
+            @display("p=68,58");
         }
         bitTorrentClient: BitTorrentClient {
-            @display("p=200,280");
-        }
-        clientController: <clientControllerModule> like ClientControllerInterface {
-            @display("p=80,200");
+            @display("p=68,128");
         }
     connections:
         // TCP connections
