@@ -130,10 +130,11 @@ module Peer like PeerInterface
                 @display("p=163,359,row,90;q=txQueue");
             gates:
         }
-        tcpDump: TCPDump {
-            parameters:
-                @display("p=163,297;i=abstract/cache_s");
-        }
+        // TODO: verify the need to use tcpdump to collect statistics
+//        tcpDump: TCPDump {
+//            parameters:
+//                @display("p=163,297;i=abstract/cache_s");
+//        }
     connections allowunconnected:
         // Connect application to TCP layer
         bitTorrentApp.tcpOut[0] --> tcp.appIn++;
@@ -145,13 +146,16 @@ module Peer like PeerInterface
         tcp.ipOut --> networkLayer.tcpIn;
         tcp.ipIn <-- networkLayer.tcpOut;
 
-        // connect network layer to tcpdump
-        networkLayer.ifOut++ --> tcpDump.in2++;
-        networkLayer.ifIn++ <-- tcpDump.out2++;
+        // connect network layer to interface
+        networkLayer.ifOut++ --> eth.netwIn;
+        networkLayer.ifIn++ <-- eth.netwOut;
 
-        // connect tcpdump to intreface
-        tcpDump.ifOut++ --> eth.netwIn;
-        tcpDump.ifIn++ <-- eth.netwOut;
+//        // connect network layer to tcpdump
+//        networkLayer.ifOut++ --> tcpDump.in2++;
+//        networkLayer.ifIn++ <-- tcpDump.out2++;
+//        // connect tcpdump to interface
+//        tcpDump.ifOut++ --> eth.netwIn;
+//        tcpDump.ifIn++ <-- eth.netwOut;
 
         // Connect network interface to module gate
         eth.phys <--> ethg;

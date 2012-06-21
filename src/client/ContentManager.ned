@@ -98,9 +98,11 @@ simple ContentManager
             interpolationmode=linear;
             record=vector
         );
-        @statistic[ContentManager_DownloadPiece](
+        @signal[ContentManager_DownloadPiece];
+        @statistic[DownloadPiece](
+            source=ContentManager_DownloadPiece;
             title="Pieces Downloaded";
-            interpolationmode=linear;
+            interpolationmode=none;
             record=vector
         );
         // X axis

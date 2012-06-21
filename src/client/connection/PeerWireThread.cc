@@ -77,6 +77,7 @@
 #include <cpacketqueue.h>
 #include <omnetpp.h>
 #include <vector>
+#include <boost/lexical_cast.hpp>
 
 #include "BitTorrentClient.h"
 #include "ContentManager.h"
@@ -130,11 +131,15 @@ void PeerWireThread::closed() {
     int localPort = this->getSocket()->getLocalPort();
     int remotePort = this->getSocket()->getRemotePort();
 
-    std::ostringstream out;
-    out << "Connection (" << localAddr << ":" << localPort << ", ";
-    out << remoteAddr << ":" << remotePort << ") closed.";
+    using boost::lexical_cast;
+    using std::string;
 
-    this->printDebugMsg(out.str());
+    string out_s = "Connection (" +
+            localAddr.str() + ":" + lexical_cast<string>(localPort) + ", " +
+            remoteAddr.str() + ":" + lexical_cast<string>(remotePort) +
+            ") closed.";
+
+    this->printDebugMsg(out_s);
     // message to the state machine
     this->sendApplicationMessage(APP_DROP);
 }

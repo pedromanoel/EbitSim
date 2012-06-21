@@ -20,6 +20,8 @@ package br.larc.usp.nodes;
 //
 moduleinterface PeerInterface
 {
+    parameters:
+        @display("i=device/pc2");
     gates:
         inout ethg;
 }
