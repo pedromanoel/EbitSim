@@ -82,9 +82,9 @@
 class SwarmManagerThread: public TCPServerThreadBase {
 public:
     SwarmManagerThread();
-    SwarmManagerThread(int numWant, int peerId, int port,
-            double refreshInterval, TorrentMetadata const& torrent,
-            bool seeder);
+    SwarmManagerThread(AnnounceRequestMsg const& announceRequest,
+            double refreshInterval, bool seeder,
+            IPvXAddress const& trackerAddress, int trackerPort);
     virtual ~SwarmManagerThread();
 
     /*!
@@ -127,10 +127,11 @@ private:
 private:
     //! Copy of the request made to the tracker, to allow re-sending it.
     AnnounceRequestMsg announceRequest;
-    TorrentMetadata torrent;
     cMessage requestTimer;
     double refreshInterval;
     bool seeder;
+    IPvXAddress trackerAddress;
+    int trackerPort;
 };
 
 #endif /* SWARMMANAGERTHREAD_H_ */

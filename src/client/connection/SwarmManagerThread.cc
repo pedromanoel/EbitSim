@@ -75,6 +75,7 @@
 #include <ostream>
 #include <vector>
 
+#include "AnnounceRequestMsg_m.h"
 #include "BitTorrentClient.h"
 #include "SwarmManager.h"
 //#include "DataRateCollector.h"TODO
@@ -84,21 +85,12 @@ Register_Class(SwarmManagerThread);
 SwarmManagerThread::SwarmManagerThread() {
 }
 
-SwarmManagerThread::SwarmManagerThread(int numWant, int peerId, int port,
-        double refreshInterval, TorrentMetadata const& torrent, bool seeder) :
-        announceRequest("Announce request"), torrent(torrent), requestTimer(
-                "re-request timeout"), refreshInterval(refreshInterval), seeder(
-                seeder) {
-
-    // create the announce message
-    this->announceRequest.setInfoHash(torrent.infoHash);
-    // set this->announce parameters
-    this->announceRequest.setDownloaded(0);
-    this->announceRequest.setEvent(A_STARTED);
-    this->announceRequest.setNumWant(numWant);
-    this->announceRequest.setPeerId(peerId);
-    this->announceRequest.setPort(port);
-    this->announceRequest.setUploaded(0);
+SwarmManagerThread::SwarmManagerThread(
+        AnnounceRequestMsg const& announceRequest, double refreshInterval,
+        bool seeder, IPvXAddress const& trackerAddress, int trackerPort) :
+        announceRequest(announceRequest), requestTimer("re-request timeout"), refreshInterval(
+                refreshInterval), seeder(seeder), trackerAddress(
+                trackerAddress), trackerPort(trackerPort) {
 }
 
 SwarmManagerThread::~SwarmManagerThread() {
@@ -107,9 +99,11 @@ SwarmManagerThread::~SwarmManagerThread() {
 void SwarmManagerThread::sendAnnounce(ANNOUNCE_TYPE announceType) {
     this->announceRequest.setEvent(announceType);
 
-    // if the Peer was not seeding, and an A_COMPLETED annouce is being sent
+    // if the Peer was not seeding, and an A_COMPLETED announce is being sent
     // then the Peer just became a seeder.
-    this->seeder = this->seeder || (announceType == A_COMPLETED);
+    if (announceType == A_COMPLETED) {
+        this->seeder = true;
+    }
     // make announce timer occur immediately.
     cancelEvent(&this->requestTimer);
     scheduleAt(simTime(), &this->requestTimer);
@@ -161,8 +155,8 @@ void SwarmManagerThread::dataArrived(cMessage *msg, bool urgent) {
         trackerPeers.push_back(
                 make_tuple(info.getPeerId(), info.getIp(), info.getPort()));
     }
-    swarmManager->bitTorrentClient->addUnconnectedPeers(this->torrent.infoHash,
-            trackerPeers);
+    swarmManager->bitTorrentClient->addUnconnectedPeers(
+            this->announceRequest.getInfoHash(), trackerPeers);
 
     delete msg;
     msg = NULL;
@@ -183,15 +177,16 @@ void SwarmManagerThread::timerExpired(cMessage *timer) {
         socketMap.addSocket(this->sock);
 
         SwarmManager* swarmManager = static_cast<SwarmManager*>(this->hostmod);
-        this->sock->connect(swarmManager->trackerAddress,
-                swarmManager->trackerPort);
+        this->sock->connect(this->trackerAddress, this->trackerPort);
     }
 }
 void SwarmManagerThread::closed() {
-    // schedule the next periodic announce message
-    cancelEvent(&this->requestTimer);
-    scheduleAt(simTime() + this->refreshInterval, &this->requestTimer);
     // TODO delete socket from map?
+    // schedule the next periodic announce message when not seeding
+    cancelEvent(&this->requestTimer);
+    if (!this->seeder) {
+        scheduleAt(simTime() + this->refreshInterval, &this->requestTimer);
+    }
 }
 void SwarmManagerThread::failure(int code) {
     // renew socket and retry to connect
