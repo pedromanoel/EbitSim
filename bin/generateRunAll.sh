@@ -27,5 +27,5 @@ echo
 
 for (( i=0; i < $num_runs; i++ ))
 do
-    echo -e "r$i:\n\t$EXEC_FILE -f $INI_FILE -c $CONFIG -u Cmdenv -r $i > $LOG_DIR/out_$i.log 2> $LOG_DIR/err_$i.log"
+    echo -e "r$i:\n\t./Cmdenv $i > $LOG_DIR/out_$i.log 2> $LOG_DIR/err_$i.log"
 done

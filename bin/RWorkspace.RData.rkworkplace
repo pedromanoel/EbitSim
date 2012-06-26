@@ -1,5 +1,6 @@
-base::::file:///home/pevangelista/Workspaces/workspace-omnetpp/EbitSim/simulations/results
-script::::file:///home/pevangelista/Workspaces/workspace-omnetpp/EbitSim/simulations/results/PieceFreq.R
+base::::file:///home/pevangelista/Workspaces/workspace-omnetpp/EbitSim/bin
+script::::file:///home/pevangelista/Workspaces/workspace-omnetpp/EbitSim/bin/PieceFreq.R
+data::::piece.download
 workspace::sidebar,0::
 commandlog::sidebar,3::
 filebrowser::sidebar,0::

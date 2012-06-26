@@ -6,8 +6,9 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
 fi
 
 # script configuration
-EXEC_FILE="../src/EbitSim" # path to the simulation executable
-INI_FILE="../simulations/BasicConfig.ini" # path to the configuration file
+DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+EXEC_FILE="$DIR/../src/EbitSim" # path to the simulation executable
+INI_FILE="$DIR/../simulations/BasicConfig.ini" # path to the configuration file
 if [[ $# == 2 ]]; then
     CONFIG=$2
 else
@@ -50,6 +51,12 @@ EVSEC='\(ev/sec=[0-9]\+\)'
 PATTERN='.*'$EVENT'.*'$SIMTIME'.*'$ELAPSED'.*'$PERCENTAGE'.*'$EVSEC''
 # this pattern rearranges the collected information so it can be used by zenity progress dialog
 SUBST='\4\n#ev=\1\\nelapsed=\3\\nsim time=\2\\n\5'
+
+if [ -v MEMCHECK ]; then
+	EXEC_FILE="valgrind --leak-check=yes --log-file=valgrind.log $EXEC_FILE"
+elif [ -v CALLCHECK ]; then
+	EXEC_FILE="valgrind --tool=callgrind --log-file=valgrind.log $EXEC_FILE"
+fi
 
 # execute the simulation with the passed parameters and send the output to zenity progress dialog
 $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE | tee $LOG_DIR/$OUT_FILE

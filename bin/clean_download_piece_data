@@ -5,10 +5,11 @@ then
 	echo "$0 FILE.vec"
 	exit 1
 fi
-
 INPUT_FILE=$1
-OUT_DIR="./csv"
-OUT_FILE="$OUT_DIR/${INPUT_FILE%.vec}.csv"
+FILENAME=$(basename $INPUT_FILE)
+DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+OUT_DIR="$DIR/../simulations/results/csv"
+OUT_FILE="$OUT_DIR/${FILENAME%.vec}.csv"
 
 # extract the vector for all peers and save it to csv
 scavetool v -p "DownloadPiece:vector" -F csv -O $OUT_FILE $INPUT_FILE

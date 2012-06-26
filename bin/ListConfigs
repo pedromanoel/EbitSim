@@ -1,9 +1,9 @@
 #!/bin/bash
 # script configuration
-EXEC_FILE="./EbitSim" # path to the simulation executable
+EXEC_FILE="../src/EbitSim" # path to the simulation executable
 INI_FILE="../simulations/BasicConfig.ini" # path to the configuration file
-if [[ $# == 2 ]]; then
-    CONFIG=$2
+if [[ $# == 1 ]]; then
+    CONFIG=$1
 else
     CONFIG="SimpleTopology" # name of the configuration
 fi
