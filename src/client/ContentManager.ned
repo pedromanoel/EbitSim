@@ -86,23 +86,28 @@ package br.larc.usp.client;
 simple ContentManager
 {
     parameters:
-        @statistic[ContentManager_TotalBytesDownloaded](
-            title="Total of Bytes Downloaded";
-            unit=B;
-            interpolationmode=linear;
-            record=vector
-        );
-        @statistic[ContentManager_TotalBytesUploaded](
-            title="Total of Bytes Uploaded";
-            unit=B;
-            interpolationmode=linear;
-            record=vector
-        );
-        @signal[ContentManager_DownloadPiece];
-        @statistic[DownloadPiece](
+        @signal[ContentManager_100_percentDownloadMarkTime];
+//        @signal[ContentManager_DownloadPiece];
+        @signal[ContentManager_TotalBytesDownloaded];
+        @signal[ContentManager_TotalBytesUploaded];
+        @statistic[PiecesDownloaded](
             source=ContentManager_DownloadPiece;
             title="Pieces Downloaded";
-            interpolationmode=none;
+//            interpolationmode=none;
+            record=vector
+        );
+        @statistic[TotalBytesDownloaded](
+            source=ContentManager_TotalBytesDownloaded;
+            title="Total of Bytes Downloaded";
+            unit=B;
+//            interpolationmode=linear;
+            record=vector
+        );
+        @statistic[TotalBytesUploaded](
+            source=ContentManager_TotalBytesUploaded;
+            title="Total of Bytes Uploaded";
+            unit=B;
+//            interpolationmode=linear;
             record=vector
         );
         // X axis
@@ -130,11 +135,12 @@ simple ContentManager
 //            record=last,vector
 //        );
         // 100%
-        @statistic[ContentManager_100_percentDownloadMarkTime](
-            title="100% Download Time Ordinate";
-            unit=s;
-            record=last,vector
-        );
+//        @statistic[DownloadComplete](
+//            source=ContentManager_100_percentDownloadMarkTime;
+//            title="Download Complete Time";
+//            unit=s;
+//            record=vector
+//        );
 
         // The number of pieces in the file
         int numOfPieces;

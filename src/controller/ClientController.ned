@@ -78,6 +78,12 @@ package br.larc.usp.controller;
 simple ClientController
 {
     parameters:
+        @signal[ClientController_EnterTimeSignal];
+        @statistic[EnterTime](
+            source=ClientController_EnterTimeSignal;
+            title="Enter Time";
+            record=vector;
+        );
         @display("i=block/user");
         bool debugFlag = default(false);
         xml profile;

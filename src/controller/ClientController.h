@@ -85,29 +85,23 @@ class SwarmManager;
  * This module is responsible for controlling the Client's behavior: what content
  * to download, when to start downloading, how long should the seeding time be.
  */
-class ClientController: public cListener, public cSimpleModule {
-public:
-    //!@name cListener method
-    //@{
-    // void receiveSignal(cComponent *source, simsignal_t signalID, long infoHash);
-    //@}
+class ClientController: public cSimpleModule {
 public:
     ClientController();
     virtual ~ClientController();
-    int getPeerId() const;
+    void emitEnterTime(simtime_t enterTime);
 private:
     //! Set to true to print debug messages
     bool debugFlag;
+    //!@name Signals
+    //@{
+    simsignal_t enterTime_Signal; //! Emitted the instant a peer enters the swarm
+    //@}
 private:
     /*! Return the torrent metadata for the passed content. Must be called after
      * init stage 0.
      */
     TorrentMetadata getTorrentMetadata(const char* content);
-
-    void scheduleStartMessages(simtime_t const& startTime,
-        simtime_t const& interarrivalTime, double seederPercentage,
-        TorrentMetadata const& torrentMetadata,
-        IPvXAddress const& trackerAddress, int trackerPort);
 
     //! Print a debug message to clog.
     void printDebugMsg(std::string s);
@@ -115,9 +109,9 @@ private:
     //!@name Signal registration and subscription methods
     //@{
     //! Register all signals this module is going to emit.
-//    void registerEmittedSignals();
-//    //! Subscribe to signals.
-//    void subscribeToSignals();
+    void registerEmittedSignals();
+    //! Subscribe to signals.
+    void subscribeToSignals();
     //@}
 protected:
     int numInitStages() const;

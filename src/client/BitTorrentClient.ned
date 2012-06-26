@@ -119,7 +119,9 @@ simple BitTorrentClient extends TCPSrvHostApp
 //            title="Number of Connected Peers";
 //            record=vector,max
 //        );
-        @statistic[BitTorrentClient_ProcessingTime](
+        @signal[BitTorrentClient_ProcessingTime];
+        @statistic[ProcessingTime](
+            source=BitTorrentClient_ProcessingTime;
             title="Time in processing";
             record=sum
         );

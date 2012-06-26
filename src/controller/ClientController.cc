@@ -83,10 +83,72 @@
 
 Define_Module(ClientController);
 
-// cListener method
-//void ClientController::receiveSignal(cComponent *source, simsignal_t signalID,
-//    long infoHash) {
-//}
+// helper functions in anonymous workspace
+namespace {
+//! Create ControlInfo object common to all announce messages.
+EnterSwarmCommand createDefaultControlInfo(
+    TorrentMetadata const& torrentMetadata, IPvXAddress const& trackerAddress,
+    int trackerPort) {
+    // these parameters are default for all announce messages sent
+    EnterSwarmCommand enterSwarmCommand;
+    enterSwarmCommand.setTorrentMetadata(torrentMetadata);
+    enterSwarmCommand.setTrackerAddress(trackerAddress);
+    enterSwarmCommand.setTrackerPort(trackerPort);
+
+    return enterSwarmCommand;
+}
+
+//! Create the announce message that will be sent to the passed SwarmManager.
+cMessage * createAnnounceMsg(EnterSwarmCommand const& defaultControlInfo,
+    bool seeder, SwarmManager * swarmManager) {
+    // create the message and set the control info
+    cMessage *msg = new cMessage("Enter Swarm");
+    msg->setContextPointer(swarmManager);
+    msg->setKind(USER_COMMAND_ENTER_SWARM);
+
+    // Each new message needs a new control info
+    // Update the seeder status in the control info
+    EnterSwarmCommand * enterSwarmCommand = defaultControlInfo.dup();
+    enterSwarmCommand->setSeeder(seeder);
+    msg->setControlInfo(enterSwarmCommand);
+    return msg;
+}
+
+//! Schedule the announce messages to all BitTorrent applications.
+void scheduleStartMessages(ClientController * self, simtime_t const& startTime,
+    simtime_t const& interarrivalTime, double seederPercentage,
+    EnterSwarmCommand const& defaultControlInfo) {
+    cTopology topo;
+    topo.extractByProperty("peer");
+
+    int numNodes = topo.getNumNodes();
+    // round up to 1
+    int numSeeders =
+            (numNodes * seederPercentage) < 1 ? 1 : numNodes * seederPercentage;
+
+    simtime_t enterTime = startTime;
+
+    for (int i = 0; i < topo.getNumNodes(); ++i) {
+        SwarmManager * swarmManager = check_and_cast<SwarmManager *>(
+            topo.getNode(i)->getModule()->getSubmodule("swarmManager"));
+
+        // The first numSeeders will start immediately
+        bool seeder = i < numSeeders;
+
+        cMessage *msg = createAnnounceMsg(defaultControlInfo, seeder,
+            swarmManager);
+
+        // all seeders start at the beginning of the simulation
+        if (seeder) {
+            self->scheduleAt(simTime(), msg);
+        } else {
+            self->emitEnterTime(enterTime);
+            self->scheduleAt(enterTime, msg);
+            enterTime += exponential(interarrivalTime);
+        }
+    }
+}
+}
 
 // public methods
 ClientController::ClientController() :
@@ -95,6 +157,11 @@ ClientController::ClientController() :
 
 ClientController::~ClientController() {
 }
+
+void ClientController::emitEnterTime(simtime_t enterTime) {
+    emit(this->enterTime_Signal, enterTime);
+}
+
 // Private methods
 int ClientController::numInitStages() const {
     return 4;
@@ -102,7 +169,9 @@ int ClientController::numInitStages() const {
 
 // Starting point of the simulation
 void ClientController::initialize(int stage) {
-    if (stage == 3) {
+    if (stage == 0) {
+        this->enterTime_Signal = registerSignal("ClientController_EnterTimeSignal");
+    } else if (stage == 3) {
         // get the parameters
         std::string sTrackerAddress = par("trackerAddress").stringValue();
         int trackerPort = par("trackerPort").longValue();
@@ -123,10 +192,11 @@ void ClientController::initialize(int stage) {
         IPvXAddress trackerAddress = IPAddressResolver().resolve(
             sTrackerAddress.c_str(), IPAddressResolver::ADDR_IPv4);
 
+        sTrackerAddress.append(".tcpApp[0]");
+
         // get references to other modules
         TrackerApp* trackerApp = check_and_cast<TrackerApp *>(
-            simulation.getModuleByPath(
-                sTrackerAddress.append(".trackerApp").c_str()));
+            simulation.getModuleByPath(sTrackerAddress.c_str()));
 
         // For each content in the profile, schedule the start messages.
         cXMLElementList::iterator it = contentList.begin();
@@ -143,8 +213,12 @@ void ClientController::initialize(int stage) {
             TorrentMetadata const& torrentMetadata =
                 trackerApp->getTorrentMetaData(contentName);
 
-            scheduleStartMessages(startTime, interarrival, seederPercentage,
-                torrentMetadata, trackerAddress, trackerPort);
+            EnterSwarmCommand const& defaultControlInfo =
+                createDefaultControlInfo(torrentMetadata, trackerAddress,
+                    trackerPort);
+
+            scheduleStartMessages(this, startTime, interarrival,
+                seederPercentage, defaultControlInfo);
 
         }
 
@@ -158,47 +232,6 @@ void ClientController::initialize(int stage) {
     }
 }
 // Private methods
-
-void ClientController::scheduleStartMessages(simtime_t const& startTime,
-    simtime_t const& interarrivalTime, double seederPercentage,
-    TorrentMetadata const& torrentMetadata, IPvXAddress const& trackerAddress,
-    int trackerPort) {
-    cTopology topo;
-    topo.extractByProperty("peer");
-
-    int numNodes = topo.getNumNodes();
-    // round up to 1
-    int numSeeders = (numNodes * seederPercentage) < 1? 1 : numNodes * seederPercentage;
-
-    simtime_t enterTime = startTime;
-
-    for (int i = 0; i < topo.getNumNodes(); ++i) {
-        SwarmManager * swarmManager = check_and_cast<SwarmManager *>(
-            topo.getNode(i)->getModule()->getSubmodule("swarmManager"));
-
-        // The first numSeeders will start immediately
-        bool seeder = i < numSeeders;
-
-        cMessage *msg = new cMessage("Enter Swarm");
-        msg->setKind(USER_COMMAND_ENTER_SWARM);
-        msg->setContextPointer(swarmManager);
-        EnterSwarmCommand * enterSwarmCommand = new EnterSwarmCommand();
-        enterSwarmCommand->setSeeder(seeder);
-        enterSwarmCommand->setTorrentMetadata(torrentMetadata);
-        enterSwarmCommand->setTrackerAddress(trackerAddress);
-        enterSwarmCommand->setTrackerPort(trackerPort);
-        msg->setControlInfo(enterSwarmCommand);
-
-        // all seeders start at the beginning of the simulation
-        if (seeder) {
-            scheduleAt(simTime(), msg);
-        } else {
-            scheduleAt(enterTime, msg);
-            enterTime += exponential(interarrivalTime);
-        }
-    }
-
-}
 void ClientController::printDebugMsg(std::string s) {
     if (this->debugFlag) {
 //        // debug "header"
@@ -215,10 +248,10 @@ void ClientController::updateStatusString() {
 //        getDisplayString().setTagArg("t", 0, out.str().c_str());
     }
 }
-//void ClientController::registerEmittedSignals() {
-//}
-//void ClientController::subscribeToSignals() {
-//}
+void ClientController::registerEmittedSignals() {
+}
+void ClientController::subscribeToSignals() {
+}
 
 // Protected methods
 // TODO add startTimer (to tell when the Client will enter the swarm)
