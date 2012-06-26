@@ -75,8 +75,7 @@ package br.larc.usp.nodes;
 import br.larc.usp.client.BitTorrentApp;
 
 import inet.base.NotificationBoard;
-//import inet.linklayer.ethernet.EthernetInterface;
-import inet.linklayer.ppp.PPPInterface;
+import inet.linklayer.ethernet.EthernetInterface;
 import inet.networklayer.common.InterfaceTable;
 import inet.networklayer.ipv4.RoutingTable;
 import inet.transport.tcp.TCP;
@@ -125,11 +124,16 @@ module Peer like PeerInterface
                 proxyARP = false;
                 @display("p=163,230;q=queue");
         }
-        eth: EthernetInterfaceThruput {
+        eth: EthernetInterface {
             parameters:
                 @display("p=163,359,row,90;q=txQueue");
             gates:
         }
+//        eth: EthernetInterfaceThruput {
+//            parameters:
+//                @display("p=163,359,row,90;q=txQueue");
+//            gates:
+//        }
         // TODO: verify the need to use tcpdump to collect statistics
 //        tcpDump: TCPDump {
 //            parameters:

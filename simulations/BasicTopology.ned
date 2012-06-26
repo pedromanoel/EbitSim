@@ -16,11 +16,13 @@ package br.larc.usp.simulations;
 
 import br.larc.usp.controller.ClientController;
 import br.larc.usp.nodes.Peer;
-import br.larc.usp.nodes.RouterThruput;
 import br.larc.usp.nodes.PeerInterface;
-import br.larc.usp.nodes.Tracker;
 
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
+import inet.nodes.ethernet.EtherHost;
+import inet.nodes.inet.Router;
+import inet.nodes.inet.StandardHost;
+
 
 //
 // Basic ethernet topology with one router and everybody connected
@@ -28,20 +30,35 @@ import inet.networklayer.autorouting.FlatNetworkConfigurator;
 network BasicTopology extends BasicNetwork
 {
     parameters:
-        @statistic[SwarmManager_EnteredSwarm](title="Enter Swarm Instant"; record=vector);
-        @statistic[ContentManager_100_percentDownloadMarkTime](title="100% Download Time Ordinate"; unit=s; record=vector,histogram);
+        @signal[SwarmManager_EnterSwarm];
+        @signal[ContentManager_100_percentDownloadMarkTime];
+        @statistic[EnteredSwarm](
+            source=SwarmManager_EnterSwarm;
+            title="Enter Swarm Instant"; record=vector
+        );
+        @statistic[DownloadComplete](
+            source=ContentManager_100_percentDownloadMarkTime;
+            title="Download Complete";
+            unit=s;
+            record=vector,histogram
+        );
 
     submodules:
-        tracker: Tracker;
+//        tracker: Tracker;
         peer[numPeers]: <> like PeerInterface;
-        routerThruput: RouterThruput;
+        router: Router;
         flatNetworkConfigurator: FlatNetworkConfigurator;
         clientController: ClientController {
             @display("p=296,200");
         }
+        tracker: StandardHost {
+            numTcpApps = 1;
+            tcpAppType = "TrackerApp";
+            @display("p=392,293;i=device/server2");
+        }
     connections:
         for i=0..numPeers-1 {
-            peer[i].ethg <--> ethernetline <--> routerThruput.ethg++;
+            peer[i].ethg <--> ethernetline <--> router.ethg++;
         }
-        tracker.ethg <--> ethernetline <--> routerThruput.ethg++;
+        tracker.ethg++ <--> ethernetline <--> router.ethg++;
 }
