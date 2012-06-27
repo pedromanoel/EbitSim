@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="/EbitSim/simulations/results/SimpleTopology-*.vec"/>
+    <inputs name="/EbitSim/simulations/results/SimpleTopology-*.sca"/>
+  </inputs>
+  <datasets>
+    <datasets name="Piece Distribution">
+      <items xsi:type="scave:Add" filterPattern="name(DownloadPiece:vector)" type="VECTOR"/>
+      <items xsi:type="scave:LineChart"/>
+    </datasets>
+    <datasets name="Download Time">
+      <items xsi:type="scave:Add" filterPattern="" type="HISTOGRAM"/>
+      <items xsi:type="scave:HistogramChart" name="Download Time 10% seeders">
+        <filters xsi:type="scave:Select" filterPattern="attr:seederPerc(0.1) " type="HISTOGRAM"/>
+        <properties name="Graph.Title" value="Download Time for 10% seeders"/>
+        <properties name="X.Axis.Title" value="Download Time"/>
+        <properties name="Axes.Grid" value="None"/>
+        <properties name="Hist.Bar" value="Outline"/>
+        <properties name="Hist.Data" value="Cdf"/>
+      </items>
+      <items xsi:type="scave:HistogramChart" name="Download Time 50% seeders">
+        <filters xsi:type="scave:Select" filterPattern="attr:seederPerc(0.5) " type="HISTOGRAM"/>
+        <properties name="X.Axis.Title" value="Download Time"/>
+        <properties name="Axes.Grid" value="None"/>
+        <properties name="Hist.Bar" value="Outline"/>
+        <properties name="Hist.Data" value="Cdf"/>
+      </items>
+      <items xsi:type="scave:HistogramChart" name="Download Time 90% seeders">
+        <filters xsi:type="scave:Select" filterPattern="attr:seederPerc(0.9) " type="HISTOGRAM"/>
+        <properties name="X.Axis.Title" value="Download Time"/>
+        <properties name="Axes.Grid" value="None"/>
+        <properties name="Hist.Bar" value="Outline"/>
+        <properties name="Hist.Data" value="Cdf"/>
+      </items>
+      <items xsi:type="scave:HistogramChart" name="Download Time 1000 Peers">
+        <filters xsi:type="scave:Select" filterPattern="attr:p(1000) " type="HISTOGRAM"/>
+        <properties name="X.Axis.Title" value="Download Time"/>
+        <properties name="Axes.Grid" value="None"/>
+        <properties name="Hist.Bar" value="Outline"/>
+        <properties name="Hist.Data" value="Cdf"/>
+      </items>
+    </datasets>
+  </datasets>
+  <chartSheets>
+    <chartSheets name="Download Time" charts="//@datasets/@datasets.1/@items.1 //@datasets/@datasets.1/@items.2 //@datasets/@datasets.1/@items.3 //@datasets/@datasets.1/@items.4"/>
+  </chartSheets>
+</scave:Analysis>
