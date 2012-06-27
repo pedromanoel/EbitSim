@@ -40,11 +40,12 @@ Run the following command to install these packages
 $ sudo apt-get install default-jre build-essential zlib1g-dev tcl8.4-dev\
  tk8.4-dev tclreadline blt-dev libxml2-dev libpcap-dev
 
-In order to compile Ebitsim, it is necessary to download the smc and boost libraries:
+In order to compile Ebitsim, it is necessary to download the smc (State Machine
+Compiler) and the boost library:
 SMC: http://smc.sourceforge.net/
 Boost: http://www.boost.org/
 
-Extract them somewere in your home folder, such as "~/libs".
+Extract them somewhere in your home folder, such as "~/libs".
 
 INSTALLATION
 
@@ -54,8 +55,7 @@ $ make
 
 If you face any problems, please refer to the omnetpp installation guide.
 
-2. Install the smc
-Create the file "~/bin/smc" with the following content:
+2. Create the file "~/bin/smc" with the following content:
 #!/bin/bash
 if [[ $# > 0 ]]
 then
@@ -67,9 +67,25 @@ fi
 Substitute PATH-TO-SMC-INSTALL with the path where you extracted the smc
 ("~/libs/smc_VERSION" if you followed the suggestion above).
 
-3. Compile the inet framework and the EBitSim project
-Open the omnetpp IDE and add the projects EBitSim and inet to the workspace.
-If you followed the suggestion from this guide, they should be at "~/Workspace".
-Run 'make' inside the folder src/client/smc.
-Compile both projects and you're set to go!
+Make the file executable with the command
+$ chmod u+x ~/bin/smc
+
+3. Open the OMNeT++ IDE and add the INET framework source to the workspace. Then
+compile both in release and debug modes.
+
+4. Copy or move the EbitSim source code to the IDE workspace and create
+an OMNeT++ project with the same name.
+Use the template "Empty project with 'src' and 'simulations' folders"
+
+5. Add the smc and boost folders to the paths.
+Enter the project properties, select "C/C++ General -> Paths and Symbols", and
+add the paths to the "boost" folder (it is the root) and to the "smc/lib/C++"
+folder under the GNU C++ Language.
+
+6. Use the inet project as a reference for the EbitSim.
+
+7. Run 'make' inside the folder src/client/smc and compile the EbitSim project
+both in release and debug modes.
+
+Now you should be ready to play around!
 
