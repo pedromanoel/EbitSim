@@ -176,7 +176,6 @@ void SwarmManagerThread::timerExpired(cMessage *timer) {
         this->sock->renewSocket();
         socketMap.addSocket(this->sock);
 
-        SwarmManager* swarmManager = static_cast<SwarmManager*>(this->hostmod);
         this->sock->connect(this->trackerAddress, this->trackerPort);
     }
 }

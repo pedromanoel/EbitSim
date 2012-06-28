@@ -85,16 +85,55 @@
 
 Define_Module(BitTorrentClient);
 
+// Helper functions
+namespace {
+// Swarm (numActive, numPassive, PeerMap, UnconnectedList, seeding)
+// typedef tuple<int, int, PeerMap, UnconnectedList, bool> Swarm;
+// The getters of the swarm tuple. The get*Ref() functions return a
+// modifiable reference, while the get*() return a const reference.
+int & getNumActiveRef(Swarm & swarm) {
+    return swarm.get<0>();
+}
+int & getNumPassiveRef(Swarm & swarm) {
+    return swarm.get<1>();
+}
+PeerMap & getPeerMapRef(Swarm & swarm) {
+    return swarm.get<2>();
+}
+UnconnectedList & getUnconnectedListRef(Swarm & swarm) {
+    return swarm.get<3>();
+}
+bool & getSeedingRef(Swarm & swarm) {
+    return swarm.get<4>();
+}
+
+int getNumActive(Swarm const& swarm) {
+    return swarm.get<0>();
+}
+int getNumPassive(Swarm const& swarm) {
+    return swarm.get<1>();
+}
+PeerMap const& getPeerMap(Swarm const& swarm) {
+    return swarm.get<2>();
+}
+UnconnectedList const& getUnconnectedList(Swarm const& swarm) {
+    return swarm.get<3>();
+}
+bool getSeeding(Swarm const& swarm) {
+    return swarm.get<4>();
+}
+}
+
 // Public Methods
 BitTorrentClient::BitTorrentClient() :
         swarmManager(NULL), endOfProcessingTimer("End of processing"),
         //    processNextThreadTimer("Start processing thread"),
         doubleProcessingTimeHist("Piece processing time histogram"), snubbedInterval(
-                0), timeoutInterval(0), keepAliveInterval(0), /*oldUnchokeInterval(0),*/
+            0), timeoutInterval(0), keepAliveInterval(0), /*oldUnchokeInterval(0),*/
         downloadRateInterval(0), uploadRateInterval(0), localPort(-1), localPeerId(
-                -1), debugFlag(false), globalNumberOfPeers(0), numberOfActivePeers(
-                0), numberOfPassivePeers(0), prevNumUnconnected(0), prevNumConnected(
-                0) {
+            -1), debugFlag(false), globalNumberOfPeers(0), numberOfActivePeers(
+            0), numberOfPassivePeers(0), prevNumUnconnected(0), prevNumConnected(
+            0) {
 }
 
 BitTorrentClient::~BitTorrentClient() {
@@ -123,7 +162,7 @@ void BitTorrentClient::chokePeer(int infoHash, int peerId) {
 PeerEntryPtrVector BitTorrentClient::getFastestToDownload(int infoHash) const {
     Enter_Method("getFastestToDownload(infoHash: %d)", infoHash);
 
-    PeerMap const& peerMap = this->getSwarm(infoHash).get<2>();
+    PeerMap const& peerMap = getPeerMap(this->getSwarm(infoHash));
     PeerEntryPtrVector orderedPeers;
     orderedPeers.reserve(peerMap.size());
     if (peerMap.size()) {
@@ -133,7 +172,7 @@ PeerEntryPtrVector BitTorrentClient::getFastestToDownload(int infoHash) const {
         }
 
         std::sort(orderedPeers.begin(), orderedPeers.end(),
-                PeerEntry::sortByDownloadRate);
+            PeerEntry::sortByDownloadRate);
     }
 
     return orderedPeers;
@@ -141,7 +180,7 @@ PeerEntryPtrVector BitTorrentClient::getFastestToDownload(int infoHash) const {
 PeerEntryPtrVector BitTorrentClient::getFastestToUpload(int infoHash) {
     Enter_Method("getFastestToUpload(infoHash: %d)", infoHash);
 
-    PeerMap const& peerMap = this->getSwarm(infoHash).get<2>();
+    PeerMap const& peerMap = getPeerMap(this->getSwarm(infoHash));
     PeerEntryPtrVector vector;
     if (peerMap.size()) {
         PeerMapConstIt it = peerMap.begin();
@@ -177,11 +216,9 @@ void BitTorrentClient::drop(int infoHash, int peerId) {
 void BitTorrentClient::finishedDownload(int infoHash) {
     Enter_Method("finishedDownload(infoHash: %d)", infoHash);
     Swarm & swarm = this->getSwarm(infoHash);
-    bool & seeding = swarm.get<4>();
-    seeding = true;
+    getSeedingRef(swarm) = true;
     // no more active downloads
-    UnconnectedList & unconnectedList = swarm.get<3>();
-    unconnectedList.clear();
+    getUnconnectedListRef(swarm).clear();
     this->swarmManager->finishedDownload(infoHash);
 }
 void BitTorrentClient::peerInteresting(int infoHash, int peerId) {
@@ -193,7 +230,7 @@ void BitTorrentClient::peerInteresting(int infoHash, int peerId) {
 }
 void BitTorrentClient::peerNotInteresting(int infoHash, int peerId) {
     Enter_Method("peerNotInteresting(infoHash: %d, peerId: %d)", infoHash,
-            peerId);
+        peerId);
 
     this->printDebugMsg("calling getPeerEntry from peerNotInteresting");
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
@@ -202,7 +239,7 @@ void BitTorrentClient::peerNotInteresting(int infoHash, int peerId) {
 void BitTorrentClient::sendHaveMessage(int infoHash, int pieceIndex) {
     Enter_Method("sendHaveMessage(pieceIndex: %d)", pieceIndex);
 
-    PeerMap const& peerMap = this->getSwarm(infoHash).get<2>();
+    PeerMap const& peerMap = getPeerMap(this->getSwarm(infoHash));
     PeerMapConstIt it = peerMap.begin();
 
     // Send have message to all peers from the swarm connected with the Client
@@ -219,7 +256,7 @@ void BitTorrentClient::sendHaveMessage(int infoHash, int pieceIndex) {
 // Methods used by the SwarmManager
 void BitTorrentClient::addSwarm(int infoHash, bool newSwarmSeeding) {
     Enter_Method("addSwarm(infoHash: %d, %s)", infoHash,
-            (newSwarmSeeding ? "seeding" : "leeching"));
+        (newSwarmSeeding ? "seeding" : "leeching"));
 
     // error if swarm already exists
     if (this->swarmMap.count(infoHash)) {
@@ -228,12 +265,9 @@ void BitTorrentClient::addSwarm(int infoHash, bool newSwarmSeeding) {
 
     // create swarm
     Swarm & swarm = this->swarmMap[infoHash];
-    int & numActive = swarm.get<0>();
-    int & numPassive = swarm.get<1>();
-    bool & seeding = swarm.get<4>();
-    numActive = 0;
-    numPassive = 0;
-    seeding = newSwarmSeeding;
+    getNumActiveRef(swarm) = 0;
+    getNumPassiveRef(swarm) = 0;
+    getSeedingRef(swarm) = newSwarmSeeding;
 }
 void BitTorrentClient::removeSwarm(int infoHash) {
     Enter_Method("removeSwarm(infoHash: %d)", infoHash);
@@ -251,14 +285,13 @@ void BitTorrentClient::removeSwarm(int infoHash) {
 // Private Methods
 // Methods used by the SwarmManagerThread
 void BitTorrentClient::addUnconnectedPeers(int infoHash,
-        std::list<tuple<int, IPvXAddress, int> > & peers) {
+    std::list<tuple<int, IPvXAddress, int> > & peers) {
     Enter_Method("addUnconnectedPeers(infoHash: %d, qtty: %d)", infoHash,
-            peers.size());
+        peers.size());
     Swarm & swarm = this->getSwarm(infoHash);
     // only add unconnected peers if not seeding
-    bool const& seeding = swarm.get<4>();
-    if (!seeding) {
-        UnconnectedList & unconnectedList = swarm.get<3>();
+    if (!getSeeding(swarm)) {
+        UnconnectedList & unconnectedList = getUnconnectedListRef(swarm);
         unconnectedList.splice(unconnectedList.end(), peers);
         // sort the unconnected list in order to remove the duplicates
         unconnectedList.sort();
@@ -276,9 +309,9 @@ void BitTorrentClient::addUnconnectedPeers(int infoHash,
 
 // Methods used by the PeerWireThread
 void BitTorrentClient::addConnectedPeer(int infoHash, int peerId,
-        PeerWireThread* thread, bool active) {
+    PeerWireThread* thread, bool active) {
     Swarm & swarm = this->getSwarm(infoHash);
-    PeerMap & peerMap = swarm.get<2>();
+    PeerMap & peerMap = getPeerMapRef(swarm);
 
     // if the number of connected peers changed, emit a signal
     if (this->prevNumConnected != peerMap.size()) {
@@ -287,8 +320,7 @@ void BitTorrentClient::addConnectedPeer(int infoHash, int peerId,
     }
 
     if (thread->activeConnection == false) {
-        int & numPassive = swarm.get<1>();
-        ++numPassive;
+        ++getNumPassiveRef(swarm);
     }
 
     PeerMapIt lb = peerMap.lower_bound(peerId);
@@ -309,7 +341,7 @@ void BitTorrentClient::calculateUploadRate(int infoHash, int peerId) {
 }
 bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
     Swarm const& swarm = this->getSwarm(infoHash);
-    PeerMap const& peerMap = swarm.get<2>();
+    PeerMap const& peerMap = getPeerMap(swarm);
 
     bool successful = false;
 
@@ -317,14 +349,14 @@ bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
     if (!peerMap.count(peerId)) {
 
         // check if there are passive slots available for connection
-        int const& numPassive = swarm.get<1>();
-        int numAvailableSlots = this->numberOfPassivePeers - numPassive;
+        int numAvailableSlots = this->numberOfPassivePeers
+            - getNumPassive(swarm);
 
         // active slots are used as passive slots when seeding
-        bool const& seeding = swarm.get<4>();
+        bool const& seeding = getSeeding(swarm);
         if (seeding) {
-            int const& numActive = swarm.get<0>();
-            numAvailableSlots += this->numberOfActivePeers - numActive;
+            numAvailableSlots += this->numberOfActivePeers
+                - getNumActive(swarm);
         }
 
         this->printDebugMsgConnections("canConnect", infoHash, swarm);
@@ -341,7 +373,7 @@ bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
 
 void BitTorrentClient::processNextThread() {
     std::set<PeerWireThread*>::iterator nextThreadIt =
-            this->threadInProcessingIt;
+        this->threadInProcessingIt;
 
     // allThreads will never be empty, because this method is called from the
     // thread, therefore there is at least one element in the set.
@@ -349,7 +381,7 @@ void BitTorrentClient::processNextThread() {
 
     // don't start processing another thread if the current one is still processing
     if (!(*this->threadInProcessingIt)->isProcessing()
-            && !this->endOfProcessingTimer.isScheduled()) {
+        && !this->endOfProcessingTimer.isScheduled()) {
         // search the circular queue for a thread with messages to process
 
         bool hasMessages = false;
@@ -368,40 +400,38 @@ void BitTorrentClient::processNextThread() {
         if (hasMessages) {
             std::ostringstream out;
             out << "Changing from thread "
-                    << (*this->threadInProcessingIt)->remotePeerId;
+                << (*this->threadInProcessingIt)->remotePeerId;
             out << " to " << (*nextThreadIt)->remotePeerId;
             this->printDebugMsg(out.str());
 
             this->threadInProcessingIt = nextThreadIt;
             simtime_t processingTime =
-                    (*this->threadInProcessingIt)->processThread();
-            emit(this->processingTime, processingTime);
+                (*this->threadInProcessingIt)->processThread();
+            emit(this->processingTime_Signal, processingTime);
             this->scheduleAt(simTime() + processingTime,
-                    &this->endOfProcessingTimer);
+                &this->endOfProcessingTimer);
         }
     }
 }
 
 void BitTorrentClient::removePeerInfo(int infoHash, int peerId, int connId,
-        bool active) {
+    bool active) {
     Swarm & swarm = this->getSwarm(infoHash);
     // remove from the connected list
-    PeerMap & peerMap = swarm.get<2>();
+    PeerMap & peerMap = getPeerMapRef(swarm);
     peerMap.erase(peerId);
 
     // try to remove from the active connected peers
     // if the peer was actively connected, decrement numOfActive, effectively
     // opening one active connection slot. Else, decrement numOfPassive.
-    int & numPassive = swarm.get<1>();
-    int & numActive = swarm.get<0>();
 
     if (this->activeConnectedPeers.erase(std::make_pair(infoHash, peerId))) {
         // decrement numOfActive
-        --numActive;
+        --getNumActiveRef(swarm);
         attemptActiveConnections(swarm, infoHash);
     } else {
         // decrement numOfPassive
-        --numPassive;
+        --getNumPassiveRef(swarm);
     }
 
     this->printDebugMsgConnections("removePeerInfo", infoHash, swarm);
@@ -411,13 +441,13 @@ void BitTorrentClient::removePeerInfo(int infoHash, int peerId, int connId,
     }
 }
 void BitTorrentClient::setInterested(bool interested, int infoHash,
-        int peerId) {
+    int peerId) {
     this->printDebugMsg("calling getPeerEntry from setInterested");
     this->getPeerEntry(infoHash, peerId).setInterested(interested);
     //    throw std::logic_error("Implement this setInterested.");
 }
 void BitTorrentClient::setOldUnchoked(bool oldUnchoke, int infoHash,
-        int peerId) {
+    int peerId) {
     this->printDebugMsg("calling getPeerEntry from setOldUnchoked");
     this->getPeerEntry(infoHash, peerId).setOldUnchoked(oldUnchoke);
 }
@@ -428,21 +458,24 @@ void BitTorrentClient::setSnubbed(bool snubbed, int infoHash, int peerId) {
 
 // Private Methods
 void BitTorrentClient::attemptActiveConnections(Swarm & swarm, int infoHash) {
-    PeerMap const& peerMap = swarm.get<2>();
+    PeerMap const& peerMap = getPeerMap(swarm);
     // only make active connections if not seeding
-    bool const& seeding = swarm.get<4>();
-    if (!seeding) {
-        UnconnectedList & unconnectedList = swarm.get<3>();
-        int & numActive = swarm.get<0>();
+    if (!getSeeding(swarm)) {
+        UnconnectedList & unconnectedList = getUnconnectedListRef(swarm);
+        int & numActive = getNumActiveRef(swarm);
 
         int numActiveSlost = this->numberOfActivePeers - numActive;
 
         while (numActiveSlost && unconnectedList.size()) {
+            //<peerId, Ip Address, port>
             tuple<int, IPvXAddress, int> peer = unconnectedList.front();
+
+            // get the peerId
             int peerId = peer.get<0>();
+
             bool notConnected = !peerMap.count(peerId);
             bool notConnecting = this->activeConnectedPeers.count(
-                    std::make_pair(infoHash, peerId)) == 0;
+                std::make_pair(infoHash, peerId)) == 0;
 
             // only connect if not already connecting or connected
             if (notConnected && notConnecting) {
@@ -452,20 +485,20 @@ void BitTorrentClient::attemptActiveConnections(Swarm & swarm, int infoHash) {
                 // get unconnected peer, connect with it then remove it from the list
                 this->connect(infoHash, peer); // establish the tcp connection
                 this->activeConnectedPeers.insert(
-                        std::make_pair(infoHash, peerId));
+                    std::make_pair(infoHash, peerId));
             }
             unconnectedList.pop_front();
         }
 
         this->printDebugMsgConnections("attemptActiveConnections", infoHash,
-                swarm);
+            swarm);
     }
 }
 /*!
  * The Peer address is acquired from the Tracker.
  */
 void BitTorrentClient::connect(int infoHash,
-        tuple<int, IPvXAddress, int> const& peer) {
+    tuple<int, IPvXAddress, int> const& peer) {
     // initialize variables with the tuple content
     int peerId, port;
     IPvXAddress ip;
@@ -509,78 +542,38 @@ void BitTorrentClient::closeListeningSocket() {
     }
 }
 void BitTorrentClient::emitReceivedSignal(int messageId) {
+#define CASE( X, Y ) case (X): emit(Y, this->localPeerId); break;
     switch (messageId) {
-    case PW_CHOKE_MSG:
-        emit(this->chokeReceived_Signal, this->localPeerId);
-        break;
-    case PW_UNCHOKE_MSG:
-        emit(this->unchokeReceived_Signal, this->localPeerId);
-        break;
-    case PW_INTERESTED_MSG:
-        emit(this->interestedReceived_Signal, this->localPeerId);
-        break;
-    case PW_NOT_INTERESTED_MSG:
-        emit(this->notInterestedReceived_Signal, this->localPeerId);
-        break;
-    case PW_HAVE_MSG:
-        emit(this->haveReceived_Signal, this->localPeerId);
-        break;
-    case PW_BITFIELD_MSG:
-        emit(this->bitFieldReceived_Signal, this->localPeerId);
-        break;
-    case PW_REQUEST_MSG:
-        emit(this->requestReceived_Signal, this->localPeerId);
-        break;
-    case PW_PIECE_MSG:
-        emit(this->pieceReceived_Signal, this->localPeerId);
-        break;
-    case PW_CANCEL_MSG:
-        emit(this->cancelReceived_Signal, this->localPeerId);
-        break;
-    case PW_KEEP_ALIVE_MSG:
-        emit(this->keepAliveReceived_Signal, this->localPeerId);
-        break;
-    case PW_HANDSHAKE_MSG:
-        emit(this->handshakeReceived_Signal, this->localPeerId);
-        break;
+    CASE(PW_CHOKE_MSG, this->chokeReceived_Signal)
+    CASE(PW_UNCHOKE_MSG, this->unchokeReceived_Signal)
+    CASE(PW_INTERESTED_MSG, this->interestedReceived_Signal)
+    CASE(PW_NOT_INTERESTED_MSG, this->notInterestedReceived_Signal)
+    CASE(PW_HAVE_MSG, this->haveReceived_Signal)
+    CASE(PW_BITFIELD_MSG, this->bitFieldReceived_Signal)
+    CASE(PW_REQUEST_MSG, this->requestReceived_Signal)
+    CASE(PW_PIECE_MSG, this->pieceReceived_Signal)
+    CASE(PW_CANCEL_MSG, this->cancelReceived_Signal)
+    CASE(PW_KEEP_ALIVE_MSG, this->keepAliveReceived_Signal)
+    CASE(PW_HANDSHAKE_MSG, this->handshakeReceived_Signal)
     }
+#undef CASE
 }
 void BitTorrentClient::emitSentSignal(int messageId) {
+#define CASE( X, Y ) case (X): emit(Y, this->localPeerId); break;
     switch (messageId) {
-    case PW_CHOKE_MSG:
-        emit(this->chokeSent_Signal, this->localPeerId);
-        break;
-    case PW_UNCHOKE_MSG:
-        emit(this->unchokeSent_Signal, this->localPeerId);
-        break;
-    case PW_INTERESTED_MSG:
-        emit(this->interestedSent_Signal, this->localPeerId);
-        break;
-    case PW_NOT_INTERESTED_MSG:
-        emit(this->notInterestedSent_Signal, this->localPeerId);
-        break;
-    case PW_HAVE_MSG:
-        emit(this->haveSent_Signal, this->localPeerId);
-        break;
-    case PW_BITFIELD_MSG:
-        emit(this->bitFieldSent_Signal, this->localPeerId);
-        break;
-    case PW_REQUEST_MSG:
-        emit(this->requestSent_Signal, this->localPeerId);
-        break;
-    case PW_PIECE_MSG:
-        emit(this->pieceSent_Signal, this->localPeerId);
-        break;
-    case PW_CANCEL_MSG:
-        emit(this->cancelSent_Signal, this->localPeerId);
-        break;
-    case PW_KEEP_ALIVE_MSG:
-        emit(this->keepAliveSent_Signal, this->localPeerId);
-        break;
-    case PW_HANDSHAKE_MSG:
-        emit(this->handshakeSent_Signal, this->localPeerId);
-        break;
+    CASE(PW_CHOKE_MSG, this->chokeSent_Signal)
+    CASE(PW_UNCHOKE_MSG, this->unchokeSent_Signal)
+    CASE(PW_INTERESTED_MSG, this->interestedSent_Signal)
+    CASE(PW_NOT_INTERESTED_MSG, this->notInterestedSent_Signal)
+    CASE(PW_HAVE_MSG, this->haveSent_Signal)
+    CASE(PW_BITFIELD_MSG, this->bitFieldSent_Signal)
+    CASE(PW_REQUEST_MSG, this->requestSent_Signal)
+    CASE(PW_PIECE_MSG, this->pieceSent_Signal)
+    CASE(PW_CANCEL_MSG, this->cancelSent_Signal)
+    CASE(PW_KEEP_ALIVE_MSG, this->keepAliveSent_Signal)
+    CASE(PW_HANDSHAKE_MSG, this->handshakeSent_Signal)
     }
+#undef CASE
 }
 Swarm & BitTorrentClient::getSwarm(int infoHash) {
     try {
@@ -602,8 +595,7 @@ Swarm const& BitTorrentClient::getSwarm(int infoHash) const {
 }
 PeerEntry & BitTorrentClient::getPeerEntry(int infoHash, int peerId) {
     try {
-        PeerMap & peerMap = this->getSwarm(infoHash).get<2>();
-        return peerMap.at(peerId);
+        return getPeerMapRef(this->getSwarm(infoHash)).at(peerId);
     } catch (std::out_of_range & e) {
         std::ostringstream out;
         out << "Peer " << peerId << " not in swarm " << infoHash;
@@ -627,7 +619,7 @@ void BitTorrentClient::openListeningSocket() {
 }
 
 void BitTorrentClient::peerWireStatistics(cMessage const*msg, bool sending =
-        false) {
+    false) {
     if (dynamic_cast<PeerWireMsg const*>(msg)) {
         PeerWireMsg const* peerWireMsg = static_cast<PeerWireMsg const*>(msg);
         int messageId = peerWireMsg->getMessageId();
@@ -653,10 +645,10 @@ void BitTorrentClient::peerWireStatistics(cMessage const*msg, bool sending =
         }
     } else if (dynamic_cast<PeerWireMsgBundle const*>(msg)) {
         cQueue const& bundle =
-                static_cast<PeerWireMsgBundle const*>(msg)->getBundle();
+            static_cast<PeerWireMsgBundle const*>(msg)->getBundle();
         for (int i = 0; i < bundle.length(); ++i) {
             PeerWireMsg const* peerWireMsg =
-                    static_cast<PeerWireMsg const*>(bundle.get(i));
+                static_cast<PeerWireMsg const*>(bundle.get(i));
             int messageId = peerWireMsg->getMessageId();
             int size = peerWireMsg->getByteLength();
 
@@ -682,13 +674,13 @@ void BitTorrentClient::printDebugMsg(std::string s) const {
 }
 
 void BitTorrentClient::printDebugMsgConnections(std::string methodName,
-        int infoHash, Swarm const&swarm) const {
+    int infoHash, Swarm const&swarm) const {
     std::ostringstream out;
 
     out << methodName << "(" << infoHash << "): ";
-    out << " Num Active=" << swarm.get<0>();
-    out << " Num Passive=" << swarm.get<1>();
-    out << " PeerMap size=" << swarm.get<2>().size();
+    out << " Num Active=" << getNumActive(swarm);
+    out << " Num Passive=" << getNumPassive(swarm);
+    out << " PeerMap size=" << getPeerMap(swarm).size();
     this->printDebugMsg(out.str());
 }
 
@@ -700,7 +692,7 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
         // go back one element, if possible, since processNextThread will
         // increment the iterator
         if (!this->allThreads.empty()
-                && this->threadInProcessingIt != this->allThreads.begin()) {
+            && this->threadInProcessingIt != this->allThreads.begin()) {
             --this->threadInProcessingIt;
         }
     } else {
@@ -712,58 +704,40 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
 }
 void BitTorrentClient::registerEmittedSignals() {
     // signal that this Client entered a swarm
-    this->numUnconnected_Signal = registerSignal(
-            "BitTorrentClient_NumUnconnected");
-    this->numConnected_Signal = registerSignal("BitTorrentClient_NumConnected");
-
-    this->processingTime = registerSignal("BitTorrentClient_ProcessingTime");
+#define SIGNAL(X, Y) this->X = registerSignal("BitTorrentClient_" #Y)
+    SIGNAL(numUnconnected_Signal, NumUnconnected);
+    SIGNAL(numConnected_Signal, NumConnected);
+    SIGNAL(processingTime_Signal, ProcessingTime);
 
     // TODO use these signals
-    this->peerWireBytesSent_Signal = registerSignal(
-            "BitTorrentClient_PeerWireBytesSent");
-    this->peerWireBytesReceived_Signal = registerSignal(
-            "BitTorrentClient_PeerWireBytesReceived");
-    this->contentBytesSent_Signal = registerSignal(
-            "BitTorrentClient_ContentBytesSent");
-    this->contentBytesReceived_Signal = registerSignal(
-            "BitTorrentClient_ContentBytesReceived");
+    SIGNAL(peerWireBytesSent_Signal, PeerWireBytesSent);
+    SIGNAL(peerWireBytesReceived_Signal, PeerWireBytesReceived);
+    SIGNAL(contentBytesSent_Signal, ContentBytesSent);
+    SIGNAL(contentBytesReceived_Signal, ContentBytesReceived);
 
-    this->bitFieldSent_Signal = registerSignal("BitTorrentClient_BitFieldSent");
-    this->bitFieldReceived_Signal = registerSignal(
-            "BitTorrentClient_BitFieldReceived");
-    this->cancelSent_Signal = registerSignal("BitTorrentClient_CancelSent");
-    this->cancelReceived_Signal = registerSignal(
-            "BitTorrentClient_CancelReceived");
-    this->chokeSent_Signal = registerSignal("BitTorrentClient_ChokeSent");
-    this->chokeReceived_Signal = registerSignal(
-            "BitTorrentClient_ChokeReceived");
-    this->handshakeSent_Signal = registerSignal(
-            "BitTorrentClient_HandshakeSent");
-    this->handshakeReceived_Signal = registerSignal(
-            "BitTorrentClient_HandshakeReceived");
-    this->haveSent_Signal = registerSignal("BitTorrentClient_HaveSent");
-    this->haveReceived_Signal = registerSignal("BitTorrentClient_HaveReceived");
-    this->interestedSent_Signal = registerSignal(
-            "BitTorrentClient_InterestedSent");
-    this->interestedReceived_Signal = registerSignal(
-            "BitTorrentClient_InterestedReceived");
-    this->keepAliveSent_Signal = registerSignal(
-            "BitTorrentClient_KeepAliveSent");
-    this->keepAliveReceived_Signal = registerSignal(
-            "BitTorrentClient_KeepAliveReceived");
-    this->notInterestedSent_Signal = registerSignal(
-            "BitTorrentClient_NotInterestedSent");
-    this->notInterestedReceived_Signal = registerSignal(
-            "BitTorrentClient_NotInterestedReceived");
-    this->pieceSent_Signal = registerSignal("BitTorrentClient_PieceSent");
-    this->pieceReceived_Signal = registerSignal(
-            "BitTorrentClient_PieceReceived");
-    this->requestSent_Signal = registerSignal("BitTorrentClient_RequestSent");
-    this->requestReceived_Signal = registerSignal(
-            "BitTorrentClient_RequestReceived");
-    this->unchokeSent_Signal = registerSignal("BitTorrentClient_UnchokeSent");
-    this->unchokeReceived_Signal = registerSignal(
-            "BitTorrentClient_UnchokeReceived");
+    SIGNAL(bitFieldSent_Signal, BitFieldSent);
+    SIGNAL(bitFieldReceived_Signal, BitFieldReceived);
+    SIGNAL(cancelSent_Signal, CancelSent);
+    SIGNAL(cancelReceived_Signal, CancelReceived);
+    SIGNAL(chokeSent_Signal, ChokeSent);
+    SIGNAL(chokeReceived_Signal, ChokeReceived);
+    SIGNAL(handshakeSent_Signal, HandshakeSent);
+    SIGNAL(handshakeReceived_Signal, HandshakeReceived);
+    SIGNAL(haveSent_Signal, HaveSent);
+    SIGNAL(haveReceived_Signal, HaveReceived);
+    SIGNAL(interestedSent_Signal, InterestedSent);
+    SIGNAL(interestedReceived_Signal, InterestedReceived);
+    SIGNAL(keepAliveSent_Signal, KeepAliveSent);
+    SIGNAL(keepAliveReceived_Signal, KeepAliveReceived);
+    SIGNAL(notInterestedSent_Signal, NotInterestedSent);
+    SIGNAL(notInterestedReceived_Signal, NotInterestedReceived);
+    SIGNAL(pieceSent_Signal, PieceSent);
+    SIGNAL(pieceReceived_Signal, PieceReceived);
+    SIGNAL(requestSent_Signal, RequestSent);
+    SIGNAL(requestReceived_Signal, RequestReceived);
+    SIGNAL(unchokeSent_Signal, UnchokeSent);
+    SIGNAL(unchokeReceived_Signal, UnchokeReceived);
+#undef SIGNAL
 }
 void BitTorrentClient::subscribeToSignals() {
 }
@@ -803,7 +777,7 @@ void BitTorrentClient::initialize(int stage) {
 
         IPAddressResolver resolver;
         this->localIp = resolver.addressOf(getParentModule()->getParentModule(),
-                IPAddressResolver::ADDR_PREFER_IPv4);
+            IPAddressResolver::ADDR_PREFER_IPv4);
         this->localPort = par("port");
 
         this->debugFlag = par("debugFlag").boolValue();
@@ -872,7 +846,7 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
                 // ignore message
                 std::ostringstream out;
                 out << "Message " << msg->getName()
-                        << " don't belong to any socket";
+                    << " don't belong to any socket";
 
                 delete msg;
                 msg = NULL;
@@ -893,7 +867,7 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
         } else {
             // PeerWireThread self-messages
             PeerWireThread *thread =
-                    static_cast<PeerWireThread *>(msg->getContextPointer());
+                static_cast<PeerWireThread *>(msg->getContextPointer());
 
             assert(thread != NULL);
             // pass the message along to the thread

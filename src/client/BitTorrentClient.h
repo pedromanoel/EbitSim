@@ -351,7 +351,7 @@ private:
     simsignal_t numUnconnected_Signal;
     simsignal_t numConnected_Signal;
 
-    simsignal_t processingTime;
+    simsignal_t processingTime_Signal;
 
     simsignal_t peerWireBytesSent_Signal;
     simsignal_t peerWireBytesReceived_Signal;
