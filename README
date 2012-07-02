@@ -75,7 +75,8 @@ compile both in release and debug modes.
 
 4. Copy or move the EbitSim source code to the IDE workspace and create
 an OMNeT++ project with the same name.
-Use the template "Empty project with 'src' and 'simulations' folders"
+Use the template "Empty project with 'src' and 'simulations' folders". You MUST
+NOT overwrite the 'package.ned' and the omnetpp.ini files.
 
 5. Add the smc and boost folders to the paths.
 Enter the project properties, select "C/C++ General -> Paths and Symbols", and
