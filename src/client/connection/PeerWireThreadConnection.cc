@@ -69,7 +69,7 @@
 // PRESENCE OF ABSENCE OF ERRORS, WHETHER OR NOT DISCOVERABLE. SOME
 // JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED WARRANTIES, SO THIS
 // EXCLUSION MAY NOT APPLY TO YOU.
-
+//
 /*
  * PeerWireThreadHandshake.cpp
  *
@@ -195,8 +195,8 @@ void PeerWireThread::stopHandshakeTimers() {
     this->cancelEvent(&this->keepAliveTimer);
 }
 void PeerWireThread::terminateThread() {
-    // abort the connection
-    this->sock->abort();
+    // close the connection
+    this->sock->close();
 
     // remove the connection from the BitTorrentClient
     if (this->infoHash != -1 && this->remotePeerId != 1) {
@@ -239,7 +239,7 @@ void PeerWireThread::terminateThread() {
     // This thread is completely detached from the Swarm, meaning that no module
     // will issue transitions to the state machines. This thread will be deleted
     // at the end of the processing.
-    this->terminated = true;
+//    this->terminating = true;
 }
 // transition guards
 bool PeerWireThread::checkHandshake(Handshake const& hs) {

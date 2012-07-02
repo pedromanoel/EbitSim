@@ -268,11 +268,11 @@ private:
      * Will result in the deletion of the thread when the finishProcessing()
      * method is called.
      */
-    bool terminated;
+    bool terminating;
 
     //!@name Message processing
     //@{
-    bool processing;
+    bool busy;
     /*!
      * Queue of messages that are waiting to be processed.
      */

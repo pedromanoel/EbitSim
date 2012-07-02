@@ -189,7 +189,7 @@ void SwarmManagerThread::closed() {
 }
 void SwarmManagerThread::failure(int code) {
     // renew socket and retry to connect
-    this->sock->abort();
+    this->sock->close();
 }
 
 // Private methods

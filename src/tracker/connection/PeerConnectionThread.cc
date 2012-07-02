@@ -143,7 +143,7 @@ void PeerConnectionThread::failure(int code) {
 }
 void PeerConnectionThread::peerClosed() {
     if (this->sock->getState() == TCPSocket::CONNECTED) {
-        this->sock->abort();
+        this->sock->close();
     }
 }
 void PeerConnectionThread::statusArrived(TCPStatusInfo *status) {
