@@ -1,3 +1,0 @@
-#Mon May 10 16:44:10 BRT 2010
-eclipse.preferences.version=1
-suppressions=src/client/messages/PeerWireMsgBundle_m.cc;allProblems;2147483647\!src/client/messages/PeerWire_m.cc;allProblems;2147483647\!src/tracker/messages/AnnounceResponseMsg_m.cc;cstyleCast;2147483647\!src/tracker/messages/AnnounceResponseMsg_m.cc;allProblems;2147483647\!src/tracker/messages/AnnounceRequestMsg_m.cc;cstyleCast;2147483647\!src/tracker/messages/AnnounceRequestMsg_m.cc;unusedFunction;2147483647\!src/client/messages/Handshake_m.cc;cstyleCast;277\!src/client/messages/Handshake_m.cc;allProblems;2147483647\!src/client/other/PeerWireThread.h;memleak;211\!src/client/other/PeerWireThread.h;memleak;213\!src/client/other/PeerWireThread.h;memleak;215\!src/client/other/PeerWireThread.h;memleak;217\!
