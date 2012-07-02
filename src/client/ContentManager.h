@@ -75,6 +75,7 @@
 
 #include <omnetpp.h>
 #include <signal.h>
+#include <boost/dynamic_bitset.hpp>
 
 #include "BitField.h"
 #include "RarestPieceCounter.h"
@@ -117,37 +118,29 @@ class SwarmManager;
  * way the ContentManager is implemented.
  */
 
-/*!
- * Piece abstraction
- */
-
-class Piece {
-public:
-    Piece(int pieceIndex, int numOfBlocks);
-    //! Set the passed block inside the piece. Return true if the piece is completed.
-    bool setBlock(int blockIndex);
-    //! Return a list with the pairs (pieceIndex, blockIndex) of all blocks missing.
-    std::list<std::pair<int, int> > getMissingBlocks() const;
-    //! Return the index of the Piece.
-    int getPieceIndex() const;
-private:
-    int downloadedBlocks;
-    int numOfBlocks;
-    int pieceIndex;
-    std::set<std::pair<int, int> > blocks;
-};
-/*!
- * Class used to compare two piece objects by their pieceIndex. Used by the std::set
- * in order to define the strict weak order.
- */
-struct PieceCompare {
-    //! Return true if the index of p1 is less then the index of p2.
-    bool operator()(Piece const& p1, Piece const& p2) const {
-        return p1.getPieceIndex() < p2.getPieceIndex();
-    }
-};
-
 class ContentManager: public cSimpleModule {
+private:
+    /*!
+     * Piece abstraction
+     */
+    class Piece {
+    public:
+        Piece(int pieceIndex, int numOfBlocks);
+        //! Set the passed block inside the piece. Return true if the piece is completed.
+        bool setBlock(int blockIndex);
+        //! Return a list with the pairs (pieceIndex, blockIndex) of all blocks missing.
+        std::list<std::pair<int, int> > getMissingBlocks() const;
+        //! Return the index of the Piece.
+        int getPieceIndex() const;
+        std::string str() const;
+    private:
+        boost::dynamic_bitset<> blocks;
+        int downloadedBlocks;
+        int numOfBlocks;
+        int pieceIndex;
+    //    std::set<std::pair<int, int> > blocks;
+    };
+
 public:
     ContentManager();
     virtual ~ContentManager();
@@ -339,12 +332,5 @@ protected:
     virtual void handleMessage(cMessage *msg);
     virtual void initialize();
 };
-
-// Operator used by the WATCH_MAP macro when printing the currentPiece map.
-std::ostream& operator<<(std::ostream& out,
-        std::pair<int, int> const& currentPiece);
-// Operator used by the WATCH_MAP macro when printing the pendingRequestQueues map.
-std::ostream& operator<<(std::ostream& out,
-        std::set<std::pair<int, int> > const& reqQueue);
 
 #endif

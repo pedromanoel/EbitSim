@@ -79,7 +79,7 @@
 
 #include "RarestPieceCounter.h"
 #include <list>
-#include <vector>
+#include <set>
 #include <algorithm>
 
 #include <random.h>
@@ -100,14 +100,13 @@ RarestPieceCounter::~RarestPieceCounter() {
  * vector is different from the size of the BitField.
  */
 void RarestPieceCounter::addBitField(BitField const& bitField) {
-    std::vector<bool> const& bitFieldVector = bitField.getBitFieldVector();
-    if (this->pieceCount.size() != bitFieldVector.size()) {
-        throw std::invalid_argument("The BitField has the incorrect size");
-    }
-    for (unsigned int i = 0; i < bitFieldVector.size(); ++i) {
-        if (bitFieldVector[i]) {
-            ++this->pieceCount[i];
-        }
+    std::set<int> const& setPieces = bitField.getBitFieldPieces();
+    std::set<int>::const_iterator it, end;
+    it = setPieces.begin();
+    end = setPieces.end();
+
+    for (; it != end; ++it) {
+        ++this->pieceCount[*it];
     }
 }
 /*!
@@ -132,7 +131,7 @@ int RarestPieceCounter::getPieceCount(int index) const {
  * @param numberOfPieces .
  */
 std::vector<int> RarestPieceCounter::getRarestPieces(
-        std::set<int> const& pieces, unsigned int numberOfPieces) const {
+    std::set<int> const& pieces, unsigned int numberOfPieces) const {
     if (numberOfPieces < 0) {
         throw std::invalid_argument("numberOfPieces must be bigger than zero");
     }
@@ -144,9 +143,9 @@ std::vector<int> RarestPieceCounter::getRarestPieces(
 
     // sets are ordered, so it is easy to find the minimum and maximum values.
     if ((*(pieces.begin()) < 0)
-            || ((unsigned) *(pieces.rbegin()) >= this->pieceCount.size())) {
+        || ((unsigned) *(pieces.rbegin()) >= this->pieceCount.size())) {
         throw std::logic_error(
-                "There are pieces in the set that are outside the allowed range");
+            "There are pieces in the set that are outside the allowed range");
     }
 
     std::set<int>::const_iterator it = pieces.begin();
@@ -175,12 +174,12 @@ std::vector<int> RarestPieceCounter::getRarestPieces(
         // random shuffle the groups of pieces with the same count
         for (int i = 0;
                 it != orderedList.end()
-                        && returnedPieces.size() < numberOfPieces; ++it, ++i) {
+                    && returnedPieces.size() < numberOfPieces; ++it, ++i) {
             // group changed
             if (lastGroupCount != it->first) {
                 // shuffle the previous group
                 std::random_shuffle(returnedPieces.begin() + retGroupBegin,
-                        returnedPieces.begin() + i, intrand);
+                    returnedPieces.begin() + i, intrand);
                 // start a new group
                 lastGroupCount = it->first;
                 retGroupBegin = i;
@@ -192,7 +191,7 @@ std::vector<int> RarestPieceCounter::getRarestPieces(
         // If all pieces were inserted, then it is necessary to shuffle the last group
         if (it == orderedList.end()) {
             std::random_shuffle(returnedPieces.begin() + retGroupBegin,
-                    returnedPieces.end(), intrand);
+                returnedPieces.end(), intrand);
         }
     }
 
@@ -209,14 +208,13 @@ std::vector<int> RarestPieceCounter::getRarestPieces(
  * vector is different from the size of the BitField.
  */
 void RarestPieceCounter::removeBitField(BitField const& bitField) {
-    std::vector<bool> const& bitFieldVector = bitField.getBitFieldVector();
-    if (this->pieceCount.size() != bitFieldVector.size()) {
-        throw std::invalid_argument("The BitField has the incorrect size");
-    }
-    for (unsigned int i = 0; i < bitFieldVector.size(); ++i) {
-        if (bitFieldVector[i] && (pieceCount[i] > 0)) {
-            --pieceCount[i];
-        }
+    std::set<int> const& setPieces = bitField.getBitFieldPieces();
+    std::set<int>::const_iterator it, end;
+    it = setPieces.begin();
+    end = setPieces.end();
+
+    for (; it != end; ++it) {
+        --this->pieceCount[*it];
     }
 }
 size_t RarestPieceCounter::size() const {

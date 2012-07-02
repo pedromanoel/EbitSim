@@ -78,9 +78,24 @@
  */
 
 #include "BitField.h"
-#include <sstream>
-#include <iomanip>
-#include <stdexcept>
+
+// helper function
+namespace {
+// private
+std::set<int> getPiecesSet(boost::dynamic_bitset<> const& bitField) {
+    std::set<int> ret;
+    std::set<int>::iterator it = ret.begin();
+
+    for (int i = 0; i < bitField.size(); ++i) {
+        if (bitField.test(i)) {
+            // efficient insert because pieces are inserted in order
+            it = ret.insert(it, i);
+        }
+    }
+
+    return ret;
+}
+}
 
 BitField::BitField() :
         numberOfPieces(0), numberOfAvailable(0) {
@@ -91,22 +106,23 @@ BitField::BitField() :
  * @param seed           True if the BitField is a seeder BitField (all pieces present).
  */
 BitField::BitField(int numberOfPieces, bool seed) :
-        numberOfPieces(numberOfPieces), numberOfAvailable(
-                seed ? numberOfPieces : 0), bitFieldVector(numberOfPieces, seed) {
+        numberOfPieces(numberOfPieces),
+            numberOfAvailable(seed ? numberOfPieces : 0),
+            bitField(numberOfPieces) {
+    if (seed) {
+        this->bitField = this->bitField.flip();
+    }
 }
 
 BitField::~BitField() {
 }
 
 void BitField::addPiece(int index) {
-    if (index < 0 || index >= this->numberOfPieces) {
-        throw std::out_of_range("The piece index is out of bounds");
-    }
-    // piece was false and then set to true. That means the number of pieces went up by one.
-    if (this->bitFieldVector[index] == false) {
+    // if piece was 0, then the number of pieces went up by one.
+    if (!this->bitField.test(index)) {
         ++this->numberOfAvailable;
     }
-    this->bitFieldVector[index] = true;
+    this->bitField[index] = 1;
 }
 /*!
  * The BitField is interesting if it has any piece not owned by this BitField.
@@ -117,24 +133,7 @@ bool BitField::isBitFieldInteresting(BitField const& b) const {
         throw std::invalid_argument("The BitField has the incorrect size");
     }
 
-    bool interesting = false;
-
-    // no need to test if the BitField b is interesting if this BitField is full
-    if (!this->full()) {
-        // if the number of available pieces in b is bigger than the number of
-        // available pieces in this BitField, then b is surely interesting
-        if (b.numberOfAvailable > this->numberOfAvailable) {
-            interesting = true;
-        } else {
-            // check if the other BitField has a piece I don't have
-            for (unsigned int i = 0;
-                    !interesting && (i < this->bitFieldVector.size()); ++i) {
-                interesting = !this->bitFieldVector[i] && b.bitFieldVector[i];
-            }
-        }
-    }
-
-    return interesting;
+    return (~this->bitField & b.bitField).any();
 }
 /*!
  *
@@ -144,36 +143,21 @@ std::set<int> BitField::getInterestingPieces(BitField const& b) const {
         throw std::invalid_argument("The BitField has the incorrect size");
     }
 
-    std::set<int> ret;
-
-    // if b is empty, then there are no interesting pieces to return
-    if (!b.empty()) {
-        // only pieces that are in b but not in this BitField are interesting.
-        for (unsigned int i = 0; i < this->bitFieldVector.size(); ++i) {
-            if (!this->bitFieldVector[i] && b.bitFieldVector[i]) {
-                ret.insert(i);
-            }
-        }
-    }
-
-    return ret;
+    boost::dynamic_bitset<> interestingPieces = ~this->bitField & b.bitField;
+    return getPiecesSet(interestingPieces);
 }
-std::vector<bool> const& BitField::getBitFieldVector() const {
-    return this->bitFieldVector;
+std::set<int> BitField::getBitFieldPieces() const {
+    return getPiecesSet(this->bitField);
 }
 bool BitField::hasPiece(int index) const {
-    if (index < 0 || index >= this->numberOfPieces) {
-        throw std::out_of_range("The piece index is out of bounds");
-    }
-
-    return this->bitFieldVector[index];
+    return this->bitField.test(index);
 }
 int BitField::getByteSize() const {
     return ((this->numberOfPieces / 8) + ((this->numberOfPieces % 8) ? 1 : 0));
 }
 
 size_t BitField::size() const {
-    return this->bitFieldVector.size();
+    return this->bitField.size();
 }
 
 bool BitField::empty() const {
@@ -185,54 +169,18 @@ bool BitField::full() const {
 }
 
 bool BitField::operator!=(BitField const& b) const {
-    return !operator==(b);
+    return this->bitField != b.bitField;
 }
 
 bool BitField::operator==(BitField const& b) const {
-    bool equal = this->numberOfPieces == b.numberOfPieces;
-
-    for (unsigned int i = 0; equal && (i < this->bitFieldVector.size()); ++i) {
-        equal = this->bitFieldVector[i] == b.bitFieldVector[i];
-    }
-
-    return equal;
+    return this->bitField == b.bitField;
 }
 
 std::string BitField::str() const {
-    std::ostringstream out;
-    std::ostringstream bitFieldOut;
-
-    out << this->numberOfAvailable << " of " << this->numberOfPieces
-            << " pieces (";
-
-    int sizeInt = sizeof(int) * 8; // size of int in bits
-    unsigned int value = 0;
-
-    // print the bitfield as hex numbers, from the most to the least significant bit
-    for (int i = this->bitFieldVector.size() - 1; i >= 0; --i) {
-        value *= 2;
-        value += (unsigned int) this->bitFieldVector[i];
-
-        // if value is not set to zero, the next increment will overflow the value.
-        if ((i % sizeInt) == 0) {
-            // print hex numbers in uppercase
-            bitFieldOut << std::hex << std::uppercase;
-            // a char is 4 bits long, therefore set the buffer size to the correct number of chars
-            bitFieldOut << std::setw(sizeInt / 4) << std::setfill('0');
-            bitFieldOut << value;
-            value = 0;
-        }
-    }
-    // remove extra chars. Each char is 4 bits long
-    std::string bitFieldStr = bitFieldOut.str();
-    bitFieldStr.erase(0, bitFieldStr.size() - (this->numberOfPieces / 4));
-    out << bitFieldStr << ")";
-    return out.str();
+    std::string strRep;
+    boost::to_string(this->bitField, strRep);
+    return strRep;
 }
 double BitField::getCompletedPercentage() const {
     return (double) this->numberOfAvailable * 100 / this->numberOfPieces;
-}
-std::ostream& operator<<(std::ostream& out, BitField const& bitField) {
-    out << bitField.str();
-    return out;
 }

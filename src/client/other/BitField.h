@@ -80,14 +80,11 @@
 #ifndef BITFIELD_H_
 #define BITFIELD_H_
 
-#include <iostream>
 #include <set>
 #include <string>
-#include <vector>
+#include <boost/dynamic_bitset.hpp>
 
 class BitField {
-    friend std::ostream& operator<<(std::ostream& out,
-            BitField const& bitField);
 public:
     BitField();
     BitField(int numberOfPieces, bool seed = false);
@@ -98,8 +95,8 @@ public:
     bool isBitFieldInteresting(BitField const& b) const;
     //! Return a set with all interesting pieces from BitField b.
     std::set<int> getInterestingPieces(BitField const& b) const;
-    //! Return the vector that represents the BitField.
-    std::vector<bool> const& getBitFieldVector() const;
+    //! Return a set with the indexes of all set bits
+    std::set<int> getBitFieldPieces() const;
     //! Return true if the piece is in the BitField.
     bool hasPiece(int index) const;
     //! Return the size of the BitField in bytes.
@@ -123,10 +120,8 @@ private:
     int numberOfPieces;
     //! The number of available pieces in the BitField (or the number of set bits).
     int numberOfAvailable;
-    //! The vector where each element represents a bit.
-    std::vector<bool> bitFieldVector;
+    //! The bitfield representation.
+    boost::dynamic_bitset<> bitField;
 };
-
-std::ostream& operator<<(std::ostream& out, BitField const& bitField);
 
 #endif /* BITFIELD_H_ */
