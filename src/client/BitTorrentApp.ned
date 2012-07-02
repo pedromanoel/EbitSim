@@ -91,9 +91,14 @@ module BitTorrentApp
         bitTorrentClient: BitTorrentClient {
             @display("p=68,128");
         }
+        uploadLimiter: RateLimiter {
+            @display("p=167,128");
+        }
     connections:
         // TCP connections
-        bitTorrentClient.tcpOut --> tcpOut[0];
+        bitTorrentClient.tcpOut --> uploadLimiter.in;
+        uploadLimiter.out --> tcpOut[0];
+
         bitTorrentClient.tcpIn <-- tcpIn[0];
         swarmManager.tcpOut --> tcpOut[1];
         swarmManager.tcpIn <-- tcpIn[1];
