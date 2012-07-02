@@ -5,14 +5,17 @@
       <!-- Test used for testing if the simulation is running -->
       <content>
          <name>test_simple</name>
+         <!-- rate = 1/mean => rate = 0,16666/s = 10/min -->
          <!-- mean seconds between arrivals -->
-         <interarrival>6</interarrival><!-- rate of (1/6)/s or 10/min -->
+         <interarrival>6</interarrival>
       </content>
    </profile>
-   <profile name="test1">
+   <profile name="small">
       <!-- Test single swarm -->
       <content>
-         <name>test1</name>
+         <name>small</name>
+         <!-- rate = 1/mean => rate = 0,16666/s = 10/min -->
+         <!-- mean seconds between arrivals -->
          <interarrival>6</interarrival><!-- mean seconds between arrivals -->
       </content>
    </profile>
