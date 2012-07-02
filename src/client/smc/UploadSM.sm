@@ -184,7 +184,7 @@ Exit {
 Closed
 Entry {
     stopUploadTimers();
-    printDebugMsgUpload("Thread terminated");
+    printDebugMsgUpload("Entering state Closed");
 }
 {
     Default

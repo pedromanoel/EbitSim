@@ -805,7 +805,7 @@ void UploadMap_Closed::Entry(UploadSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.stopUploadTimers();
-    ctxt.printDebugMsgUpload("Thread terminated");
+    ctxt.printDebugMsgUpload("Entering state Closed");
     return;
 }
 

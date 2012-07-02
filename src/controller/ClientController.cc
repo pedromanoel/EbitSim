@@ -263,7 +263,7 @@ void ClientController::handleMessage(cMessage *msg) {
         throw cException("This module doesn't process messages");
     }
     SwarmManager * swarmManager =
-        static_cast<SwarmManager *>(msg->getContextPointer());
+        check_and_cast<SwarmManager *>((cModule *) msg->getContextPointer());
     // Send the scheduled message directly to the swarm manager module
     sendDirect(msg, swarmManager, "userCommand");
 }

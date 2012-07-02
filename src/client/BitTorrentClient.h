@@ -276,8 +276,6 @@ private:
     //@}
     //!@name Thread processing
     //@{
-    //! True when the processor is being hold by one thread.
-    bool processorBusy;
     //! Contain all threads that requested the processor while it was busy.
     std::set<PeerWireThread*> waitingThreads;
     //@}

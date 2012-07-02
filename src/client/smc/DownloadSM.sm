@@ -221,7 +221,7 @@ Exit {
 Closed
 Entry {
     stopDownloadTimers();
-    printDebugMsgDownload("Thread terminated");
+    printDebugMsgDownload("Entering state Closed");
 }
 {
     Default

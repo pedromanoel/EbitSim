@@ -993,7 +993,7 @@ void DownloadMap_Closed::Entry(DownloadSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.stopDownloadTimers();
-    ctxt.printDebugMsgDownload("Thread terminated");
+    ctxt.printDebugMsgDownload("Entering state Closed");
     return;
 }
 

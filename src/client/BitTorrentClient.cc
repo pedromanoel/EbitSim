@@ -152,7 +152,6 @@ BitTorrentClient::~BitTorrentClient() {
 void BitTorrentClient::chokePeer(int infoHash, int peerId) {
     Enter_Method("chokePeer(infoHash: %d, peerId: %d)", infoHash, peerId);
 
-    this->printDebugMsg("calling getPeerEntry from chokePeer");
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
     if (peer.isUnchoked()) {
         peer.setUnchoked(false, simTime());
@@ -196,7 +195,6 @@ PeerEntryPtrVector BitTorrentClient::getFastestToUpload(int infoHash) {
 void BitTorrentClient::unchokePeer(int infoHash, int peerId) {
     Enter_Method("unchokePeer(infoHash: %d, peerId: %d)", infoHash, peerId);
 
-    this->printDebugMsg("calling getPeerEntry from unchokePeer");
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
 
     if (!peer.isUnchoked()) {
@@ -209,7 +207,6 @@ void BitTorrentClient::unchokePeer(int infoHash, int peerId) {
 void BitTorrentClient::drop(int infoHash, int peerId) {
     Enter_Method("drop(infoHash: %d, peerId: %d)", infoHash, peerId);
 
-    this->printDebugMsg("calling getPeerEntry from drop");
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
     peer.getThread()->sendApplicationMessage(APP_DROP);
 }
@@ -224,7 +221,6 @@ void BitTorrentClient::finishedDownload(int infoHash) {
 void BitTorrentClient::peerInteresting(int infoHash, int peerId) {
     Enter_Method("peerInteresting(infoHash: %d, peerId: %d)", infoHash, peerId);
 
-    this->printDebugMsg("calling getPeerEntry from peerInteresting");
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
     peer.getThread()->sendApplicationMessage(APP_PEER_INTERESTING);
 }
@@ -232,7 +228,6 @@ void BitTorrentClient::peerNotInteresting(int infoHash, int peerId) {
     Enter_Method("peerNotInteresting(infoHash: %d, peerId: %d)", infoHash,
         peerId);
 
-    this->printDebugMsg("calling getPeerEntry from peerNotInteresting");
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
     peer.getThread()->sendApplicationMessage(APP_PEER_NOT_INTERESTING);
 }
@@ -442,17 +437,14 @@ void BitTorrentClient::removePeerInfo(int infoHash, int peerId, int connId,
 }
 void BitTorrentClient::setInterested(bool interested, int infoHash,
     int peerId) {
-    this->printDebugMsg("calling getPeerEntry from setInterested");
     this->getPeerEntry(infoHash, peerId).setInterested(interested);
     //    throw std::logic_error("Implement this setInterested.");
 }
 void BitTorrentClient::setOldUnchoked(bool oldUnchoke, int infoHash,
     int peerId) {
-    this->printDebugMsg("calling getPeerEntry from setOldUnchoked");
     this->getPeerEntry(infoHash, peerId).setOldUnchoked(oldUnchoke);
 }
 void BitTorrentClient::setSnubbed(bool snubbed, int infoHash, int peerId) {
-    this->printDebugMsg("calling getPeerEntry from setSnubbed");
     this->getPeerEntry(infoHash, peerId).setSnubbed(snubbed);
 }
 
