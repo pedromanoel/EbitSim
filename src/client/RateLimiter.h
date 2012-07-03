@@ -17,7 +17,9 @@
 #define __EBITSIM_RATELIMITER_H_
 
 #include <omnetpp.h>
+#include <map>
 
+class PieceMsg;
 /**
  * TODO - Generated class
  */
@@ -31,14 +33,18 @@ private:
      * Return true if the message was sent.
      */
     bool tryToSend();
+    bool tryToSend(PieceMsg * msg);
 private:
     long bucketSize;
     long bytesSec;
     long tokenSize;
     long tokens; // Implements a token bucket
     simtime_t incInterval;
-    cQueue messageQueue; // Token bucket queue
+//    cQueue messageQueue; // Token bucket queue
     cMessage tokenIncTimerMsg; // self message that add tokens
+    // Iterator to the queue from where the next message will be popped
+    std::map<int, cQueue>::iterator currentQueue;
+    std::map<int, cQueue> messageQueues; // Map Token bucket queue to connId
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

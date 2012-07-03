@@ -14,35 +14,80 @@
 // 
 
 #include "RateLimiter.h"
+#include "TCPCommand_m.h"
+#include "PeerWire_m.h"
 
 Define_Module(RateLimiter);
 
 RateLimiter::RateLimiter() :
-        messageQueue("Unsent messages"), tokenIncTimerMsg("Add Tokens"),
-            bucketSize(0), bytesSec(0), tokenSize(0), tokens(0) {
+        tokenIncTimerMsg("Add Tokens"), bucketSize(0), bytesSec(0),
+            tokenSize(0), tokens(0) {
+    this->currentQueue = this->messageQueues.end();
 }
 RateLimiter::~RateLimiter() {
     cancelEvent(&this->tokenIncTimerMsg);
 }
 
-bool RateLimiter::tryToSend() {
-    cPacket * packet = dynamic_cast<cPacket *>(this->messageQueue.front());
+bool RateLimiter::tryToSend(PieceMsg * msg) {
+    int connId = static_cast<TCPCommand *>(msg->getControlInfo())->getConnId();
 
-    // send if cMessage or if cPacket and there are enough tokens to consume
-    bool sendMsg = !packet || (packet->getByteLength() <= this->tokens);
-    if (sendMsg) {
-        if (packet) {
-            this->tokens -= packet->getByteLength();
+    bool enoughTokens = msg->getByteLength() <= this->tokens;
+    bool msgSent = false;
+
+    // There aren't enough tokens OR there are enough tokens, but there are
+    // other messages in the queue
+    if (!enoughTokens || this->messageQueues.size() > 0) {
+        this->messageQueues[connId].insert(msg);
+
+        // if there weren't any queues, fix the iterator
+        if (this->currentQueue == this->messageQueues.end()) {
+            this->currentQueue = this->messageQueues.begin();
         }
-        cMessage * msg = static_cast<cMessage *>(this->messageQueue.pop());
+    } else {
+        // the queue is empty and there are enough tokens to send the message,
+        // so no need to create a queue for a message that will be sent
+        this->tokens -= msg->getByteLength();
+        msgSent = true;
         send(msg, "out");
     }
+    return msgSent;
+}
 
-    // If a message was sent, unpause the increment timer (if paused)
-    if (sendMsg && !this->tokenIncTimerMsg.isScheduled()) {
-        scheduleAt(simTime() + this->incInterval, &this->tokenIncTimerMsg);
+bool RateLimiter::tryToSend() {
+    bool sendMsg = false;
+
+    if (!this->messageQueues.empty()) {
+        cQueue & current = this->currentQueue->second;
+        PieceMsg * msg = dynamic_cast<PieceMsg *>(current.front());
+
+        // If there are enough tokens, send a message from the current queue and
+        // go to the next queue
+        sendMsg = msg->getByteLength() <= this->tokens;
+        if (sendMsg) {
+            // consume tokens, pop the message from the queue and send it
+            this->tokens -= msg->getByteLength();
+            current.pop();
+            send(msg, "out");
+
+            // erase the queue if empty (the iterator is still valid) and forward
+            // the current iterator
+            if (current.empty()) {
+                this->messageQueues.erase(this->currentQueue++);
+            } else {
+                ++this->currentQueue;
+            }
+
+            // keep the iterator valid
+            if (this->currentQueue == this->messageQueues.end()) {
+                this->currentQueue = this->messageQueues.begin();
+            }
+            // Un-pause the increment timer (if paused)
+            if (!this->tokenIncTimerMsg.isScheduled()) {
+                scheduleAt(simTime() + this->incInterval,
+                    &this->tokenIncTimerMsg);
+            }
+        }
     }
-
     return sendMsg;
 }
 
@@ -58,31 +103,33 @@ void RateLimiter::initialize() {
     this->incInterval = ((double) this->tokenSize / this->bytesSec);
 
     WATCH(tokens);
+    WATCH_MAP(messageQueues);
     scheduleAt(simTime() + this->incInterval, &this->tokenIncTimerMsg);
 }
 
 void RateLimiter::handleMessage(cMessage *msg) {
     if (msg == &this->tokenIncTimerMsg) {
-        this->tokens = this->tokens + this->tokenSize;
+        this->tokens += this->tokenSize;
 
         // cap the number of tokens
         if (this->tokens > this->bucketSize) {
-            // Pause the increment timer when the token bucket is full,
-            // avoiding useless increment calls
             this->tokens = this->bucketSize;
         } else {
+            // Pause the increment timer when the token bucket is full,
+            // avoiding useless increment calls
             scheduleAt(simTime() + this->incInterval, &this->tokenIncTimerMsg);
         }
 
-        // send messages from the queue until there are not enough tokens or no
-        // more messages to send
-        bool messageSent = true;
-        while (!this->messageQueue.empty() && messageSent) {
-            messageSent = this->tryToSend();
+        while (this->tryToSend()) {
+            // try to send as much messages as possible
         }
-
     } else if (msg->arrivedOn("in")) {
-        this->messageQueue.insert(msg);
-        this->tryToSend();
+        // queue only piece messages
+        PieceMsg * pieceMsg = dynamic_cast<PieceMsg *>(msg);
+        if (pieceMsg) {
+            this->tryToSend(pieceMsg);
+        } else {
+            send(msg, "out");
+        }
     }
 }
