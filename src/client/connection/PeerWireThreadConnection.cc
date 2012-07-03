@@ -111,6 +111,10 @@ void PeerWireThread::addConnectedPeer() {
     out << "Connection established.";
     this->printDebugMsgConnection(out.str());
 }
+void PeerWireThread::closeLocalConnection() {
+    // close the connection
+    this->sock->close();
+}
 BitFieldMsg * PeerWireThread::getBitFieldMsg() {
     return this->contentManager->getClientBitFieldMsg();
 }
@@ -195,8 +199,8 @@ void PeerWireThread::stopHandshakeTimers() {
     this->cancelEvent(&this->keepAliveTimer);
 }
 void PeerWireThread::terminateThread() {
-    // close the connection
-    this->sock->close();
+    this->printDebugMsg("Thread removed");
+    this->terminating = true;
 
     // remove the connection from the BitTorrentClient
     if (this->infoHash != -1 && this->remotePeerId != 1) {
@@ -228,18 +232,6 @@ void PeerWireThread::terminateThread() {
         this->printDebugMsg(out.str());
         delete appMsg;
     }
-
-    // These events where canceled already
-    //    assert(!this->keepAliveTimer.isScheduled());
-    //    assert(!this->timeoutTimer.isScheduled());
-    //    assert(!this->snubbedTimer.isScheduled());
-    //    assert(!this->downloadRateTimer.isScheduled());
-    //    assert(!this->uploadRateTimer.isScheduled());
-
-    // This thread is completely detached from the Swarm, meaning that no module
-    // will issue transitions to the state machines. This thread will be deleted
-    // at the end of the processing.
-//    this->terminating = true;
 }
 // transition guards
 bool PeerWireThread::checkHandshake(Handshake const& hs) {

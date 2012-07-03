@@ -144,7 +144,7 @@ HandshakeSent
             }
     // The handshake is invalid
     handshakeMsg(hs: Handshake const&)
-        Closed
+        ClosingConnection
             {}
 }
 
@@ -165,13 +165,16 @@ WaitHandshake
             }
     // The handshake is invalid
     handshakeMsg(hs: Handshake const&)
-        Closed
+        ClosingConnection
             {}
 }
 Connected
 Entry {
     addConnectedPeer();
     startHandshakeTimers();
+}
+Exit {
+    stopHandshakeTimers();
 }
 {
     // every time a PeerWireMsg arrives, renew the timeout timer.
@@ -190,40 +193,67 @@ Entry {
                 sendPeerWireMsg(msg);
                 renewKeepAliveTimer();
             }
-    timeout
-        Closed
-            {
-                // specifically remove the Peer information from the Client
-                //removePeerFromSwarm();
-            }
-}
-
-Closed
-Entry {
-    stopHandshakeTimers();
-    terminateThread();
-}
-{
-    Default
-        nil
-            {
-                printDebugMsgConnection("Thread terminated");
-            }
-}
-
-// Fallback transitions, called when a transition occurs in a state that don't
-// know how to handle it.
-Default
-{
-    DROP
-        Closed
-            {}
     // when this timer expires, send a keep-alive message
     keepAliveTimer
         nil
             {
                 sendPeerWireMsg(ctxt.getKeepAliveMsg());
                 renewKeepAliveTimer(); // sent a PeerWireMsg
+            }
+    close
+        ClosingConnection
+            {
+            }
+}
+
+ClosingConnection
+Entry {
+    stopHandshakeTimers();
+    closeLocalConnection();
+}
+{
+    localClose
+        LocalClosed
+            {}
+    remoteClose
+        RemoteClosed
+            {
+            }
+}
+
+LocalClosed
+{
+remoteClose
+        Closed
+            {}
+}
+
+RemoteClosed
+{
+    localClose
+        Closed
+            {}
+}
+
+Closed
+Entry {
+    printDebugMsgConnection("Connection closed");
+    terminateThread();
+}
+{
+}
+
+// Fallback transitions, called when a transition occurs in a state that don't
+// know how to handle it.
+Default
+Exit {
+    stopHandshakeTimers();
+}
+{
+    remoteClose
+        RemoteClosed
+            {
+                closeLocalConnection();
             }
 }
 %%

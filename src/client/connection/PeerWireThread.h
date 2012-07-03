@@ -151,6 +151,8 @@ public:
     //!@name Connection State Machine methods.
     //@{
     void addConnectedPeer();
+    //! Close the TCP connection from the client's side.
+    void closeLocalConnection();
     //! Send a BitField message to the Peer.
     BitFieldMsg * getBitFieldMsg();
     //! Send a Handshake to the Peer.

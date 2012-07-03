@@ -78,6 +78,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <deque>
+#include <boost/lexical_cast.hpp>
 
 #include "BitTorrentClient.h"
 #include "SwarmManager.h"
@@ -185,7 +186,7 @@ void ContentManager::addPeerBitField(BitField const& bitField, int peerId) {
     } else if (peerBitField.full()) {
         // if this client is not interested in a seeder, that means it is
         // also a seeder and this connection has no use, so it is dropped.
-        this->bitTorrentClient->drop(this->infoHash, peerId);
+        this->bitTorrentClient->closeConnection(this->infoHash, peerId);
     }
 }
 void ContentManager::cancelPendingRequests(int peerId) {
@@ -473,16 +474,16 @@ void ContentManager::processHaveMsg(int index, int peerId) {
 
         // Last piece resulted in the Peer becoming a seeder
         if (peerBitField.full()) {
-            std::ostringstream out;
+            std::string out;
+            std::string peerIdStr = boost::lexical_cast<std::string>(peerId);
             if (this->clientBitField.full()) {
-                out << "Both the Client and Peer " << peerId << " are seeders.";
-                this->printDebugMsg(out.str());
+                out = "Both the Client and Peer " + peerIdStr + " are seeders.";
                 // the connection between two seeders is useless. Drop it.
-                this->bitTorrentClient->drop(this->infoHash, peerId);
+                this->bitTorrentClient->closeConnection(this->infoHash, peerId);
             } else {
-                out << "Peer " << peerId << " became a seeder.";
-                this->printDebugMsg(out.str());
+                out = "Peer " + peerIdStr + " became a seeder.";
             }
+            this->printDebugMsg(out);
         }
 
         // verify if the peer with peerId became interesting.
@@ -682,10 +683,10 @@ void ContentManager::verifyInterestOnAllPeers() {
 
         // Drop this connection because it is no longer useful.
         if (peerBitField.full() && this->clientBitField.full()) {
-            std::ostringstream out;
-            out << "Both the Client and Peer " << peerId << " are seeders.";
-            this->printDebugMsg(out.str());
-            this->bitTorrentClient->drop(this->infoHash, peerId);
+            std::string out = "Both the Client and Peer "
+                + boost::lexical_cast<std::string>(peerId) + " are seeders.";
+            this->printDebugMsg(out);
+            this->bitTorrentClient->closeConnection(this->infoHash, peerId);
         } else if (!this->clientBitField.isBitFieldInteresting(peerBitField)) {
             // not interesting anymore
             this->interestingPeers.erase(currentPeerIt);

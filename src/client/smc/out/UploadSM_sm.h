@@ -19,7 +19,7 @@ class UploadMap_NotInterestingChoking;
 class UploadMap_InterestingChoking;
 class UploadMap_NotInterestingUnchoking;
 class UploadMap_InterestingUnchoking;
-class UploadMap_Closed;
+class UploadMap_Stopped;
 class UploadMap_Default;
 class UploadSMState;
 class UploadSMContext;
@@ -39,12 +39,12 @@ public:
     virtual void Entry(UploadSMContext&) {};
     virtual void Exit(UploadSMContext&) {};
 
-    virtual void DROP(UploadSMContext& context);
     virtual void cancelMsg(UploadSMContext& context, CancelMsg const& msg);
     virtual void chokePeer(UploadSMContext& context);
     virtual void interestedMsg(UploadSMContext& context);
     virtual void notInterestedMsg(UploadSMContext& context);
     virtual void requestMsg(UploadSMContext& context, RequestMsg const& msg);
+    virtual void stopMachine(UploadSMContext& context);
     virtual void unchokePeer(UploadSMContext& context);
     virtual void uploadRateTimer(UploadSMContext& context);
 
@@ -61,7 +61,7 @@ public:
     static UploadMap_InterestingChoking InterestingChoking;
     static UploadMap_NotInterestingUnchoking NotInterestingUnchoking;
     static UploadMap_InterestingUnchoking InterestingUnchoking;
-    static UploadMap_Closed Closed;
+    static UploadMap_Stopped Stopped;
 };
 
 class UploadMap_Default :
@@ -73,7 +73,7 @@ public:
     : UploadSMState(name, stateId)
     {};
 
-    virtual void DROP(UploadSMContext& context);
+    virtual void stopMachine(UploadSMContext& context);
     virtual void uploadRateTimer(UploadSMContext& context);
 };
 
@@ -124,18 +124,18 @@ public:
 
     void Entry(UploadSMContext&);
     void Exit(UploadSMContext&);
-    void DROP(UploadSMContext& context);
     void cancelMsg(UploadSMContext& context, CancelMsg const& msg);
     void chokePeer(UploadSMContext& context);
     void notInterestedMsg(UploadSMContext& context);
     void requestMsg(UploadSMContext& context, RequestMsg const& msg);
+    void stopMachine(UploadSMContext& context);
 };
 
-class UploadMap_Closed :
+class UploadMap_Stopped :
     public UploadMap_Default
 {
 public:
-    UploadMap_Closed(const char *name, int stateId)
+    UploadMap_Stopped(const char *name, int stateId)
     : UploadMap_Default(name, stateId)
     {};
 
@@ -179,13 +179,6 @@ public:
         return (dynamic_cast<UploadSMState&>(*_state));
     };
 
-    void DROP()
-    {
-        setTransition("DROP");
-        (getState()).DROP(*this);
-        setTransition(NULL);
-    };
-
     void cancelMsg(CancelMsg const& msg)
     {
         setTransition("cancelMsg");
@@ -218,6 +211,13 @@ public:
     {
         setTransition("requestMsg");
         (getState()).requestMsg(*this, msg);
+        setTransition(NULL);
+    };
+
+    void stopMachine()
+    {
+        setTransition("stopMachine");
+        (getState()).stopMachine(*this);
         setTransition(NULL);
     };
 

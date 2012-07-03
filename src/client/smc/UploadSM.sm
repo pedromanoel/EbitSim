@@ -174,14 +174,14 @@ Exit {
             {
                 outgoingPeerWireMsg_ConnectionSM(ctxt.getChokeMsg());
             }
-    DROP
-        Closed
+    stopMachine
+        Stopped
             {
                 callChokeAlgorithm();
             }
 }
 
-Closed
+Stopped
 Entry {
     stopUploadTimers();
     printDebugMsgUpload("Entering state Closed");
@@ -196,8 +196,8 @@ Entry {
 
 Default
 {
-    DROP
-        Closed
+    stopMachine
+        Stopped
             {}
     uploadRateTimer()
         nil

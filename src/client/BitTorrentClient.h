@@ -163,7 +163,7 @@ public:
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param peerId[in] The id of the Peer.
      */
-    void drop(int infoHash, int peerId);
+    void closeConnection(int infoHash, int peerId);
     /*!
      * Change the swarm to seed status, warning that this Client is now seeding
      * content to this swarm.

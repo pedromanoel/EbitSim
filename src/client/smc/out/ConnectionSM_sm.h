@@ -19,6 +19,9 @@ class ConnectionMap_Unconnected;
 class ConnectionMap_HandshakeSent;
 class ConnectionMap_WaitHandshake;
 class ConnectionMap_Connected;
+class ConnectionMap_ClosingConnection;
+class ConnectionMap_LocalClosed;
+class ConnectionMap_RemoteClosed;
 class ConnectionMap_Closed;
 class ConnectionMap_Default;
 class ConnectionSMState;
@@ -41,14 +44,15 @@ public:
     virtual void Entry(ConnectionSMContext&) {};
     virtual void Exit(ConnectionSMContext&) {};
 
-    virtual void DROP(ConnectionSMContext& context);
+    virtual void close(ConnectionSMContext& context);
     virtual void handshakeMsg(ConnectionSMContext& context, Handshake const& hs);
     virtual void incomingPeerWireMsg(ConnectionSMContext& context);
     virtual void keepAliveTimer(ConnectionSMContext& context);
+    virtual void localClose(ConnectionSMContext& context);
     virtual void outgoingPeerWireMsg(ConnectionSMContext& context, cPacket * msg);
+    virtual void remoteClose(ConnectionSMContext& context);
     virtual void tcpActiveConnection(ConnectionSMContext& context);
     virtual void tcpPassiveConnection(ConnectionSMContext& context);
-    virtual void timeout(ConnectionSMContext& context);
 
 protected:
 
@@ -63,6 +67,9 @@ public:
     static ConnectionMap_HandshakeSent HandshakeSent;
     static ConnectionMap_WaitHandshake WaitHandshake;
     static ConnectionMap_Connected Connected;
+    static ConnectionMap_ClosingConnection ClosingConnection;
+    static ConnectionMap_LocalClosed LocalClosed;
+    static ConnectionMap_RemoteClosed RemoteClosed;
     static ConnectionMap_Closed Closed;
 };
 
@@ -75,8 +82,7 @@ public:
     : ConnectionSMState(name, stateId)
     {};
 
-    virtual void DROP(ConnectionSMContext& context);
-    virtual void keepAliveTimer(ConnectionSMContext& context);
+    virtual void remoteClose(ConnectionSMContext& context);
 };
 
 class ConnectionMap_Unconnected :
@@ -123,9 +129,46 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
+    void Exit(ConnectionSMContext&);
+    void close(ConnectionSMContext& context);
     void incomingPeerWireMsg(ConnectionSMContext& context);
+    void keepAliveTimer(ConnectionSMContext& context);
     void outgoingPeerWireMsg(ConnectionSMContext& context, cPacket * msg);
-    void timeout(ConnectionSMContext& context);
+};
+
+class ConnectionMap_ClosingConnection :
+    public ConnectionMap_Default
+{
+public:
+    ConnectionMap_ClosingConnection(const char *name, int stateId)
+    : ConnectionMap_Default(name, stateId)
+    {};
+
+    void Entry(ConnectionSMContext&);
+    void localClose(ConnectionSMContext& context);
+    void remoteClose(ConnectionSMContext& context);
+};
+
+class ConnectionMap_LocalClosed :
+    public ConnectionMap_Default
+{
+public:
+    ConnectionMap_LocalClosed(const char *name, int stateId)
+    : ConnectionMap_Default(name, stateId)
+    {};
+
+    void remoteClose(ConnectionSMContext& context);
+};
+
+class ConnectionMap_RemoteClosed :
+    public ConnectionMap_Default
+{
+public:
+    ConnectionMap_RemoteClosed(const char *name, int stateId)
+    : ConnectionMap_Default(name, stateId)
+    {};
+
+    void localClose(ConnectionSMContext& context);
 };
 
 class ConnectionMap_Closed :
@@ -137,7 +180,6 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
-    void Default(ConnectionSMContext& context);
 };
 
 class ConnectionSMContext :
@@ -176,10 +218,10 @@ public:
         return (dynamic_cast<ConnectionSMState&>(*_state));
     };
 
-    void DROP()
+    void close()
     {
-        setTransition("DROP");
-        (getState()).DROP(*this);
+        setTransition("close");
+        (getState()).close(*this);
         setTransition(NULL);
     };
 
@@ -204,10 +246,24 @@ public:
         setTransition(NULL);
     };
 
+    void localClose()
+    {
+        setTransition("localClose");
+        (getState()).localClose(*this);
+        setTransition(NULL);
+    };
+
     void outgoingPeerWireMsg(cPacket * msg)
     {
         setTransition("outgoingPeerWireMsg");
         (getState()).outgoingPeerWireMsg(*this, msg);
+        setTransition(NULL);
+    };
+
+    void remoteClose()
+    {
+        setTransition("remoteClose");
+        (getState()).remoteClose(*this);
         setTransition(NULL);
     };
 
@@ -222,13 +278,6 @@ public:
     {
         setTransition("tcpPassiveConnection");
         (getState()).tcpPassiveConnection(*this);
-        setTransition(NULL);
-    };
-
-    void timeout()
-    {
-        setTransition("timeout");
-        (getState()).timeout(*this);
         setTransition(NULL);
     };
 

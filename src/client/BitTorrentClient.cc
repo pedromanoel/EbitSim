@@ -204,11 +204,11 @@ void BitTorrentClient::unchokePeer(int infoHash, int peerId) {
 }
 
 // Methods used by the ContentManager
-void BitTorrentClient::drop(int infoHash, int peerId) {
-    Enter_Method("drop(infoHash: %d, peerId: %d)", infoHash, peerId);
+void BitTorrentClient::closeConnection(int infoHash, int peerId) {
+    Enter_Method("closeConnection(infoHash: %d, peerId: %d)", infoHash, peerId);
 
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
-    peer.getThread()->sendApplicationMessage(APP_DROP);
+    peer.getThread()->sendApplicationMessage(APP_CLOSE);
 }
 void BitTorrentClient::finishedDownload(int infoHash) {
     Enter_Method("finishedDownload(infoHash: %d)", infoHash);
@@ -690,6 +690,8 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
     } else {
         this->allThreads.erase(thread);
     }
+    thread->printDebugMsg("Thread removed");
+
     // remove socket and delete thread.
     TCPSrvHostApp::removeThread(thread);
     thread = NULL;

@@ -90,13 +90,7 @@ UploadMap_NotInterestingChoking UploadMap::NotInterestingChoking("UploadMap::Not
 UploadMap_InterestingChoking UploadMap::InterestingChoking("UploadMap::InterestingChoking", 1);
 UploadMap_NotInterestingUnchoking UploadMap::NotInterestingUnchoking("UploadMap::NotInterestingUnchoking", 2);
 UploadMap_InterestingUnchoking UploadMap::InterestingUnchoking("UploadMap::InterestingUnchoking", 3);
-UploadMap_Closed UploadMap::Closed("UploadMap::Closed", 4);
-
-void UploadSMState::DROP(UploadSMContext& context)
-{
-    Default(context);
-    return;
-}
+UploadMap_Stopped UploadMap::Stopped("UploadMap::Stopped", 4);
 
 void UploadSMState::cancelMsg(UploadSMContext& context, CancelMsg const& msg)
 {
@@ -123,6 +117,12 @@ void UploadSMState::notInterestedMsg(UploadSMContext& context)
 }
 
 void UploadSMState::requestMsg(UploadSMContext& context, RequestMsg const& msg)
+{
+    Default(context);
+    return;
+}
+
+void UploadSMState::stopMachine(UploadSMContext& context)
 {
     Default(context);
     return;
@@ -158,7 +158,7 @@ void UploadSMState::Default(UploadSMContext& context)
     return;
 }
 
-void UploadMap_Default::DROP(UploadSMContext& context)
+void UploadMap_Default::stopMachine(UploadSMContext& context)
 {
 
     if (context.getDebugFlag() == true)
@@ -174,7 +174,7 @@ void UploadMap_Default::DROP(UploadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "ENTER TRANSITION: UploadMap::Default::DROP()"
+        str << "ENTER TRANSITION: UploadMap::Default::stopMachine()"
             << std::endl;
     }
 
@@ -182,11 +182,11 @@ void UploadMap_Default::DROP(UploadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "EXIT TRANSITION : UploadMap::Default::DROP()"
+        str << "EXIT TRANSITION : UploadMap::Default::stopMachine()"
             << std::endl;
     }
 
-    context.setState(UploadMap::Closed);
+    context.setState(UploadMap::Stopped);
     (context.getState()).Entry(context);
 
     return;
@@ -573,51 +573,6 @@ void UploadMap_InterestingUnchoking::Exit(UploadSMContext& context)
     return;
 }
 
-void UploadMap_InterestingUnchoking::DROP(UploadSMContext& context)
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "LEAVING STATE   : UploadMap::InterestingUnchoking"
-            << std::endl;
-    }
-
-    (context.getState()).Exit(context);
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "ENTER TRANSITION: UploadMap::InterestingUnchoking::DROP()"
-            << std::endl;
-    }
-
-    context.clearState();
-    try
-    {
-        ctxt.callChokeAlgorithm();
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : UploadMap::InterestingUnchoking::DROP()"
-                << std::endl;
-        }
-
-        context.setState(UploadMap::Closed);
-    }
-    catch (...)
-    {
-        context.setState(UploadMap::Closed);
-        throw;
-    }
-    (context.getState()).Entry(context);
-
-    return;
-}
-
 void UploadMap_InterestingUnchoking::cancelMsg(UploadSMContext& context, CancelMsg const& msg)
 {
     PeerWireThread& ctxt(context.getOwner());
@@ -799,7 +754,52 @@ void UploadMap_InterestingUnchoking::requestMsg(UploadSMContext& context, Reques
     return;
 }
 
-void UploadMap_Closed::Entry(UploadSMContext& context)
+void UploadMap_InterestingUnchoking::stopMachine(UploadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : UploadMap::InterestingUnchoking"
+            << std::endl;
+    }
+
+    (context.getState()).Exit(context);
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: UploadMap::InterestingUnchoking::stopMachine()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.callChokeAlgorithm();
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : UploadMap::InterestingUnchoking::stopMachine()"
+                << std::endl;
+        }
+
+        context.setState(UploadMap::Stopped);
+    }
+    catch (...)
+    {
+        context.setState(UploadMap::Stopped);
+        throw;
+    }
+    (context.getState()).Entry(context);
+
+    return;
+}
+
+void UploadMap_Stopped::Entry(UploadSMContext& context)
 
 {
     PeerWireThread& ctxt(context.getOwner());
@@ -809,7 +809,7 @@ void UploadMap_Closed::Entry(UploadSMContext& context)
     return;
 }
 
-void UploadMap_Closed::Default(UploadSMContext& context)
+void UploadMap_Stopped::Default(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
@@ -817,7 +817,7 @@ void UploadMap_Closed::Default(UploadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "LEAVING STATE   : UploadMap::Closed"
+        str << "LEAVING STATE   : UploadMap::Stopped"
             << std::endl;
     }
 
@@ -827,7 +827,7 @@ void UploadMap_Closed::Default(UploadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "ENTER TRANSITION: UploadMap::Closed::Default()"
+        str << "ENTER TRANSITION: UploadMap::Stopped::Default()"
             << std::endl;
     }
 
@@ -839,7 +839,7 @@ void UploadMap_Closed::Default(UploadSMContext& context)
         {
             std::ostream& str = context.getDebugStream();
 
-            str << "EXIT TRANSITION : UploadMap::Closed::Default()"
+            str << "EXIT TRANSITION : UploadMap::Stopped::Default()"
                 << std::endl;
         }
 

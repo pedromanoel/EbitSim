@@ -19,7 +19,7 @@ class DownloadMap_NotInterestedChoked;
 class DownloadMap_InterestedChoked;
 class DownloadMap_NotInterestedUnchoked;
 class DownloadMap_InterestedUnchoked;
-class DownloadMap_Closed;
+class DownloadMap_Stopped;
 class DownloadMap_Default;
 class DownloadSMState;
 class DownloadSMContext;
@@ -39,7 +39,6 @@ public:
     virtual void Entry(DownloadSMContext&) {};
     virtual void Exit(DownloadSMContext&) {};
 
-    virtual void DROP(DownloadSMContext& context);
     virtual void bitFieldMsg(DownloadSMContext& context, BitFieldMsg const& msg);
     virtual void chokeMsg(DownloadSMContext& context);
     virtual void downloadRateTimer(DownloadSMContext& context);
@@ -48,6 +47,7 @@ public:
     virtual void peerNotInteresting(DownloadSMContext& context);
     virtual void pieceMsg(DownloadSMContext& context, PieceMsg const& msg);
     virtual void snubbedTimer(DownloadSMContext& context);
+    virtual void stopMachine(DownloadSMContext& context);
     virtual void unchokeMsg(DownloadSMContext& context);
 
 protected:
@@ -63,7 +63,7 @@ public:
     static DownloadMap_InterestedChoked InterestedChoked;
     static DownloadMap_NotInterestedUnchoked NotInterestedUnchoked;
     static DownloadMap_InterestedUnchoked InterestedUnchoked;
-    static DownloadMap_Closed Closed;
+    static DownloadMap_Stopped Stopped;
 };
 
 class DownloadMap_Default :
@@ -75,7 +75,7 @@ public:
     : DownloadSMState(name, stateId)
     {};
 
-    virtual void DROP(DownloadSMContext& context);
+    virtual void stopMachine(DownloadSMContext& context);
     virtual void haveMsg(DownloadSMContext& context, HaveMsg const& msg);
     virtual void downloadRateTimer(DownloadSMContext& context);
     virtual void snubbedTimer(DownloadSMContext& context);
@@ -107,6 +107,7 @@ public:
     void Entry(DownloadSMContext&);
     void chokeMsg(DownloadSMContext& context);
     void peerNotInteresting(DownloadSMContext& context);
+    void pieceMsg(DownloadSMContext& context, PieceMsg const& msg);
     void unchokeMsg(DownloadSMContext& context);
 };
 
@@ -141,11 +142,11 @@ public:
     void unchokeMsg(DownloadSMContext& context);
 };
 
-class DownloadMap_Closed :
+class DownloadMap_Stopped :
     public DownloadMap_Default
 {
 public:
-    DownloadMap_Closed(const char *name, int stateId)
+    DownloadMap_Stopped(const char *name, int stateId)
     : DownloadMap_Default(name, stateId)
     {};
 
@@ -187,13 +188,6 @@ public:
         }
 
         return (dynamic_cast<DownloadSMState&>(*_state));
-    };
-
-    void DROP()
-    {
-        setTransition("DROP");
-        (getState()).DROP(*this);
-        setTransition(NULL);
     };
 
     void bitFieldMsg(BitFieldMsg const& msg)
@@ -249,6 +243,13 @@ public:
     {
         setTransition("snubbedTimer");
         (getState()).snubbedTimer(*this);
+        setTransition(NULL);
+    };
+
+    void stopMachine()
+    {
+        setTransition("stopMachine");
+        (getState()).stopMachine(*this);
         setTransition(NULL);
     };
 

@@ -89,13 +89,7 @@ DownloadMap_NotInterestedChoked DownloadMap::NotInterestedChoked("DownloadMap::N
 DownloadMap_InterestedChoked DownloadMap::InterestedChoked("DownloadMap::InterestedChoked", 1);
 DownloadMap_NotInterestedUnchoked DownloadMap::NotInterestedUnchoked("DownloadMap::NotInterestedUnchoked", 2);
 DownloadMap_InterestedUnchoked DownloadMap::InterestedUnchoked("DownloadMap::InterestedUnchoked", 3);
-DownloadMap_Closed DownloadMap::Closed("DownloadMap::Closed", 4);
-
-void DownloadSMState::DROP(DownloadSMContext& context)
-{
-    Default(context);
-    return;
-}
+DownloadMap_Stopped DownloadMap::Stopped("DownloadMap::Stopped", 4);
 
 void DownloadSMState::bitFieldMsg(DownloadSMContext& context, BitFieldMsg const& msg)
 {
@@ -145,6 +139,12 @@ void DownloadSMState::snubbedTimer(DownloadSMContext& context)
     return;
 }
 
+void DownloadSMState::stopMachine(DownloadSMContext& context)
+{
+    Default(context);
+    return;
+}
+
 void DownloadSMState::unchokeMsg(DownloadSMContext& context)
 {
     Default(context);
@@ -169,7 +169,7 @@ void DownloadSMState::Default(DownloadSMContext& context)
     return;
 }
 
-void DownloadMap_Default::DROP(DownloadSMContext& context)
+void DownloadMap_Default::stopMachine(DownloadSMContext& context)
 {
 
     if (context.getDebugFlag() == true)
@@ -185,7 +185,7 @@ void DownloadMap_Default::DROP(DownloadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "ENTER TRANSITION: DownloadMap::Default::DROP()"
+        str << "ENTER TRANSITION: DownloadMap::Default::stopMachine()"
             << std::endl;
     }
 
@@ -193,11 +193,11 @@ void DownloadMap_Default::DROP(DownloadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "EXIT TRANSITION : DownloadMap::Default::DROP()"
+        str << "EXIT TRANSITION : DownloadMap::Default::stopMachine()"
             << std::endl;
     }
 
-    context.setState(DownloadMap::Closed);
+    context.setState(DownloadMap::Stopped);
     (context.getState()).Entry(context);
 
     return;
@@ -584,6 +584,52 @@ void DownloadMap_InterestedChoked::peerNotInteresting(DownloadSMContext& context
         throw;
     }
     (context.getState()).Entry(context);
+
+    return;
+}
+
+void DownloadMap_InterestedChoked::pieceMsg(DownloadSMContext& context, PieceMsg const& msg)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::InterestedChoked"
+            << std::endl;
+    }
+
+    DownloadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::InterestedChoked::pieceMsg(PieceMsg const& msg)"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.renewSnubbedTimer();
+        ctxt.processBlock(msg);
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : DownloadMap::InterestedChoked::pieceMsg(PieceMsg const& msg)"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
 
     return;
 }
@@ -987,7 +1033,7 @@ void DownloadMap_InterestedUnchoked::unchokeMsg(DownloadSMContext& context)
     return;
 }
 
-void DownloadMap_Closed::Entry(DownloadSMContext& context)
+void DownloadMap_Stopped::Entry(DownloadSMContext& context)
 
 {
     PeerWireThread& ctxt(context.getOwner());
@@ -997,7 +1043,7 @@ void DownloadMap_Closed::Entry(DownloadSMContext& context)
     return;
 }
 
-void DownloadMap_Closed::Default(DownloadSMContext& context)
+void DownloadMap_Stopped::Default(DownloadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
@@ -1005,7 +1051,7 @@ void DownloadMap_Closed::Default(DownloadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "LEAVING STATE   : DownloadMap::Closed"
+        str << "LEAVING STATE   : DownloadMap::Stopped"
             << std::endl;
     }
 
@@ -1015,7 +1061,7 @@ void DownloadMap_Closed::Default(DownloadSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "ENTER TRANSITION: DownloadMap::Closed::Default()"
+        str << "ENTER TRANSITION: DownloadMap::Stopped::Default()"
             << std::endl;
     }
 
@@ -1027,7 +1073,7 @@ void DownloadMap_Closed::Default(DownloadSMContext& context)
         {
             std::ostream& str = context.getDebugStream();
 
-            str << "EXIT TRANSITION : DownloadMap::Closed::Default()"
+            str << "EXIT TRANSITION : DownloadMap::Stopped::Default()"
                 << std::endl;
         }
 

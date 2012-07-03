@@ -140,6 +140,12 @@ Entry {
     chokeMsg
         nil
             {}
+    pieceMsg(msg: PieceMsg const&)
+        nil
+            {
+                renewSnubbedTimer();
+                processBlock(msg);
+            }
     unchokeMsg
         InterestedUnchoked
             {
@@ -218,7 +224,7 @@ Exit {
             }
 }
 
-Closed
+Stopped
 Entry {
     stopDownloadTimers();
     printDebugMsgDownload("Entering state Closed");
@@ -233,8 +239,8 @@ Entry {
 
 Default
 {
-    DROP
-        Closed
+    stopMachine
+        Stopped
             {}
     haveMsg(msg: HaveMsg const&)
         nil
