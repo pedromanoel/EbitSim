@@ -115,6 +115,10 @@ void PeerWireThread::closeLocalConnection() {
     // close the connection
     this->sock->close();
 }
+void PeerWireThread::stopMachines() {
+    this->downloadSm.stopMachine();
+    this->uploadSm.stopMachine();
+}
 BitFieldMsg * PeerWireThread::getBitFieldMsg() {
     return this->contentManager->getClientBitFieldMsg();
 }
@@ -217,21 +221,35 @@ void PeerWireThread::terminateThread() {
     }
 
     // cancel all messages that were going to be executed
-    while (!this->peerWireMessageBuffer.empty()) {
-        std::ostringstream out;
-        cObject * msg = this->peerWireMessageBuffer.pop();
-        out << "Canceled message \"" << msg->getName() << "\"";
-        this->printDebugMsg(out.str());
+    while (!this->messageQueue.empty()) {
+        cObject * msg = this->messageQueue.pop();
+        std::string name = msg->getName();
+        std::string out = "Canceled message \"" + name + "\"";
+        this->printDebugMsg(out);
         delete msg;
     }
-    while (!this->applicationMsgQueue.empty()) {
-        std::ostringstream out;
-        cObject * appMsg = this->applicationMsgQueue.pop();
-
-        out << "Canceled application message \"" << appMsg->getName() << "\"";
-        this->printDebugMsg(out.str());
-        delete appMsg;
+    while (!this->postProcessingAppMsg.empty()) {
+        cObject * msg = this->postProcessingAppMsg.pop();
+        std::string name = msg->getName();
+        std::string out = "Canceled post-message \"" + name + "\"";
+        this->printDebugMsg(out);
+        delete msg;
     }
+//    while (!this->peerWireMessageBuffer.empty()) {
+//        std::ostringstream out;
+//        cObject * msg = this->peerWireMessageBuffer.pop();
+//        out << "Canceled message \"" << msg->getName() << "\"";
+//        this->printDebugMsg(out.str());
+//        delete msg;
+//    }
+//    while (!this->applicationMsgQueue.empty()) {
+//        std::ostringstream out;
+//        cObject * appMsg = this->applicationMsgQueue.pop();
+//
+//        out << "Canceled application message \"" << appMsg->getName() << "\"";
+//        this->printDebugMsg(out.str());
+//        delete appMsg;
+//    }
 }
 // transition guards
 bool PeerWireThread::checkHandshake(Handshake const& hs) {

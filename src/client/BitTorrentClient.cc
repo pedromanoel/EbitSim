@@ -76,6 +76,7 @@
 #include <cassert>
 #include <cstdio>
 #include <IPAddressResolver.h>
+#include <boost/lexical_cast.hpp>
 
 #include "Application_m.h"
 #include "PeerWire_m.h"
@@ -84,6 +85,12 @@
 #include "SwarmManager.h"
 
 Define_Module(BitTorrentClient);
+
+namespace {
+std::string toStr(int i) {
+    return boost::lexical_cast<std::string>(i);
+}
+}
 
 // Helper functions
 namespace {
@@ -126,14 +133,15 @@ bool getSeeding(Swarm const& swarm) {
 
 // Public Methods
 BitTorrentClient::BitTorrentClient() :
-        swarmManager(NULL), endOfProcessingTimer("End of processing"),
-        //    processNextThreadTimer("Start processing thread"),
-        doubleProcessingTimeHist("Piece processing time histogram"), snubbedInterval(
-            0), timeoutInterval(0), keepAliveInterval(0), /*oldUnchokeInterval(0),*/
-        downloadRateInterval(0), uploadRateInterval(0), localPort(-1), localPeerId(
-            -1), debugFlag(false), globalNumberOfPeers(0), numberOfActivePeers(
-            0), numberOfPassivePeers(0), prevNumUnconnected(0), prevNumConnected(
-            0) {
+            swarmManager(NULL),
+            endOfProcessingTimer("End of processing"),
+            //    processNextThreadTimer("Start processing thread"),
+            doubleProcessingTimeHist("Piece processing time histogram"),
+            snubbedInterval(0), timeoutInterval(0), keepAliveInterval(0), /*oldUnchokeInterval(0),*/
+            downloadRateInterval(0), uploadRateInterval(0), localPort(-1),
+            localPeerId(-1), debugFlag(false), globalNumberOfPeers(0),
+            numberOfActivePeers(0), numberOfPassivePeers(0),
+            prevNumUnconnected(0), prevNumConnected(0) {
 }
 
 BitTorrentClient::~BitTorrentClient() {
@@ -208,7 +216,7 @@ void BitTorrentClient::closeConnection(int infoHash, int peerId) {
     Enter_Method("closeConnection(infoHash: %d, peerId: %d)", infoHash, peerId);
 
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
-    peer.getThread()->sendApplicationMessage(APP_CLOSE);
+    peer.getThread()->sendApplicationMessage(APP_CONTENT_MANAGER_CLOSE);
 }
 void BitTorrentClient::finishedDownload(int infoHash) {
     Enter_Method("finishedDownload(infoHash: %d)", infoHash);
@@ -239,9 +247,8 @@ void BitTorrentClient::sendHaveMessage(int infoHash, int pieceIndex) {
 
     // Send have message to all peers from the swarm connected with the Client
     while (it != peerMap.end()) {
-        std::ostringstream nameStream;
-        nameStream << "HaveMsg (" << pieceIndex << ")";
-        HaveMsg* haveMsg = new HaveMsg(nameStream.str().c_str());
+        std::string name = "HaveMsg (" + toStr(pieceIndex) + ")";
+        HaveMsg* haveMsg = new HaveMsg(name.c_str());
         haveMsg->setIndex(pieceIndex);
         (it->second).getThread()->sendPeerWireMsg(haveMsg);
         ++it;
@@ -367,8 +374,8 @@ bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
 }
 
 void BitTorrentClient::processNextThread() {
-    std::set<PeerWireThread*>::iterator nextThreadIt =
-        this->threadInProcessingIt;
+    std::set<PeerWireThread*>::iterator nextThreadIt = this
+        ->threadInProcessingIt;
 
     // allThreads will never be empty, because this method is called from the
     // thread, therefore there is at least one element in the set.
@@ -393,15 +400,17 @@ void BitTorrentClient::processNextThread() {
         } while (nextThreadIt != this->threadInProcessingIt && !hasMessages);
 
         if (hasMessages) {
-            std::ostringstream out;
-            out << "Changing from thread "
-                << (*this->threadInProcessingIt)->remotePeerId;
-            out << " to " << (*nextThreadIt)->remotePeerId;
-            this->printDebugMsg(out.str());
+//            std::string out = "====== Changing from thread "
+//                + toStr((*this->threadInProcessingIt)->remotePeerId) + " to "
+//                + toStr((*nextThreadIt)->remotePeerId) + " ======";
+            std::string out = "Changing from thread "
+                + toStr((*this->threadInProcessingIt)->remotePeerId) + " to "
+                + toStr((*nextThreadIt)->remotePeerId);
+            this->printDebugMsg(out);
 
             this->threadInProcessingIt = nextThreadIt;
-            simtime_t processingTime =
-                (*this->threadInProcessingIt)->processThread();
+            simtime_t processingTime = (*this->threadInProcessingIt)
+                ->startProcessing();
             emit(this->processingTime_Signal, processingTime);
             this->scheduleAt(simTime() + processingTime,
                 &this->endOfProcessingTimer);
@@ -636,8 +645,8 @@ void BitTorrentClient::peerWireStatistics(cMessage const*msg, bool sending =
             emit(this->peerWireBytesReceived_Signal, size);
         }
     } else if (dynamic_cast<PeerWireMsgBundle const*>(msg)) {
-        cQueue const& bundle =
-            static_cast<PeerWireMsgBundle const*>(msg)->getBundle();
+        cQueue const& bundle = static_cast<PeerWireMsgBundle const*>(msg)
+            ->getBundle();
         for (int i = 0; i < bundle.length(); ++i) {
             PeerWireMsg const* peerWireMsg =
                 static_cast<PeerWireMsg const*>(bundle.get(i));
@@ -860,8 +869,8 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
             }
         } else {
             // PeerWireThread self-messages
-            PeerWireThread *thread =
-                static_cast<PeerWireThread *>(msg->getContextPointer());
+            PeerWireThread *thread = static_cast<PeerWireThread *>(msg
+                ->getContextPointer());
 
             assert(thread != NULL);
             // pass the message along to the thread

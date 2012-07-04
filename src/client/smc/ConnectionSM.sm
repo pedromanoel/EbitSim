@@ -179,7 +179,6 @@ Exit {
 {
     // every time a PeerWireMsg arrives, renew the timeout timer.
     // only close the connection when no message arrives for some time
-    //incomingPeerWireMsg(msg: PeerWireMsg const&)
     incomingPeerWireMsg()
         nil
             {
@@ -200,7 +199,11 @@ Exit {
                 sendPeerWireMsg(ctxt.getKeepAliveMsg());
                 renewKeepAliveTimer(); // sent a PeerWireMsg
             }
-    close
+    timeout
+        ClosingConnection
+            {
+            }
+    contentManagerClose
         ClosingConnection
             {
             }
@@ -222,6 +225,9 @@ Entry {
 }
 
 LocalClosed
+Entry {
+    //stop_UploadMachine();
+}
 {
 remoteClose
         Closed
@@ -229,7 +235,15 @@ remoteClose
 }
 
 RemoteClosed
+Entry {
+    //stop_DownloadMachine();
+}
 {
+    incomingPeerWireMsg()
+        nil
+            {
+                renewTimeoutTimer();
+            }
     localClose
         Closed
             {}
@@ -238,6 +252,7 @@ RemoteClosed
 Closed
 Entry {
     printDebugMsgConnection("Connection closed");
+    stopMachines();
     terminateThread();
 }
 {

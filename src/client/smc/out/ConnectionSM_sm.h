@@ -44,7 +44,7 @@ public:
     virtual void Entry(ConnectionSMContext&) {};
     virtual void Exit(ConnectionSMContext&) {};
 
-    virtual void close(ConnectionSMContext& context);
+    virtual void contentManagerClose(ConnectionSMContext& context);
     virtual void handshakeMsg(ConnectionSMContext& context, Handshake const& hs);
     virtual void incomingPeerWireMsg(ConnectionSMContext& context);
     virtual void keepAliveTimer(ConnectionSMContext& context);
@@ -53,6 +53,7 @@ public:
     virtual void remoteClose(ConnectionSMContext& context);
     virtual void tcpActiveConnection(ConnectionSMContext& context);
     virtual void tcpPassiveConnection(ConnectionSMContext& context);
+    virtual void timeout(ConnectionSMContext& context);
 
 protected:
 
@@ -130,10 +131,11 @@ public:
 
     void Entry(ConnectionSMContext&);
     void Exit(ConnectionSMContext&);
-    void close(ConnectionSMContext& context);
+    void contentManagerClose(ConnectionSMContext& context);
     void incomingPeerWireMsg(ConnectionSMContext& context);
     void keepAliveTimer(ConnectionSMContext& context);
     void outgoingPeerWireMsg(ConnectionSMContext& context, cPacket * msg);
+    void timeout(ConnectionSMContext& context);
 };
 
 class ConnectionMap_ClosingConnection :
@@ -168,6 +170,7 @@ public:
     : ConnectionMap_Default(name, stateId)
     {};
 
+    void incomingPeerWireMsg(ConnectionSMContext& context);
     void localClose(ConnectionSMContext& context);
 };
 
@@ -218,10 +221,10 @@ public:
         return (dynamic_cast<ConnectionSMState&>(*_state));
     };
 
-    void close()
+    void contentManagerClose()
     {
-        setTransition("close");
-        (getState()).close(*this);
+        setTransition("contentManagerClose");
+        (getState()).contentManagerClose(*this);
         setTransition(NULL);
     };
 
@@ -278,6 +281,13 @@ public:
     {
         setTransition("tcpPassiveConnection");
         (getState()).tcpPassiveConnection(*this);
+        setTransition(NULL);
+    };
+
+    void timeout()
+    {
+        setTransition("timeout");
+        (getState()).timeout(*this);
         setTransition(NULL);
     };
 

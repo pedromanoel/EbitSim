@@ -258,18 +258,6 @@ private:
     void setSnubbed(bool snubbed, int infoHash, int peerId);
     //@}
 private:
-    //!@name Enum types. Used by the BitTorrentClient and PeerWireThread classes.
-    //@{
-    //! Messages that signal the timeout of the timers.
-    enum SelfMessageType {
-        SELF_DOWNLOAD_RATE_TIMER = 1000,
-        SELF_END_PEERWIRE_PROCESSING,
-        SELF_KEEP_ALIVE_TIMER,
-        SELF_SNUBBED_TIMER,
-        SELF_TIMEOUT_TIMER,
-        SELF_UPLOAD_RATE_TIMER
-    };
-    //@}
     //!@name Pointers to other modules
     //@{
     SwarmManager *swarmManager;

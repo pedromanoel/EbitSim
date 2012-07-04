@@ -98,45 +98,21 @@ public:
     virtual ~PeerWireThread();
 public:
     // parents' methods
-    //!@name Implementation of virtual methods from TCPServerThreadBase
-    /*!
-     * TODO Write something about the TCPServerThreadBase and this implementation.
-     */
+    //!@name Implementation of the virtual methods from TCPServerThreadBase
     //@{
-    /*!
-     * Called when the connection closes (successful TCP teardown).
-     * TODO update doc
-     */
+    //! Send an application message warning about the TCP connection closing.
     void closed();
-    /*!
-     * The data packets are identified and the corresponding transition is called in
-     * the state machines.
-     * TODO update doc
-     */
+    //! Insert the message in the queue for later processing.
     void dataArrived(cMessage *msg, bool urgent);
-    /*! Called when connection is established.
-     * TODO update doc
-     */
+    //! Initiate the Handshake procedure in the Connection State Machine.
     void established();
-    /*!
-     * Called when the connection breaks (TCP error).
-     * TODO update doc
-     */
+    //! Shouldn't happen, so throw an error.
     void failure(int code);
-    /*!
-     * Initialize the thread object. Must be called at creation time, or else
-     * the thread will not work. The other methods don't check if this method
-     * was called.
-     */
+    //! Call parent ctor and cast hostmodule to BitTorrentApp* as a shortcut.
     void init(TCPSrvHostApp *hostmodule, TCPSocket *socket);
-    /*!
-     * Called when the connection is closed from the client side. If the
-     * connection is established, close it from the server side.
-     */
+    //! Send an application message about the Peer closing the TCP connection.
     void peerClosed();
-    //! TODO use the status info to abort connections that are not finished yet.
-    void statusArrived(TCPStatusInfo* status);
-    //! The timers in PeerWireThread send application transitions to the state machines.
+    //! Send an application message corresponding to the expired timer.
     void timerExpired(cMessage *timer);
     //@}
 public:
@@ -153,6 +129,8 @@ public:
     void addConnectedPeer();
     //! Close the TCP connection from the client's side.
     void closeLocalConnection();
+    //! Close the Download and Upload machines
+    void stopMachines();
     //! Send a BitField message to the Peer.
     BitFieldMsg * getBitFieldMsg();
     //! Send a Handshake to the Peer.
@@ -276,16 +254,15 @@ private:
     //@{
     bool busy;
     /*!
-     * Queue of messages that are waiting to be processed.
+     * Queue with all the messages to be processed. ApplicationMsgs are
+     * processed instantly, while the PeerWireMsg are processed with a timeout
+     * timer. The processing timer also serves as the time slice for this thread.
      */
-    cQueue peerWireMessageBuffer;
+    cQueue messageQueue;
     /*!
-     * Queue of application messages generated during a state machine transition.
-     * These messages will be executed right after a PeerWireMsg is processed,
-     * and before the next PeerWireMsg starts its processing. Other threads can
-     * insert application messages in this thread by calling sendApplicationMsg.
+     * Queue for messages produced during the processing of the current message.
      */
-    cQueue applicationMsgQueue;
+    cQueue postProcessingAppMsg;
     //@}
 
     //!@name Self-messages
@@ -304,33 +281,27 @@ private:
 private:
     //!@name Thread processing
     //@{
-    /*!
-     * Will finish the processing of this thread.
-     */
+    //! Execute the transitions issued during the processing, or delete the thread
     void finishProcessing();
-    /*!
-     * Return true if this Thread has ApplicationMsg or PeerWireMsg waiting to
-     * be processed.
-     */
+    //! True if there are messages to process in this thread.
     bool hasMessagesToProcess();
-    /*!
-     * Return true if this Thread is currently processing a PeerWireMsg.
-     */
+    //! True if this thread is currently being processed.
     bool isProcessing();
     /*!
-     * Will execute all ApplicationMsg currently queued, then will execute the
-     * PeerWireMsg at the top of the queue, scheduling the end of processing.
-     * At the end of processing (in the timerExpired method), tell the
-     * BitTorrentClient to process the next thread.
+     * Start processing the messages in the message queue. Will process all
+     * application messages until it finds a PeerWire message.
+     *
+     * Return the time it will take to process these messages. If no PeerWire
+     * was found in the queue, this time is zero.
      */
-    simtime_t processThread();
+    simtime_t startProcessing();
     //@}
 
     /*!
      * Will queue the ApplicationMsg if the processor is busy, or will execute
      * it immediately if not.
      */
-    void computeApplicationMsg(ApplicationMsg* msg);
+//    void computeApplicationMsg(ApplicationMsg* msg);
     //! Issue a transition to one of the state machines.
     void issueTransition(cMessage const* msg);
     //! The Client was not recently unchoked.
