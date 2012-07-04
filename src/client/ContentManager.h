@@ -173,7 +173,7 @@ public:
      * Schedule to send a PieceMsg if the piece exists in the client BitField,
      * or NULL otherwise.
      */
-    PieceMsg* getPieceMsg(int peerId, int index, int begin, int reqLength);
+    PieceMsg* requestPieceMsg(int peerId, int index, int begin, int reqLength);
     //! Return the total downloaded from the Peer with the passed peerId, in bytes.
     int getTotalDownloaded(int peerId);
     //! Return the total uploaded to the Peer with the passed peerId, in bytes.

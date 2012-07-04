@@ -166,7 +166,7 @@ Exit {
     requestMsg(msg: RequestMsg const&)
         nil
             {
-                outgoingPeerWireMsg_ConnectionSM(ctxt.getPieceMsg(msg));
+                outgoingPeerWireMsg_ConnectionSM(ctxt.requestPieceMsg(msg));
             }
 
     chokePeer

@@ -734,7 +734,7 @@ void UploadMap_InterestingUnchoking::requestMsg(UploadSMContext& context, Reques
     context.clearState();
     try
     {
-        ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.getPieceMsg(msg));
+        ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.requestPieceMsg(msg));
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();

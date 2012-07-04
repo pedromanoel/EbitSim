@@ -204,7 +204,7 @@ public:
     //! Return a new ChokeMsg.
     ChokeMsg * getChokeMsg();
     //! Return a new PieceMsg for the RequestMsg received.
-    PieceMsg * getPieceMsg(RequestMsg const& msg);
+    PieceMsg * requestPieceMsg(RequestMsg const& msg);
     //! Return a new UnchokeMsg.
     UnchokeMsg * getUnchokeMsg();
     //! Restart the upload rate timer.

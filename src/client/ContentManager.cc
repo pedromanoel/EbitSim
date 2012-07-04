@@ -307,9 +307,9 @@ PeerWireMsgBundle* ContentManager::getNextRequestBundle(int peerId) {
 
     return requestBundle;
 }
-PieceMsg* ContentManager::getPieceMsg(int peerId, int index, int begin,
+PieceMsg* ContentManager::requestPieceMsg(int peerId, int index, int begin,
     int reqLength) {
-    Enter_Method("getPieceMsg(peerId: %d, index: %d, begin: %d, reqLength: %d)",
+    Enter_Method("requestPieceMsg(peerId: %d, index: %d, begin: %d, reqLength: %d)",
         peerId, index, begin, reqLength);
 
     if (index < 0 || index >= this->numberOfPieces) {

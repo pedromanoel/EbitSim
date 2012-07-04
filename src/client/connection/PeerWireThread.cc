@@ -381,9 +381,10 @@ void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
         throw std::logic_error("Wrong type of message");
     }
 
-    std::string msgType = msg->getClassName();
+//    std::string msgType = msg->getClassName();
+//    std::string debugString = "Processing " + msgType + " " + msgName;
     std::string msgName = msg->getName();
-    std::string debugString = "Processing " + msgType + " " + msgName;
+    std::string debugString = "Processing " + msgName;
     try {
         switch (msgId) {
 #define CONST_CAST(X) static_cast<X const&>(*msg)
@@ -494,7 +495,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     switch (id) {
 #define CASE(X) case X:\
         name = #X;\
-        debugMsg = "ApplicationMsg " #X " sent.";\
+        debugMsg = "ApplicationMsg " #X " issued.";\
         break
     // Content Manager events
     CASE(APP_CONTENT_MANAGER_CLOSE);

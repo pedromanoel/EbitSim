@@ -110,10 +110,10 @@ ChokeMsg * PeerWireThread::getChokeMsg() {
     this->printDebugMsgUpload("Get ChokeMsg");
     return new ChokeMsg("ChokeMsg");
 }
-PieceMsg * PeerWireThread::getPieceMsg(RequestMsg const& msg) {
+PieceMsg * PeerWireThread::requestPieceMsg(RequestMsg const& msg) {
     // the Peer must ask for pieces that the
-    PieceMsg * pieceMsg = this->contentManager->getPieceMsg(this->remotePeerId,
-            msg.getIndex(), msg.getBegin(), msg.getReqLength());
+    PieceMsg * pieceMsg = this->contentManager->requestPieceMsg(
+        this->remotePeerId, msg.getIndex(), msg.getBegin(), msg.getReqLength());
     std::ostringstream out;
     out << "Get " << pieceMsg->getName();
     this->printDebugMsgUpload(out.str());
@@ -127,17 +127,17 @@ void PeerWireThread::renewUploadRateTimer() {
     cancelEvent(&this->uploadRateTimer);
 
     scheduleAt(simTime() + this->btClient->uploadRateInterval,
-            &this->uploadRateTimer);
+        &this->uploadRateTimer);
 }
 void PeerWireThread::setInterested(bool interested) {
     this->btClient->setInterested(interested, this->infoHash,
-            this->remotePeerId);
+        this->remotePeerId);
 }
 void PeerWireThread::startUploadTimers() {
     this->stopUploadTimers();
 
     scheduleAt(simTime() + this->btClient->uploadRateInterval,
-            &this->uploadRateTimer);
+        &this->uploadRateTimer);
 }
 void PeerWireThread::stopUploadTimers() {
     cancelEvent(&this->uploadRateTimer);
