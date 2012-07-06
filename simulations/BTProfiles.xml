@@ -10,12 +10,23 @@
          <interarrival>6</interarrival>
       </content>
    </profile>
+   <!-- Test single swarm -->
+   <!-- rate = 1/interarrival => rate = 0,16666/s = 10/min -->
    <profile name="small">
-      <!-- Test single swarm -->
       <content>
          <name>small</name>
-         <!-- rate = 1/mean => rate = 0,16666/s = 10/min -->
-         <!-- mean seconds between arrivals -->
+         <interarrival>6</interarrival><!-- mean seconds between arrivals -->
+      </content>
+   </profile>
+   <profile name="medium">
+      <content>
+         <name>medium</name>
+         <interarrival>6</interarrival><!-- mean seconds between arrivals -->
+      </content>
+   </profile>
+   <profile name="large">
+      <content>
+         <name>large</name>
          <interarrival>6</interarrival><!-- mean seconds between arrivals -->
       </content>
    </profile>

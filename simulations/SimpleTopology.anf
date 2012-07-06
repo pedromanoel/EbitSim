@@ -6,7 +6,7 @@
   </inputs>
   <datasets>
     <datasets name="Piece Distribution">
-      <items xsi:type="scave:Add" filterPattern="name(DownloadPiece:vector)" type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="name(PiecesDownloaded:vector)" type="VECTOR"/>
       <items xsi:type="scave:LineChart"/>
     </datasets>
     <datasets name="Download Time">
