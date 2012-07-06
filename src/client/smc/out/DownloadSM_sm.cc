@@ -248,97 +248,6 @@ void DownloadMap_Default::haveMsg(DownloadSMContext& context, HaveMsg const& msg
     return;
 }
 
-void DownloadMap_Default::downloadRateTimer(DownloadSMContext& context)
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "LEAVING STATE   : DownloadMap::Default"
-            << std::endl;
-    }
-
-    DownloadSMState& endState = context.getState();
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "ENTER TRANSITION: DownloadMap::Default::downloadRateTimer()"
-            << std::endl;
-    }
-
-    context.clearState();
-    try
-    {
-        ctxt.renewDownloadRateTimer();
-        ctxt.calculateDownloadRate();
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : DownloadMap::Default::downloadRateTimer()"
-                << std::endl;
-        }
-
-        context.setState(endState);
-    }
-    catch (...)
-    {
-        context.setState(endState);
-        throw;
-    }
-
-    return;
-}
-
-void DownloadMap_Default::snubbedTimer(DownloadSMContext& context)
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "LEAVING STATE   : DownloadMap::Default"
-            << std::endl;
-    }
-
-    DownloadSMState& endState = context.getState();
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "ENTER TRANSITION: DownloadMap::Default::snubbedTimer()"
-            << std::endl;
-    }
-
-    context.clearState();
-    try
-    {
-        ctxt.setSnubbed(true);
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : DownloadMap::Default::snubbedTimer()"
-                << std::endl;
-        }
-
-        context.setState(endState);
-    }
-    catch (...)
-    {
-        context.setState(endState);
-        throw;
-    }
-
-    return;
-}
-
 void DownloadMap_NotInterestedChoked::Entry(DownloadSMContext& context)
 
 {
@@ -613,7 +522,6 @@ void DownloadMap_InterestedChoked::pieceMsg(DownloadSMContext& context, PieceMsg
     context.clearState();
     try
     {
-        ctxt.renewSnubbedTimer();
         ctxt.processBlock(msg);
         if (context.getDebugFlag() == true)
         {
@@ -793,7 +701,6 @@ void DownloadMap_NotInterestedUnchoked::pieceMsg(DownloadSMContext& context, Pie
     context.clearState();
     try
     {
-        ctxt.renewSnubbedTimer();
         ctxt.processBlock(msg);
         if (context.getDebugFlag() == true)
         {
@@ -862,6 +769,7 @@ void DownloadMap_InterestedUnchoked::Exit(DownloadSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.stopDownloadTimers();
+    ctxt.setSnubbed(false);
     return;
 }
 
@@ -889,7 +797,7 @@ void DownloadMap_InterestedUnchoked::chokeMsg(DownloadSMContext& context)
     context.clearState();
     try
     {
-        ctxt.cancelPendingRequests();
+        ctxt.cancelDownloadRequests();
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();
@@ -906,6 +814,52 @@ void DownloadMap_InterestedUnchoked::chokeMsg(DownloadSMContext& context)
         throw;
     }
     (context.getState()).Entry(context);
+
+    return;
+}
+
+void DownloadMap_InterestedUnchoked::downloadRateTimer(DownloadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::InterestedUnchoked"
+            << std::endl;
+    }
+
+    DownloadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::InterestedUnchoked::downloadRateTimer()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.renewDownloadRateTimer();
+        ctxt.calculateDownloadRate();
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : DownloadMap::InterestedUnchoked::downloadRateTimer()"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
 
     return;
 }
@@ -988,6 +942,51 @@ void DownloadMap_InterestedUnchoked::pieceMsg(DownloadSMContext& context, PieceM
             std::ostream& str = context.getDebugStream();
 
             str << "EXIT TRANSITION : DownloadMap::InterestedUnchoked::pieceMsg(PieceMsg const& msg)"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
+
+    return;
+}
+
+void DownloadMap_InterestedUnchoked::snubbedTimer(DownloadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::InterestedUnchoked"
+            << std::endl;
+    }
+
+    DownloadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::InterestedUnchoked::snubbedTimer()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.setSnubbed(true);
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : DownloadMap::InterestedUnchoked::snubbedTimer()"
                 << std::endl;
         }
 

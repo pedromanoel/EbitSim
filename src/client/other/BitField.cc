@@ -78,6 +78,8 @@
  */
 
 #include "BitField.h"
+#include <boost/lexical_cast.hpp>
+#include <iostream>
 
 // helper function
 namespace {
@@ -176,9 +178,13 @@ bool BitField::operator==(BitField const& b) const {
     return this->bitField == b.bitField;
 }
 
-std::string BitField::str() const {
+std::string BitField::unavailablePieces() const {
     std::string strRep;
-    boost::to_string(this->bitField, strRep);
+    for (int i = 0; i < this->bitField.size(); ++i) {
+        if (!this->bitField.test(i)) {
+            strRep += boost::lexical_cast<std::string>(i) + " ";
+        }
+    }
     return strRep;
 }
 double BitField::getCompletedPercentage() const {

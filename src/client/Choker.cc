@@ -75,6 +75,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <iterator>
+#include <boost/lexical_cast.hpp>
 
 #include "SwarmManager.h"
 #include "BitTorrentClient.h"
@@ -82,16 +83,22 @@
 
 Define_Module(Choker);
 
+namespace {
+std::string toStr(int i) {
+    return boost::lexical_cast<std::string>(i);
+}
+}
+
 enum ChokerMessageType {
     ROUND_TIMER
 };
 
 Choker::Choker() :
-        roundInterval(0), optimisticRoundRateInLeech(0), optimisticRoundRateInSeed(
-                0), numberOfRegularSlots(0), numberOfOptimisticSlots(0), numberOfUploadSlots(
-                0), optimisticCounter(0), debugFlag(false), infoHash(-1), localPeerId(
-                -1), roundTimer("RoundTimer"), chokeAlgorithmTimer(
-                "ChokeAlgorithmTimer"), bitTorrentClient(NULL) {
+        roundInterval(0), optimisticRoundRateInLeech(0),
+            optimisticRoundRateInSeed(0), numRegular(0), numOptimistic(0),
+            numberOfUploadSlots(0), optimisticCounter(0), debugFlag(false),
+            infoHash(-1), localPeerId(-1), roundTimer("RoundTimer"),
+            chokeAlgorithmTimer("ChokeAlgorithmTimer"), bitTorrentClient(NULL) {
 }
 
 Choker::~Choker() {
@@ -117,8 +124,8 @@ void Choker::fillUploadSlots(int peerId) {
 
     out << "Peer " << peerId;
 
-    if (this->regularUploadSlots.size() < this->numberOfRegularSlots) {
-        this->regularUploadSlots.insert(peerId);
+    if (this->regularSlots.size() < this->numRegular) {
+        this->regularSlots.insert(peerId);
         this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
 
     } else {
@@ -127,10 +134,10 @@ void Choker::fillUploadSlots(int peerId) {
 
     out << " unchoked to fill the upload slots";
 
-    int usedRegularSlots = this->regularUploadSlots.size();
-    int totalRegularSlots = this->numberOfRegularSlots;
+    int usedRegularSlots = this->regularSlots.size();
+    int totalRegularSlots = this->numRegular;
     out << " Upload slots (" << usedRegularSlots << "/" << totalRegularSlots
-            << ")";
+        << ")";
 
     this->printDebugMsg(out.str());
 
@@ -140,8 +147,8 @@ void Choker::removePeerInfo(int peerId) {
 
     std::vector<int>::iterator it;
 
-    int count = this->regularUploadSlots.erase(peerId);
-    count += this->optimisticUploadSlots.erase(peerId);
+    int count = this->regularSlots.erase(peerId);
+    count += this->optimisticSlots.erase(peerId);
 
     // call the next choke round
     if (count > 0) {
@@ -153,111 +160,105 @@ void Choker::removePeerInfo(int peerId) {
 
 void Choker::chokeAlgorithm(bool optimisticRound) {
     Enter_Method("callChokeAlgorithm(%s)",
-            optimisticRound ? "optimistic" : "regular");
-    PeerEntryPtrVector orderedPeers;
-
+        optimisticRound ? "optimistic" : "regular");
     this->printDebugMsg("Calling Choke Algorithm");
 
-    if (par("seeder").boolValue()) {
-        // order the peers by upload
-        orderedPeers = this->bitTorrentClient->getFastestToUpload(
-                this->infoHash);
-    } else {
-        // order the peers by download
-        orderedPeers = this->bitTorrentClient->getFastestToDownload(
-                this->infoHash);
-    }
+    // order the peers differently depending on the client's state
+    PeerVector orderedPeers =
+            par("seeder").boolValue() ?
+                this->bitTorrentClient->getFastestToUpload(this->infoHash) :
+                this->bitTorrentClient->getFastestToDownload(this->infoHash);
 
+    // Do nothing if the list is empty
+    if (orderedPeers.empty()) {
+        return;
+    }
     // choke/unchoke the peers.
-    if (!orderedPeers.empty()) {
-        PeerEntryPtrVectorIt begin = orderedPeers.begin();
-        PeerEntryPtrVectorIt end = orderedPeers.end();
+    PeerVectorIt it = orderedPeers.begin();
+    PeerVectorIt end = orderedPeers.end();
 
-        this->regularUploadSlots.clear();
+    regularUnchoke(it, end);
+    if (optimisticRound) {
+        optimisticUnchoke(it, end);
+    }
 
-        // unchoke the fastest peers and put the interested ones in the regular upload slots
-        // run until all of the upload slots are occupied or until there are no more
-        // peers to unchoke
-        for (;
-                begin != end
-                        && this->regularUploadSlots.size()
-                                < this->numberOfRegularSlots; ++begin) {
-            PeerEntry const* peer = (*begin);
-            int peerId = peer->getPeerId();
-
-            // don't consider optimistically unchoked peers
-            if (!this->optimisticUploadSlots.count(peerId)) {
-                // remove snubbed connections from the active slots
-                if (peer->isSnubbed()) {
-                    this->bitTorrentClient->chokePeer(this->infoHash, peerId);
-                } else {
-                    // only interested peers can occupy upload slots
-                    if (peer->isInterested()) {
-                        this->regularUploadSlots.insert(peerId);
-                    }
-
-                    // Unchoke all peers from the front of the vector until the upload
-                    // slots are filled or until the list ends. Fast Peers that are not
-                    // interested in the Client will also be unchoked. If they become
-                    // interested, the downloader with the worst upload rate gets choked
-                    // at the next choke round.
-                    this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
-                }
-            }
-        }
-
-        // fill the optimistic upload slots with interested peers
-        if (optimisticRound) {
-            this->optimisticUploadSlots.clear();
-            // Shuffle the remaining Peers, since optimistic unchokes are random.
-            std::random_shuffle(begin, end, intrand);
-            // run until all of the upload slots are occupied or until there are no
-            // more peers to unchoke
-            for (;
-                    begin != end
-                            && this->optimisticUploadSlots.size()
-                                    < this->numberOfOptimisticSlots; ++begin) {
-                PeerEntry const* peer = (*begin);
-                int peerId = peer->getPeerId();
-
-                // The top interested Peers that are not snubbed are optimistically unchoked
-                if (peer->isInterested()) {
-                    if (peer->isSnubbed()) {
-                        this->bitTorrentClient->chokePeer(this->infoHash,
-                                peerId);
-                    } else {
-                        this->optimisticUploadSlots.insert(peerId);
-                        this->bitTorrentClient->unchokePeer(this->infoHash,
-                                peerId);
-                    }
-                }
-            }
-        }
-
-        // Since only the peers at the upload slots can be interested and unchoked
-        // at the same time, choke all remainining interested Peers. Peers that are
-        // not interested don't need to be choked, since they will not try to upload
-        // from the Client.
-        for (; begin != end; ++begin) {
-            PeerEntry const* peer = (*begin);
-            if (peer->isInterested()) {
-                this->bitTorrentClient->chokePeer(this->infoHash,
-                        peer->getPeerId());
-            }
-        }
-
-        {
-            std::ostringstream out;
-            std::ostream_iterator<int> out_it(out, " ");
-            out << "regular upload slots: ";
-            std::copy(this->regularUploadSlots.begin(),
-                    this->regularUploadSlots.end(), out_it);
-            out << ", optimistic upload slots: ";
-            std::copy(this->optimisticUploadSlots.begin(),
-                    this->optimisticUploadSlots.end(), out_it);
-            this->printDebugMsg(out.str());
+    // All other interested peers are choked, except for the optimistic unchoke
+    for (; it != end; ++it) {
+        PeerEntry const* peer = (*it);
+        int peerId = peer->getPeerId();
+        if (!this->optimisticSlots.count(peerId) && peer->isInterested()) {
+            this->bitTorrentClient->chokePeer(this->infoHash, peerId);
+            std::string out = "Choke peer " + toStr(peerId);
+            this->printDebugMsg(out);
         }
     }
+
+    {
+        std::ostringstream out;
+        std::ostream_iterator<int> out_it(out, " ");
+        out << "regular upload slots: ";
+        std::copy(this->regularSlots.begin(), this->regularSlots.end(), out_it);
+        out << ", optimistic upload slots: ";
+        std::copy(this->optimisticSlots.begin(), this->optimisticSlots.end(),
+            out_it);
+        this->printDebugMsg(out.str());
+    }
+}
+void Choker::regularUnchoke(PeerVectorIt & it, PeerVectorIt const& end) {
+    regularSlots.clear();
+    std::string out = "Regular unchoke - ";
+    for (; it != end && this->regularSlots.size() < this->numRegular; ++it) {
+        PeerEntry const* peer = (*it);
+        int peerId = peer->getPeerId();
+
+        // don't consider optimistically unchoked peers
+        if (this->optimisticSlots.count(peerId)) {
+            continue;
+        }
+        // remove snubbed connections from the active slots
+        if (peer->isSnubbed()) {
+            this->bitTorrentClient->chokePeer(this->infoHash, peerId);
+            out += "choke_snubbed(" + toStr(peerId) + ") ";
+        } else {
+            // only interested peers can occupy upload slots
+            if (peer->isInterested()) {
+                regularSlots.insert(peerId);
+            }
+
+            // Unchoke the fastest peers until the regular slots are
+            // filled. When the not interested peers become interested,
+            // a choke round will be issued.
+            this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
+            out += "unchoke(" + toStr(peerId) + ") ";
+        }
+    }
+    this->printDebugMsg(out);
+}
+void Choker::optimisticUnchoke(PeerVectorIt & it, PeerVectorIt & end) {
+    this->optimisticSlots.clear();
+    // Shuffle the remaining Peers, since optimistic unchokes are random.
+    std::random_shuffle(it, end, intrand);
+    // run until all of the upload slots are occupied or until there are
+    // no more peers to unchoke
+    std::string out = "Optimistic unchoke - ";
+    for (; it != end && this->optimisticSlots.size() < this->numOptimistic;
+            ++it) {
+        PeerEntry const* peer = (*it);
+        int peerId = peer->getPeerId();
+
+        // The top interested Peers that are not snubbed are optimistically unchoked
+        if (peer->isInterested()) {
+            if (peer->isSnubbed()) {
+                this->bitTorrentClient->chokePeer(this->infoHash, peerId);
+                out += "choke_snubbed(" + toStr(peerId) + ") ";
+            } else {
+                this->optimisticSlots.insert(peerId);
+                this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
+                out += "unchoke(" + toStr(peerId) + ") ";
+            }
+        }
+    }
+    this->printDebugMsg(out);
 }
 void Choker::printDebugMsg(std::string s) {
     if (this->debugFlag) {
@@ -280,29 +281,28 @@ void Choker::initialize() {
 
     // will throw an error if this module is not owned by a SwarmManager
     SwarmManager * swarmManager = check_and_cast<SwarmManager*>(
-            getParentModule());
-    this->localPeerId =
-            swarmManager->getParentModule()->getParentModule()->getId();
+        getParentModule());
+    this->localPeerId = swarmManager->getParentModule()->getParentModule()
+        ->getId();
 
     cModule *bitTorrentClient = swarmManager->getParentModule()->getSubmodule(
-            "bitTorrentClient");
+        "bitTorrentClient");
 
     if (bitTorrentClient == NULL) {
         throw cException("BitTorrentClient module not found");
     }
     this->bitTorrentClient = check_and_cast<BitTorrentClient*>(
-            bitTorrentClient);
+        bitTorrentClient);
 
     this->roundInterval = par("roundInterval");
-    this->optimisticRoundRateInLeech =
-            par("optimisticRoundRateInLeech").longValue();
+    this->optimisticRoundRateInLeech = par("optimisticRoundRateInLeech")
+        .longValue();
     this->optimisticRoundRateInSeed =
-            par("optimisticRoundRateInSeed").longValue();
+        par("optimisticRoundRateInSeed").longValue();
 
-    this->numberOfRegularSlots = par("numberOfRegularSlots").longValue();
-    this->numberOfOptimisticSlots = par("numberOfOptimisticSlots").longValue();
-    this->numberOfUploadSlots = this->numberOfRegularSlots
-            + this->numberOfOptimisticSlots;
+    this->numRegular = par("numberOfRegularSlots").longValue();
+    this->numOptimistic = par("numberOfOptimisticSlots").longValue();
+    this->numberOfUploadSlots = this->numRegular + this->numOptimistic;
     this->infoHash = par("infoHash").longValue();
 
     scheduleAt(simTime() + this->roundInterval, &this->roundTimer);
@@ -317,25 +317,18 @@ void Choker::handleMessage(cMessage *msg) {
         if (par("seeder").boolValue()) {
             // every 'optimisticRoundRateInSeed' rounds, do not optimistic unchoke
             optimisticRound = !!(this->optimisticCounter
-                    % this->optimisticRoundRateInSeed);
+                % this->optimisticRoundRateInSeed);
         } else {
             // Every 'optimisticRoundRateInLeech' rounds, optimistic unchoke
             optimisticRound = !(this->optimisticCounter
-                    % this->optimisticRoundRateInLeech);
+                % this->optimisticRoundRateInLeech);
         }
 
-        std::ostringstream out;
-
-        if (optimisticRound) {
-            out << "Optimistic ";
-        } else {
-            out << "Normal ";
-        }
+        std::string out = (optimisticRound ? "Optimistic " : "Normal ")
+            + std::string("choke round");
+        this->printDebugMsg(out);
 
         this->chokeAlgorithm(optimisticRound);
-
-        out << " choke round";
-        this->printDebugMsg(out.str());
 
         // re-eschedule the choke round timer
         scheduleAt(simTime() + this->roundInterval, &this->roundTimer);

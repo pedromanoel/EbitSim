@@ -95,8 +95,8 @@ void PeerWireThread::calculateDownloadRate() {
     this->contentManager->getTotalDownloaded(this->remotePeerId);
     //    this->btClient->calculateDownloadRate(this->infoHash, this->remotePeerId);
 }
-void PeerWireThread::cancelPendingRequests() {
-    this->contentManager->cancelPendingRequests(this->remotePeerId);
+void PeerWireThread::cancelDownloadRequests() {
+    this->contentManager->cancelDownloadRequests(this->remotePeerId);
 }
 InterestedMsg * PeerWireThread::getInterestedMsg() {
     this->printDebugMsgDownload("Get InterestedMsg");
@@ -150,15 +150,8 @@ void PeerWireThread::startDownloadTimers() {
 
     scheduleAt(simTime() + this->btClient->snubbedInterval,
             &this->snubbedTimer);
-
-    {
-        std::stringstream out;
-        out << "Scheduling download timer for Peer " << this->remotePeerId;
-        out << "' (" << (void*) this << ")";
-        this->printDebugMsgDownload(out.str());
-    }
-    scheduleAt(simTime() + this->btClient->downloadRateInterval,
-            &this->downloadRateTimer);
+//    scheduleAt(simTime() + this->btClient->downloadRateInterval,
+//            &this->downloadRateTimer);
 }
 void PeerWireThread::stopDownloadTimers() {
     cancelEvent(&this->snubbedTimer);

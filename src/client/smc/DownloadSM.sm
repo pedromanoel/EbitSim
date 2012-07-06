@@ -143,7 +143,6 @@ Entry {
     pieceMsg(msg: PieceMsg const&)
         nil
             {
-                renewSnubbedTimer();
                 processBlock(msg);
             }
     unchokeMsg
@@ -173,8 +172,6 @@ Entry {
     pieceMsg(msg: PieceMsg const&)
         nil
             {
-                renewSnubbedTimer();
-                //verifyInterestOnAllPeers();
                 processBlock(msg);
             }
     unchokeMsg
@@ -197,12 +194,13 @@ Entry {
 }
 Exit {
     stopDownloadTimers();
+    setSnubbed(false);
 }
 {
     chokeMsg
         InterestedChoked
             {
-                cancelPendingRequests();
+                cancelDownloadRequests();
             }
     pieceMsg(msg: PieceMsg const&)
         nil
@@ -221,6 +219,17 @@ Exit {
             {
                 // send NotInterested
                 outgoingPeerWireMsg_ConnectionSM(ctxt.getNotInterestedMsg());
+            }
+    snubbedTimer
+        nil
+            {
+                setSnubbed(true);
+            }
+    downloadRateTimer
+        nil
+            {
+                renewDownloadRateTimer();
+                calculateDownloadRate();
             }
 }
 
@@ -246,17 +255,6 @@ Default
         nil
             {
                 processHaveMsg(msg);
-            }
-    downloadRateTimer
-        nil
-            {
-                renewDownloadRateTimer();
-                calculateDownloadRate();
-            }
-    snubbedTimer
-        nil
-            {
-                setSnubbed(true);
             }
 }
 %%

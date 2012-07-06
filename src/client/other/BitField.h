@@ -112,7 +112,7 @@ public:
     //! Return true if b differs from this BitField.
     bool operator==(BitField const& b) const;
     //! Return a string representation of the BitField.
-    std::string str() const;
+    std::string unavailablePieces() const;
     //! Return the completed percentage.
     double getCompletedPercentage() const;
 private:

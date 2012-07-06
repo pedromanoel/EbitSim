@@ -77,8 +77,6 @@ public:
 
     virtual void stopMachine(DownloadSMContext& context);
     virtual void haveMsg(DownloadSMContext& context, HaveMsg const& msg);
-    virtual void downloadRateTimer(DownloadSMContext& context);
-    virtual void snubbedTimer(DownloadSMContext& context);
 };
 
 class DownloadMap_NotInterestedChoked :
@@ -137,8 +135,10 @@ public:
     void Entry(DownloadSMContext&);
     void Exit(DownloadSMContext&);
     void chokeMsg(DownloadSMContext& context);
+    void downloadRateTimer(DownloadSMContext& context);
     void peerNotInteresting(DownloadSMContext& context);
     void pieceMsg(DownloadSMContext& context, PieceMsg const& msg);
+    void snubbedTimer(DownloadSMContext& context);
     void unchokeMsg(DownloadSMContext& context);
 };
 
