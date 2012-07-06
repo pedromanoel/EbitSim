@@ -122,6 +122,12 @@ void UploadSMState::requestMsg(UploadSMContext& context, RequestMsg const& msg)
     return;
 }
 
+void UploadSMState::sendPieceMsg(UploadSMContext& context)
+{
+    Default(context);
+    return;
+}
+
 void UploadSMState::stopMachine(UploadSMContext& context)
 {
     Default(context);
@@ -154,6 +160,51 @@ void UploadSMState::Default(UploadSMContext& context)
         TransitionUndefinedException(
             context.getState().getName(),
             context.getTransition()));
+
+    return;
+}
+
+void UploadMap_Default::sendPieceMsg(UploadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : UploadMap::Default"
+            << std::endl;
+    }
+
+    UploadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: UploadMap::Default::sendPieceMsg()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.printDebugMsgUpload("sendPieceMsg out of place");
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : UploadMap::Default::sendPieceMsg()"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
 
     return;
 }
@@ -235,6 +286,15 @@ void UploadMap_Default::uploadRateTimer(UploadSMContext& context)
         throw;
     }
 
+    return;
+}
+
+void UploadMap_NotInterestingChoking::Entry(UploadSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.printDebugMsgUpload("Entering state NotInterestingChoking");
     return;
 }
 
@@ -326,6 +386,15 @@ void UploadMap_NotInterestingChoking::unchokePeer(UploadSMContext& context)
     }
     (context.getState()).Entry(context);
 
+    return;
+}
+
+void UploadMap_InterestingChoking::Entry(UploadSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.printDebugMsgUpload("Entering state InterestingChoking");
     return;
 }
 
@@ -464,6 +533,15 @@ void UploadMap_InterestingChoking::unchokePeer(UploadSMContext& context)
     return;
 }
 
+void UploadMap_NotInterestingUnchoking::Entry(UploadSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.printDebugMsgUpload("Entering state NotInterestingUnchoking");
+    return;
+}
+
 void UploadMap_NotInterestingUnchoking::chokePeer(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
@@ -560,6 +638,7 @@ void UploadMap_InterestingUnchoking::Entry(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
+    ctxt.printDebugMsgUpload("Entering state InterestingUnchoking");
     ctxt.startUploadTimers();
     return;
 }
@@ -642,6 +721,7 @@ void UploadMap_InterestingUnchoking::chokePeer(UploadSMContext& context)
     context.clearState();
     try
     {
+        ctxt.cancelUploadRequests();
         ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.getChokeMsg());
         if (context.getDebugFlag() == true)
         {
@@ -734,12 +814,57 @@ void UploadMap_InterestingUnchoking::requestMsg(UploadSMContext& context, Reques
     context.clearState();
     try
     {
-        ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.requestPieceMsg(msg));
+        ctxt.requestPieceMsg(msg);
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();
 
             str << "EXIT TRANSITION : UploadMap::InterestingUnchoking::requestMsg(RequestMsg const& msg)"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
+
+    return;
+}
+
+void UploadMap_InterestingUnchoking::sendPieceMsg(UploadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : UploadMap::InterestingUnchoking"
+            << std::endl;
+    }
+
+    UploadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: UploadMap::InterestingUnchoking::sendPieceMsg()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.getPieceMsg());
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : UploadMap::InterestingUnchoking::sendPieceMsg()"
                 << std::endl;
         }
 

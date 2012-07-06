@@ -79,6 +79,8 @@
 
 #include "PeerWireThread.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include "BitTorrentClient.h"
 #include "ContentManager.h"
 #include "Choker.h"
@@ -86,13 +88,17 @@
 
 // Upload State Machine methods
 void PeerWireThread::cancelPiece(CancelMsg const& msg) {
+    throw std::logic_error("Cancel not implemented");
     //TODO The requests are responded as soon as they arrive.
     //TODO There is no output queue, so there is nothing to cancel.
+}
+void PeerWireThread::cancelUploadRequests() {
+    this->contentManager->cancelUploadRequests(this->remotePeerId);
 }
 void PeerWireThread::calculateUploadRate() {
     // get download rate from ContentManager
     // TODO do something with this value
-    this->contentManager->getTotalDownloaded(this->remotePeerId);
+    this->contentManager->getTotalUploaded(this->remotePeerId);
     //    this->btClient->calculateUploadRate(this->infoHash, this->remotePeerId);
 }
 void PeerWireThread::callChokeAlgorithm() {
@@ -110,13 +116,14 @@ ChokeMsg * PeerWireThread::getChokeMsg() {
     this->printDebugMsgUpload("Get ChokeMsg");
     return new ChokeMsg("ChokeMsg");
 }
-PieceMsg * PeerWireThread::requestPieceMsg(RequestMsg const& msg) {
+void PeerWireThread::requestPieceMsg(RequestMsg const& msg) {
     // the Peer must ask for pieces that the
-    PieceMsg * pieceMsg = this->contentManager->requestPieceMsg(
-        this->remotePeerId, msg.getIndex(), msg.getBegin(), msg.getReqLength());
-    std::ostringstream out;
-    out << "Get " << pieceMsg->getName();
-    this->printDebugMsgUpload(out.str());
+    this->contentManager->requestPieceMsg(this->remotePeerId, msg.getIndex(),
+        msg.getBegin(), msg.getReqLength());
+}
+PieceMsg * PeerWireThread::getPieceMsg() {
+    // the Peer must ask for pieces that the
+    PieceMsg * pieceMsg = this->contentManager->getPieceMsg(this->remotePeerId);
     return pieceMsg;
 }
 UnchokeMsg * PeerWireThread::getUnchokeMsg() {
@@ -136,8 +143,8 @@ void PeerWireThread::setInterested(bool interested) {
 void PeerWireThread::startUploadTimers() {
     this->stopUploadTimers();
 
-    scheduleAt(simTime() + this->btClient->uploadRateInterval,
-        &this->uploadRateTimer);
+//    scheduleAt(simTime() + this->btClient->uploadRateInterval,
+//        &this->uploadRateTimer);
 }
 void PeerWireThread::stopUploadTimers() {
     cancelEvent(&this->uploadRateTimer);

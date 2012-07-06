@@ -148,7 +148,11 @@ simple ContentManager
         int numOfSubPieces;
         // The size of the sub-piece
         int subPieceSize @unit(B);
-
+        // The maximum number of bytes transmitted in one second
+        int bytesSec @unit(B) = default(512KiB);
+        // The number of pieces that can be sent in one burst
+        int burstSize = default(50);
+        // Set to true to print debug messages
         bool debugFlag = default(false);
         // The number of have messages  that can be sent in one go.
         int haveBundleSize = default(10);

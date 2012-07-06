@@ -76,6 +76,7 @@
 #include <omnetpp.h>
 #include <signal.h>
 #include <boost/dynamic_bitset.hpp>
+#include <queue>
 
 #include "BitField.h"
 #include "RarestPieceCounter.h"
@@ -119,28 +120,6 @@ class SwarmManager;
  */
 
 class ContentManager: public cSimpleModule {
-private:
-    /*!
-     * Piece abstraction
-     */
-    class Piece {
-    public:
-        Piece(int pieceIndex, int numOfBlocks);
-        //! Set the passed block inside the piece. Return true if the piece is completed.
-        bool setBlock(int blockIndex);
-        //! Return a list with the pairs (pieceIndex, blockIndex) of all blocks missing.
-        std::list<std::pair<int, int> > getMissingBlocks() const;
-        //! Return the index of the Piece.
-        int getPieceIndex() const;
-        std::string str() const;
-    private:
-        boost::dynamic_bitset<> blocks;
-        int downloadedBlocks;
-        int numOfBlocks;
-        int pieceIndex;
-    //    std::set<std::pair<int, int> > blocks;
-    };
-
 public:
     ContentManager();
     virtual ~ContentManager();
@@ -158,12 +137,12 @@ public:
      * BitField is not of a seeder(in which case the connection bears no purpose).
      */
     void addPeerBitField(const BitField & bitField, int peerId);
-    //! Empty the pendind request queue.
-    void cancelPendingRequests(int peerId);
+    //! Empty the pending request queue.
+    void cancelDownloadRequests(int peerId);
+    //! Cancel the pieces requested by the Peer.
+    void cancelUploadRequests(int peerId);
     //! Schedule to send the BitField of the Client.
     BitFieldMsg* getClientBitFieldMsg();
-    //! Get a copy of the client bitfield.
-    BitField const& getClientBitField() const;
     /*!
      * Schedule to send a bundle of request messages if the pending request
      * queue is empty, or NULL otherwise.
@@ -172,8 +151,20 @@ public:
     /*!
      * Schedule to send a PieceMsg if the piece exists in the client BitField,
      * or NULL otherwise.
+     *
+     * @param peerId[in] The id of the Peer.
+     * @param index[in] The index of the piece message.
+     * @param begin[in] The beginning of the sub piece.
+     * @param reqLength[in] The size of the request.
      */
-    PieceMsg* requestPieceMsg(int peerId, int index, int begin, int reqLength);
+    void requestPieceMsg(int peerId, int index, int begin, int reqLength);
+    /*!
+     * Get the PieceMsg created for the Peer's request.
+     *
+     * @param infoHash[in] The infoHash that identifies the swarm.
+     * @param peerId[in] The id of the Peer.
+     */
+    PieceMsg* getPieceMsg(int peerId);
     //! Return the total downloaded from the Peer with the passed peerId, in bytes.
     int getTotalDownloaded(int peerId);
     //! Return the total uploaded to the Peer with the passed peerId, in bytes.
@@ -190,10 +181,43 @@ public:
     void removePeerInfo(int peerId);
     //@}
 private:
+    /*!
+     * Piece abstraction
+     */
+    class Piece {
+    public:
+        Piece(int requesterPeerId, int pieceIndex, int numOfBlocks);
+        //! Set the passed block inside the piece. Return true if the piece is completed.
+        bool setBlock(int blockIndex);
+        //! Return a list with the pairs (pieceIndex, blockIndex) of all blocks missing.
+        std::list<std::pair<int, int> > getMissingBlocks() const;
+        //! Return the index of the Piece.
+        int getPieceIndex() const;
+        int getRequesterId() const;
+        std::string str() const;
+    private:
+        boost::dynamic_bitset<> blocks;
+        int requesterPeerId;
+        int downloadedBlocks;
+        int numOfBlocks;
+        int pieceIndex;
+        //    std::set<std::pair<int, int> > blocks;
+    };
+    // Piece request abstraction
+    struct PieceRequest {
+        int index;
+        int begin;
+        int reqLength;
+    };
+private:
     //!@name Pointers to other modules
     //@{
     BitTorrentClient *bitTorrentClient;
     //@}
+    class TokenBucket;
+    friend class TokenBucket;
+    //! Token Bucket object
+    TokenBucket * tokenBucket;
 
     //!@name Parameters
     //@{
@@ -221,6 +245,10 @@ private:
 
     //!@name
     //@{
+    typedef std::pair<int, int> IntPair;
+    typedef std::set<IntPair> IntPairSet;
+//    typedef IntPairSet::iterator IntPairSetIt;
+//    typedef IntPairSet::const_iterator IntPairSetConstIt;
     /*!
      * For each connected Peer, contain its BitField. They are set at the
      * beginning of the connection and updated with the received HaveMsg messages.
@@ -229,7 +257,7 @@ private:
     /*!
      * For each connected Peer, contain the requested blocks awaiting response.
      */
-    std::map<int, std::set<std::pair<int, int> > > pendingRequests;
+    std::map<int, IntPairSet> pendingRequests;
     //@}
 
     //!@name
@@ -243,6 +271,8 @@ private:
      * When making new requests, this map is verified in order not to request
      * the same block twice.
      */
+    typedef std::map<int, Piece>::iterator PieceMapIt;
+    typedef std::map<int, Piece>::const_iterator PieceMapConstIt;
     std::map<int, Piece> incompletePieces;
     /*!
      * Contain all Peers that are interesting for the Client (that have a piece
@@ -254,11 +284,15 @@ private:
     //! Object that counts the pieces and return the rarest ones.
     RarestPieceCounter rarestPieceCounter;
     /*!
-     * Contain pairs of pieceIndex and peerId of all of the requested pieces.
+     * Maps the peerId
      */
-    std::set<std::pair<int, int> > requestedPieces;
+//    std::multimap<int, int> requestedPieces;
+    /*!
+     * Contain pairs (pieceIndex, peerId) of all of the requested pieces.
+     * The pair is ordered first by pieceIndex, then by peerId.
+     */
+//    IntPairSet requestedPieces;
     //@}
-
     //!@name Statistics
     //@{
     // Map the start times of all requested pieces.
@@ -299,6 +333,15 @@ private:
     simtime_t downloadStartTime;
     //@}
 private:
+    //!@name Token bucket related methods
+    //@{
+    /*!
+     * Send the message if there are enough tokens in the bucket.
+     * Return true if the message was sent.
+     */
+    void tryToSend();
+    //@}
+
     //!@name
     //@{
     //! Check if the Peers are still interesting, sending a NotInterestedMsg if not.
@@ -313,6 +356,9 @@ private:
     //! NotInterestedMsg to them.
     void verifyInterestOnAllPeers();
     //@}
+
+    //! Find if this piece was requested, then remove it from the set.
+//    void eraseRequestedPiece(int pieceIndex);
 
     //!@name Signal registration and subscription methods
     //@{

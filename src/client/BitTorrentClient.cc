@@ -166,11 +166,11 @@ void BitTorrentClient::chokePeer(int infoHash, int peerId) {
         peer.getThread()->sendApplicationMessage(APP_CHOKE_PEER);
     }
 }
-PeerEntryPtrVector BitTorrentClient::getFastestToDownload(int infoHash) const {
+PeerVector BitTorrentClient::getFastestToDownload(int infoHash) const {
     Enter_Method("getFastestToDownload(infoHash: %d)", infoHash);
 
     PeerMap const& peerMap = getPeerMap(this->getSwarm(infoHash));
-    PeerEntryPtrVector orderedPeers;
+    PeerVector orderedPeers;
     orderedPeers.reserve(peerMap.size());
     if (peerMap.size()) {
         PeerMapConstIt it = peerMap.begin();
@@ -184,16 +184,22 @@ PeerEntryPtrVector BitTorrentClient::getFastestToDownload(int infoHash) const {
 
     return orderedPeers;
 }
-PeerEntryPtrVector BitTorrentClient::getFastestToUpload(int infoHash) {
+PeerVector BitTorrentClient::getFastestToUpload(int infoHash) {
     Enter_Method("getFastestToUpload(infoHash: %d)", infoHash);
 
     PeerMap const& peerMap = getPeerMap(this->getSwarm(infoHash));
-    PeerEntryPtrVector vector;
-    if (peerMap.size()) {
+    int peerMapSize = peerMap.size();
+    PeerVector vector;
+    if (peerMapSize) {
+        vector.reserve(peerMapSize);
         PeerMapConstIt it = peerMap.begin();
+        std::ostringstream out;
+        out << "Connected peers: ";
         for (; it != peerMap.end(); ++it) {
+            out << it->second.getPeerId() << " ";
             vector.push_back(&it->second);
         }
+        this->printDebugMsg(out.str());
 
         std::sort(vector.begin(), vector.end(), PeerEntry::sortByUploadRate);
     }
@@ -253,6 +259,13 @@ void BitTorrentClient::sendHaveMessage(int infoHash, int pieceIndex) {
         (it->second).getThread()->sendPeerWireMsg(haveMsg);
         ++it;
     }
+}
+void BitTorrentClient::sendPieceMessage(int infoHash, int peerId) {
+    Enter_Method("sendPieceMessage(infoHash: %d, peerId: %d)", infoHash,
+        peerId);
+
+    PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
+    peer.getThread()->sendApplicationMessage(APP_SEND_PIECE_MSG);
 }
 
 // Methods used by the SwarmManager
@@ -400,12 +413,9 @@ void BitTorrentClient::processNextThread() {
         } while (nextThreadIt != this->threadInProcessingIt && !hasMessages);
 
         if (hasMessages) {
-//            std::string out = "====== Changing from thread "
-//                + toStr((*this->threadInProcessingIt)->remotePeerId) + " to "
-//                + toStr((*nextThreadIt)->remotePeerId) + " ======";
-            std::string out = "Changing from thread "
+            std::string out = "====== Changing from thread "
                 + toStr((*this->threadInProcessingIt)->remotePeerId) + " to "
-                + toStr((*nextThreadIt)->remotePeerId);
+                + toStr((*nextThreadIt)->remotePeerId) + " ======";
             this->printDebugMsg(out);
 
             this->threadInProcessingIt = nextThreadIt;

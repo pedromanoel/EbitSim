@@ -77,7 +77,6 @@
 #include <TCPSrvHostApp.h>
 
 #include <boost/tuple/tuple_comparison.hpp>
-//#include <boost/tuple/tuple.hpp> already included by tuple_comparison.hpp
 using boost::tuple;
 using boost::make_tuple;
 using boost::tie;
@@ -90,20 +89,18 @@ class PeerWireThread;
 class SwarmManager;
 
 //! Vector of PeerEntry pointers.
-typedef std::vector<PeerEntry const*> PeerEntryPtrVector;
+typedef std::vector<PeerEntry const*> PeerVector;
 // list of unconnected Peers
 typedef std::list<tuple<int, IPvXAddress, int> > UnconnectedList;
 // Map of peer entries with peerId as key
 typedef std::map<int, PeerEntry> PeerMap;
-// Store the limits of a PeerMap (numActive, maxActive, numPassive, maxPassive)
-//typedef tuple<int, int, int, int> MapLimits;
 // Swarm (numActive, numPassive, PeerMap, UnconnectedList, seeding)
 typedef tuple<int, int, PeerMap, UnconnectedList, bool> Swarm;
 // map of swarms with infoHash as key
 typedef std::map<int, Swarm> SwarmMap;
 
 // Iterators
-typedef PeerEntryPtrVector::iterator PeerEntryPtrVectorIt;
+typedef PeerVector::iterator PeerVectorIt;
 typedef UnconnectedList::iterator UnconnectedSetIt;
 typedef PeerMap::iterator PeerMapIt;
 typedef PeerMap::const_iterator PeerMapConstIt;
@@ -138,14 +135,14 @@ public:
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      */
-    PeerEntryPtrVector getFastestToUpload(int infoHash);
+    PeerVector getFastestToUpload(int infoHash);
     /*!
      * Return a vector of pointers to PeerEntry objects, ordered by their
      * download rate to the Client.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      */
-    PeerEntryPtrVector getFastestToDownload(int infoHash) const;
+    PeerVector getFastestToDownload(int infoHash) const;
     /*!
      * Unchoke the Peer.
      *
@@ -191,6 +188,13 @@ public:
      * @param pieceIndex[in] The index of the Piece that was downloaded.
      */
     void sendHaveMessage(int infoHash, int pieceIndex);
+    /*!
+     * Tell the corresponding thread that there is a piece available for sending.
+     *
+     * @param infoHash[in] The infoHash that identifies the swarm.
+     * @param peerId[in] The id of the Peer.
+     */
+    void sendPieceMessage(int infoHash, int peerId);
     //@}
 
     //!@name Methods used by the SwarmManager

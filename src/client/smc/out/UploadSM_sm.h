@@ -44,6 +44,7 @@ public:
     virtual void interestedMsg(UploadSMContext& context);
     virtual void notInterestedMsg(UploadSMContext& context);
     virtual void requestMsg(UploadSMContext& context, RequestMsg const& msg);
+    virtual void sendPieceMsg(UploadSMContext& context);
     virtual void stopMachine(UploadSMContext& context);
     virtual void unchokePeer(UploadSMContext& context);
     virtual void uploadRateTimer(UploadSMContext& context);
@@ -73,6 +74,7 @@ public:
     : UploadSMState(name, stateId)
     {};
 
+    virtual void sendPieceMsg(UploadSMContext& context);
     virtual void stopMachine(UploadSMContext& context);
     virtual void uploadRateTimer(UploadSMContext& context);
 };
@@ -85,6 +87,7 @@ public:
     : UploadMap_Default(name, stateId)
     {};
 
+    void Entry(UploadSMContext&);
     void interestedMsg(UploadSMContext& context);
     void unchokePeer(UploadSMContext& context);
 };
@@ -97,6 +100,7 @@ public:
     : UploadMap_Default(name, stateId)
     {};
 
+    void Entry(UploadSMContext&);
     void notInterestedMsg(UploadSMContext& context);
     void requestMsg(UploadSMContext& context, RequestMsg const& msg);
     void unchokePeer(UploadSMContext& context);
@@ -110,6 +114,7 @@ public:
     : UploadMap_Default(name, stateId)
     {};
 
+    void Entry(UploadSMContext&);
     void chokePeer(UploadSMContext& context);
     void interestedMsg(UploadSMContext& context);
 };
@@ -128,6 +133,7 @@ public:
     void chokePeer(UploadSMContext& context);
     void notInterestedMsg(UploadSMContext& context);
     void requestMsg(UploadSMContext& context, RequestMsg const& msg);
+    void sendPieceMsg(UploadSMContext& context);
     void stopMachine(UploadSMContext& context);
 };
 
@@ -211,6 +217,13 @@ public:
     {
         setTransition("requestMsg");
         (getState()).requestMsg(*this, msg);
+        setTransition(NULL);
+    };
+
+    void sendPieceMsg()
+    {
+        setTransition("sendPieceMsg");
+        (getState()).sendPieceMsg(*this);
         setTransition(NULL);
     };
 

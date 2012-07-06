@@ -167,7 +167,7 @@ public:
     //! Calculate the download rate.
     void calculateDownloadRate();
     //! Cancel the requests made.
-    void cancelPendingRequests();
+    void cancelDownloadRequests();
     //! Return a new InterestedMsg.
     InterestedMsg * getInterestedMsg();
     //! Return a new NotInterestedMsg.
@@ -194,6 +194,8 @@ public:
     //@{
     //! Cancel the request made by the Peer.
     void cancelPiece(CancelMsg const& msg);
+    //! Cancel all the requestes made by this Peer.
+    void cancelUploadRequests();
     //! Calculate the upload rate.
     void calculateUploadRate();
     //! Tell the Choker execute the next choke round now.
@@ -203,8 +205,10 @@ public:
     void fillUploadSlots();
     //! Return a new ChokeMsg.
     ChokeMsg * getChokeMsg();
-    //! Return a new PieceMsg for the RequestMsg received.
-    PieceMsg * requestPieceMsg(RequestMsg const& msg);
+    //! Make a piece request to the ContentManager.
+    void requestPieceMsg(RequestMsg const& msg);
+    //! Get the previously requested piece from the ContentManager.
+    PieceMsg * getPieceMsg();
     //! Return a new UnchokeMsg.
     UnchokeMsg * getUnchokeMsg();
     //! Restart the upload rate timer.

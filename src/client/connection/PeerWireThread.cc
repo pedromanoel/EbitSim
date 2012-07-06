@@ -449,6 +449,7 @@ void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
             // uploadSm Application transitions
         CASE_APP_UPLOAD(APP_CHOKE_PEER, chokePeer());
         CASE_APP_UPLOAD(APP_UNCHOKE_PEER, unchokePeer());
+        CASE_APP_UPLOAD(APP_SEND_PIECE_MSG, sendPieceMsg());
             // uploadSm timers
         CASE_APP_UPLOAD(APP_UPLOAD_RATE_TIMER, uploadRateTimer());
 
@@ -501,6 +502,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     CASE(APP_CONTENT_MANAGER_CLOSE);
     CASE(APP_PEER_INTERESTING);
     CASE(APP_PEER_NOT_INTERESTING);
+    CASE(APP_SEND_PIECE_MSG);
         // Choker events
     CASE(APP_CHOKE_PEER);
     CASE(APP_UNCHOKE_PEER);
@@ -529,6 +531,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     case APP_CONTENT_MANAGER_CLOSE:
     case APP_PEER_INTERESTING:
     case APP_PEER_NOT_INTERESTING:
+    //case APP_SEND_PIECE_MSG:
     case APP_CHOKE_PEER:
     case APP_UNCHOKE_PEER:
         if (this->busy) {

@@ -97,6 +97,9 @@
 %map UploadMap
 %%
 NotInterestingChoking
+Entry {
+    printDebugMsgUpload("Entering state NotInterestingChoking");
+}
 {
     interestedMsg
         InterestingChoking
@@ -111,6 +114,9 @@ NotInterestingChoking
             }
 }
 InterestingChoking
+Entry {
+    printDebugMsgUpload("Entering state InterestingChoking");
+}
 {
     notInterestedMsg
         NotInterestingChoking
@@ -130,6 +136,9 @@ InterestingChoking
             }
 }
 NotInterestingUnchoking
+Entry {
+    printDebugMsgUpload("Entering state NotInterestingUnchoking");
+}
 {
     interestedMsg
         InterestingUnchoking
@@ -145,6 +154,7 @@ NotInterestingUnchoking
 }
 InterestingUnchoking
 Entry {
+    printDebugMsgUpload("Entering state InterestingUnchoking");
     startUploadTimers();
 }
 Exit {
@@ -166,12 +176,19 @@ Exit {
     requestMsg(msg: RequestMsg const&)
         nil
             {
-                outgoingPeerWireMsg_ConnectionSM(ctxt.requestPieceMsg(msg));
+                requestPieceMsg(msg);
+            }
+            
+    sendPieceMsg()
+        nil
+            {
+                outgoingPeerWireMsg_ConnectionSM(ctxt.getPieceMsg());
             }
 
     chokePeer
         InterestingChoking
             {
+                cancelUploadRequests();
                 outgoingPeerWireMsg_ConnectionSM(ctxt.getChokeMsg());
             }
     stopMachine
@@ -196,6 +213,11 @@ Entry {
 
 Default
 {
+    sendPieceMsg()
+        nil
+            {
+                printDebugMsgUpload("sendPieceMsg out of place");
+            }
     stopMachine
         Stopped
             {}

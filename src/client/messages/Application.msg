@@ -92,6 +92,7 @@ enum AppMessageType {
     APP_CHOKE_PEER = 301;
     APP_UNCHOKE_PEER = 302;
     APP_UPLOAD_RATE_TIMER = 303;
+    APP_SEND_PIECE_MSG = 304;
 };
 
 //
