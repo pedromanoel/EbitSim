@@ -115,9 +115,8 @@ typedef SwarmMap::iterator SwarmMapIt;
  */
 class BitTorrentClient: public TCPSrvHostApp {
 public:
-    //! TODO document this
     BitTorrentClient();
-    //! TODO document this
+    //! Delete the sockets and threads
     virtual ~BitTorrentClient();
 
     //!@name Methods used by the Choker
@@ -187,7 +186,7 @@ public:
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param pieceIndex[in] The index of the Piece that was downloaded.
      */
-    void sendHaveMessage(int infoHash, int pieceIndex);
+    void sendHaveMessages(int infoHash, int pieceIndex);
     /*!
      * Tell the corresponding thread that there is a piece available for sending.
      *
@@ -195,6 +194,26 @@ public:
      * @param peerId[in] The id of the Peer.
      */
     void sendPieceMessage(int infoHash, int peerId);
+    /*!
+     * Update the upload rate of the Peer.
+     *
+     * @param infoHash[in] The infoHash that identifies the swarm.
+     * @param peerId[in] The id of the Peer.
+     * @param totalDownloaded[in] The total of bytes downloaded to the peer until
+     * this call.
+     * @return The calculated download rate.
+     */
+    double updateDownloadRate(int infoHash, int peerId, unsigned long totalDownloaded);
+    /*!
+     * Update the upload rate of the Peer.
+     *
+     * @param infoHash[in] The infoHash that identifies the swarm.
+     * @param peerId[in] The id of the Peer.
+     * @param totalUploaded[in] The total of bytes uploaded to the peer until
+     * this call.
+     * @return The calculated upload rate.
+     */
+    double updateUploadRate(int infoHash, int peerId, unsigned long totalUploaded);
     //@}
 
     //!@name Methods used by the SwarmManager
@@ -227,6 +246,7 @@ private:
     //! Add the Peer to the ConnectedPeerManager as an unconnected Peer.
     void addUnconnectedPeers(int infoHash,
             std::list<tuple<int, IPvXAddress, int> > & peers);
+    //@}
 
     //!@name Methods used by the PeerWireThread
     //@{
@@ -237,10 +257,6 @@ private:
      */
     void addConnectedPeer(int infoHash, int peerId, PeerWireThread* thread,
             bool active);
-    //! Calculate the download rate for the Peer with the passed peerId.
-    void calculateDownloadRate(int infoHash, int peerId);
-    //! Calculate the upload rate for the Peer with the passed peerId.
-    void calculateUploadRate(int infoHash, int peerId);
     /*!
      * Return true if the Peer can connect with the Client. The connection will
      * not be possible if there are no connection slots available or if the Peer
@@ -266,18 +282,19 @@ private:
     //@{
     SwarmManager *swarmManager;
     //@}
+
     //!@name Thread processing
     //@{
     //! Contain all threads that requested the processor while it was busy.
     std::set<PeerWireThread*> waitingThreads;
-    //@}
     //! Pointer to the thread currently utilizing the processor.
     std::set<PeerWireThread*>::iterator threadInProcessingIt;
     //!
     cMessage endOfProcessingTimer;
-    //    cMessage processNextThreadTimer;
     //! Processing time histogram, used to generate values for the simulation
     cDoubleHistogram doubleProcessingTimeHist;
+    //@}
+
     /*!
      * This data structure is a map of Swarms, where a Swarm is the tuple of
      * number of active connections, number of passive connections, map of Peers
@@ -326,7 +343,7 @@ private:
     int localPort;
     //! The peerId of this Client.
     int localPeerId;
-    // Set to true to print debug messages
+    //! Set to true to print debug messages
     bool debugFlag;
     //! TODO document this
     int globalNumberOfPeers;

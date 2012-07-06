@@ -81,8 +81,8 @@
 
 // PeerEntry method implementations
 PeerEntry::PeerEntry(int peerId, PeerWireThread* thread) :
-        peerId(peerId), thread(thread), snubbed(false), interested(false), unchoked(
-                false), oldUnchoked(false), timeOfLastUnchoke(0) {
+        peerId(peerId), thread(thread), snubbed(false), interested(false),
+            unchoked(false), oldUnchoked(false), timeOfLastUnchoke(0) {
 }
 
 std::string PeerEntry::str() const {
@@ -96,7 +96,7 @@ std::string PeerEntry::str() const {
 
     out << "last unchoke: " << this->timeOfLastUnchoke << "s\n";
     out << "download rate: " << this->downloadDataRate.getDataRateAverage()
-            << "kpbs, upload rate: ";
+        << "kpbs, upload rate: ";
     out << this->uploadDataRate.getDataRateAverage() << "bps";
 
     return out.str();
@@ -134,17 +134,17 @@ bool PeerEntry::isUnchoked() const {
 void PeerEntry::setOldUnchoked(bool oldUnchoked) {
     this->oldUnchoked = oldUnchoked;
 }
-void PeerEntry::setBytesDownloaded(double now, int bytesDownloaded) {
+void PeerEntry::setBytesDownloaded(double now, unsigned long bytesDownloaded) {
     this->downloadDataRate.collect(now, bytesDownloaded);
 }
-void PeerEntry::setBytesUploaded(double now, int bytesUploaded) {
+void PeerEntry::setBytesUploaded(double now, unsigned long bytesUploaded) {
     this->uploadDataRate.collect(now, bytesUploaded);
 }
 double PeerEntry::getDownloadRate() const {
-    return this->downloadDataRate.getLastDataRate();
+    return this->downloadDataRate.getDataRateAverage();
 }
 double PeerEntry::getUploadRate() const {
-    return this->uploadDataRate.getLastDataRate();
+    return this->uploadDataRate.getDataRateAverage();
 }
 
 //Sorting methods
@@ -165,7 +165,7 @@ bool PeerEntry::sortByDownloadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
         return true;
     }
     return lhs->downloadDataRate.getDataRateAverage()
-            > rhs->downloadDataRate.getDataRateAverage();
+        > rhs->downloadDataRate.getDataRateAverage();
 }
 /*!
  * Only peers that are unchoked and interested are considered. That means that
@@ -213,7 +213,7 @@ bool PeerEntry::sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
     }
     // both have the same unchoke time or are not recently unchoked. Order by upload rate.
     return lhs->uploadDataRate.getDataRateAverage()
-            > rhs->uploadDataRate.getDataRateAverage();
+        > rhs->uploadDataRate.getDataRateAverage();
 }
 
 /*!

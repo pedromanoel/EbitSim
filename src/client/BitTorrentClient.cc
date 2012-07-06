@@ -73,8 +73,7 @@
 #include "BitTorrentClient.h"
 
 #include <algorithm>
-#include <cassert>
-#include <cstdio>
+#include <iostream>
 #include <IPAddressResolver.h>
 #include <boost/lexical_cast.hpp>
 
@@ -133,11 +132,9 @@ bool getSeeding(Swarm const& swarm) {
 
 // Public Methods
 BitTorrentClient::BitTorrentClient() :
-            swarmManager(NULL),
-            endOfProcessingTimer("End of processing"),
-            //    processNextThreadTimer("Start processing thread"),
+        swarmManager(NULL), endOfProcessingTimer("End of processing"),
             doubleProcessingTimeHist("Piece processing time histogram"),
-            snubbedInterval(0), timeoutInterval(0), keepAliveInterval(0), /*oldUnchokeInterval(0),*/
+            snubbedInterval(0), timeoutInterval(0), keepAliveInterval(0),
             downloadRateInterval(0), uploadRateInterval(0), localPort(-1),
             localPeerId(-1), debugFlag(false), globalNumberOfPeers(0),
             numberOfActivePeers(0), numberOfPassivePeers(0),
@@ -245,7 +242,7 @@ void BitTorrentClient::peerNotInteresting(int infoHash, int peerId) {
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
     peer.getThread()->sendApplicationMessage(APP_PEER_NOT_INTERESTING);
 }
-void BitTorrentClient::sendHaveMessage(int infoHash, int pieceIndex) {
+void BitTorrentClient::sendHaveMessages(int infoHash, int pieceIndex) {
     Enter_Method("sendHaveMessage(pieceIndex: %d)", pieceIndex);
 
     PeerMap const& peerMap = getPeerMap(this->getSwarm(infoHash));
@@ -266,6 +263,24 @@ void BitTorrentClient::sendPieceMessage(int infoHash, int peerId) {
 
     PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
     peer.getThread()->sendApplicationMessage(APP_SEND_PIECE_MSG);
+}
+double BitTorrentClient::updateDownloadRate(int infoHash, int peerId,
+    unsigned long totalDownloaded) {
+    Enter_Method(
+        "updateDownloadRate(infoHash: %d, peerId: %d, totalDownloaded: %d)",
+        infoHash, peerId, totalDownloaded);
+    PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
+    peer.setBytesDownloaded(simTime().dbl(), totalDownloaded);
+    return peer.getDownloadRate();
+}
+double BitTorrentClient::updateUploadRate(int infoHash, int peerId,
+    unsigned long totalUploaded) {
+    Enter_Method(
+        "updateUploadRate(infoHash: %d, peerId: %d, totalUploaded: %d)",
+        infoHash, peerId, totalUploaded);
+    PeerEntry & peer = this->getPeerEntry(infoHash, peerId);
+    peer.setBytesUploaded(simTime().dbl(), totalUploaded);
+    return peer.getUploadRate();
 }
 
 // Methods used by the SwarmManager
@@ -347,12 +362,6 @@ void BitTorrentClient::addConnectedPeer(int infoHash, int peerId,
         throw std::logic_error("Can't connect with the same Peer twice");
     }
 
-}
-void BitTorrentClient::calculateDownloadRate(int infoHash, int peerId) {
-    throw std::logic_error("Implement this calculateDownloadRate.");
-}
-void BitTorrentClient::calculateUploadRate(int infoHash, int peerId) {
-    throw std::logic_error("Implement this calculateUploadRate.");
 }
 bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
     Swarm const& swarm = this->getSwarm(infoHash);
@@ -587,34 +596,13 @@ void BitTorrentClient::emitSentSignal(int messageId) {
 #undef CASE
 }
 Swarm & BitTorrentClient::getSwarm(int infoHash) {
-    try {
-        return this->swarmMap.at(infoHash);
-    } catch (std::out_of_range & e) {
-        std::ostringstream out;
-        out << "Swarm " << infoHash << " not found";
-        throw std::logic_error(out.str());
-    }
+    return this->swarmMap.at(infoHash);
 }
 Swarm const& BitTorrentClient::getSwarm(int infoHash) const {
-    try {
-        return this->swarmMap.at(infoHash);
-    } catch (std::out_of_range & e) {
-        std::ostringstream out;
-        out << "Swarm " << infoHash << " not found";
-        throw std::logic_error(out.str());
-    }
+    return this->swarmMap.at(infoHash);
 }
 PeerEntry & BitTorrentClient::getPeerEntry(int infoHash, int peerId) {
-    try {
-        return getPeerMapRef(this->getSwarm(infoHash)).at(peerId);
-    } catch (std::out_of_range & e) {
-        std::ostringstream out;
-        out << "Peer " << peerId << " not in swarm " << infoHash;
-        throw std::logic_error(out.str());
-    } catch (std::logic_error & e) {
-        throw e;
-    }
-
+    return getPeerMapRef(this->getSwarm(infoHash)).at(peerId);
 }
 void BitTorrentClient::openListeningSocket() {
     // only open the socket if it was already closed.

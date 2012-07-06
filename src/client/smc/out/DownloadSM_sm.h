@@ -75,6 +75,8 @@ public:
     : DownloadSMState(name, stateId)
     {};
 
+    virtual void snubbedTimer(DownloadSMContext& context);
+    virtual void downloadRateTimer(DownloadSMContext& context);
     virtual void stopMachine(DownloadSMContext& context);
     virtual void haveMsg(DownloadSMContext& context, HaveMsg const& msg);
 };

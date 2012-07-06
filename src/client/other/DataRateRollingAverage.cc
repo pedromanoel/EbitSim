@@ -113,6 +113,3 @@ double DataRateRollingAverage::getDataRateAverage() const {
     }
     return ret;
 }
-double DataRateRollingAverage::getLastDataRate() const {
-    return this->dataRates.back();
-}

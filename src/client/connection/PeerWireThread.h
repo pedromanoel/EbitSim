@@ -74,20 +74,18 @@
 #define PEERWIRETHREAD_H_
 
 #include <cpacketqueue.h>
-#include <NotificationBoard.h>
+
 #include <TCPSrvHostApp.h>
 
-#include "Application_m.h"
 #include "client/smc/out/ConnectionSM_sm.h"
 #include "client/smc/out/DownloadSM_sm.h"
 #include "client/smc/out/UploadSM_sm.h"
+#include "PeerWireMsgBundle_m.h"
 #include "PeerWire_m.h"
 
 class BitTorrentClient;
 class Choker;
 class ContentManager;
-class PeerWireMsg;
-class PeerWireMsgBundle;
 
 class PeerWireThread: public TCPServerThreadBase {
 public:

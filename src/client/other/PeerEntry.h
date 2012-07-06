@@ -128,9 +128,9 @@ public:
     //! Set to true if the Peer was not recently unchoked.
     void setOldUnchoked(bool oldUnchoked);
     //! Set how many bytes arrived FROM the Peer since the last call.
-    void setBytesDownloaded(double now, int bytesDownloaded);
+    void setBytesDownloaded(double now, unsigned long bytesDownloaded);
     //! Set how many bytes were sent TO the Peer since the last call.
-    void setBytesUploaded(double now, int bytesUploaded);
+    void setBytesUploaded(double now, unsigned long bytesUploaded);
     //! Return the download rate that was collected last.
     double getDownloadRate() const;
     //! Return the upload rate that was collected last.

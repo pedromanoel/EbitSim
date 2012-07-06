@@ -169,6 +169,68 @@ void DownloadSMState::Default(DownloadSMContext& context)
     return;
 }
 
+void DownloadMap_Default::snubbedTimer(DownloadSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::Default"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::Default::snubbedTimer()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : DownloadMap::Default::snubbedTimer()"
+            << std::endl;
+    }
+
+
+    return;
+}
+
+void DownloadMap_Default::downloadRateTimer(DownloadSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::Default"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::Default::downloadRateTimer()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : DownloadMap::Default::downloadRateTimer()"
+            << std::endl;
+    }
+
+
+    return;
+}
+
 void DownloadMap_Default::stopMachine(DownloadSMContext& context)
 {
 

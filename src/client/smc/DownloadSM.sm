@@ -248,6 +248,12 @@ Entry {
 
 Default
 {
+    snubbedTimer // see note
+        nil
+            {} // Ignore the timer outside the state IntestedUnchoked
+    downloadRateTimer
+        nil
+            {} // Ignore the timer outside the state IntestedUnchoked
     stopMachine
         Stopped
             {}
@@ -258,3 +264,13 @@ Default
             }
 }
 %%
+
+// note: Example of when snubbed could be issued even when the snubbedTimer is
+// canceled.
+// 1. ApplicationMsg APP_SNUBBED_TIMER issued.
+// 2. Message "ChokeMsg" arrived
+// 3. Processing ChokeMsg
+// 4. Peer not snubbed
+// 5. Entering state InterestedChoked
+// 6. Finished processing.
+// 7. Processing APP_SNUBBED_TIMER

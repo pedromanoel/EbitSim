@@ -196,6 +196,12 @@ Exit {
             {
                 callChokeAlgorithm();
             }
+    uploadRateTimer()
+        nil
+            {
+                renewUploadRateTimer();
+                calculateUploadRate();
+            }
 }
 
 Stopped
@@ -223,9 +229,6 @@ Default
             {}
     uploadRateTimer()
         nil
-            {
-                renewUploadRateTimer();
-                calculateUploadRate();
-            }
+            {}
 }
 %%

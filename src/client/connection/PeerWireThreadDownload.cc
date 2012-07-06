@@ -79,6 +79,8 @@
 
 #include "PeerWireThread.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include "BitTorrentClient.h"
 #include "ContentManager.h"
 #include "PeerWire_m.h"
@@ -87,13 +89,15 @@
 // Download State Machine methods
 void PeerWireThread::addBitField(BitFieldMsg const& msg) {
     this->contentManager->addPeerBitField(msg.getBitField(),
-            this->remotePeerId);
+        this->remotePeerId);
 }
 void PeerWireThread::calculateDownloadRate() {
-    // get download rate from ContentManager
-    // TODO do something with this value
-    this->contentManager->getTotalDownloaded(this->remotePeerId);
-    //    this->btClient->calculateDownloadRate(this->infoHash, this->remotePeerId);
+    unsigned long totalDownloaded = this->contentManager->getTotalDownloaded(
+        this->remotePeerId);
+    double downRate = this->btClient->updateDownloadRate(this->infoHash, this->remotePeerId,
+        totalDownloaded);
+    std::string out = "Download rate: " + boost::lexical_cast<std::string>(downRate);
+    this->printDebugMsgDownload(out);
 }
 void PeerWireThread::cancelDownloadRequests() {
     this->contentManager->cancelDownloadRequests(this->remotePeerId);
@@ -109,7 +113,7 @@ NotInterestedMsg * PeerWireThread::getNotInterestedMsg() {
 }
 PeerWireMsgBundle * PeerWireThread::getRequestMsgBundle() {
     PeerWireMsgBundle * bundle = this->contentManager->getNextRequestBundle(
-            this->remotePeerId);
+        this->remotePeerId);
     if (bundle != NULL) {
         std::ostringstream out;
         out << "Get " << bundle->getName();
@@ -121,7 +125,7 @@ PeerWireMsgBundle * PeerWireThread::getRequestMsgBundle() {
 }
 void PeerWireThread::processBlock(PieceMsg const& msg) {
     this->contentManager->processBlock(this->remotePeerId, msg.getIndex(),
-            msg.getBegin(), msg.getBlockSize());
+        msg.getBegin(), msg.getBlockSize());
 }
 void PeerWireThread::processHaveMsg(HaveMsg const& msg) {
     this->contentManager->processHaveMsg(msg.getIndex(), this->remotePeerId);
@@ -129,12 +133,12 @@ void PeerWireThread::processHaveMsg(HaveMsg const& msg) {
 void PeerWireThread::renewDownloadRateTimer() {
     cancelEvent(&this->downloadRateTimer);
     scheduleAt(simTime() + this->btClient->downloadRateInterval,
-            &this->downloadRateTimer);
+        &this->downloadRateTimer);
 }
 void PeerWireThread::renewSnubbedTimer() {
     cancelEvent(&this->snubbedTimer);
     scheduleAt(simTime() + this->btClient->snubbedInterval,
-            &this->snubbedTimer);
+        &this->snubbedTimer);
 }
 void PeerWireThread::setSnubbed(bool snubbed) {
     if (snubbed) {
@@ -149,9 +153,9 @@ void PeerWireThread::startDownloadTimers() {
     this->stopDownloadTimers();
 
     scheduleAt(simTime() + this->btClient->snubbedInterval,
-            &this->snubbedTimer);
-//    scheduleAt(simTime() + this->btClient->downloadRateInterval,
-//            &this->downloadRateTimer);
+        &this->snubbedTimer);
+    scheduleAt(simTime() + this->btClient->downloadRateInterval,
+        &this->downloadRateTimer);
 }
 void PeerWireThread::stopDownloadTimers() {
     cancelEvent(&this->snubbedTimer);

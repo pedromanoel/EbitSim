@@ -81,7 +81,7 @@
 
 #include "BitTorrentClient.h"
 #include "ContentManager.h"
-#include "PeerWire_m.h"
+#include "Application_m.h"
 #include "PeerWireMsgBundle_m.h"
 
 //#define DEBUG_CONN

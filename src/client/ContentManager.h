@@ -142,7 +142,7 @@ public:
     //! Cancel the pieces requested by the Peer.
     void cancelUploadRequests(int peerId);
     //! Schedule to send the BitField of the Client.
-    BitFieldMsg* getClientBitFieldMsg();
+    BitFieldMsg* getClientBitFieldMsg() const;
     /*!
      * Schedule to send a bundle of request messages if the pending request
      * queue is empty, or NULL otherwise.
@@ -166,10 +166,10 @@ public:
      */
     PieceMsg* getPieceMsg(int peerId);
     //! Return the total downloaded from the Peer with the passed peerId, in bytes.
-    int getTotalDownloaded(int peerId);
+    unsigned long getTotalDownloaded(int peerId) const;
     //! Return the total uploaded to the Peer with the passed peerId, in bytes.
-    int getTotalUploaded(int peerId);
-    bool isBitFieldEmpty();
+    unsigned long getTotalUploaded(int peerId) const;
+    bool isBitFieldEmpty() const;
     //! Update the client BitField.
     void processBlock(int peerId, int pieceIndex, int begin, int blockSize);
     /*!
@@ -298,9 +298,9 @@ private:
     // Map the start times of all requested pieces.
     std::map<int, simtime_t> pieceRequestTime;
     //! Map the total downloaded from a Peer to its peerId.
-    std::map<int, int> totalDownloadedByPeer;
+    std::map<int, unsigned long> totalDownloadedByPeer;
     //! Map the total uploaded from a Peer to its peerId.
-    std::map<int, int> totalUploadedByPeer;
+    std::map<int, unsigned long> totalUploadedByPeer;
     //@}
 
     //!@name Signals

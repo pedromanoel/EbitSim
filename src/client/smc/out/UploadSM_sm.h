@@ -135,6 +135,7 @@ public:
     void requestMsg(UploadSMContext& context, RequestMsg const& msg);
     void sendPieceMsg(UploadSMContext& context);
     void stopMachine(UploadSMContext& context);
+    void uploadRateTimer(UploadSMContext& context);
 };
 
 class UploadMap_Stopped :

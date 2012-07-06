@@ -96,10 +96,11 @@ void PeerWireThread::cancelUploadRequests() {
     this->contentManager->cancelUploadRequests(this->remotePeerId);
 }
 void PeerWireThread::calculateUploadRate() {
-    // get download rate from ContentManager
-    // TODO do something with this value
-    this->contentManager->getTotalUploaded(this->remotePeerId);
-    //    this->btClient->calculateUploadRate(this->infoHash, this->remotePeerId);
+    unsigned long totalUploaded = this->contentManager->getTotalUploaded(this->remotePeerId);
+    double upRate = this->btClient->updateUploadRate(this->infoHash, this->remotePeerId, totalUploaded);
+
+    std::string out = "Upload rate: " + boost::lexical_cast<std::string>(upRate);
+    this->printDebugMsgUpload(out);
 }
 void PeerWireThread::callChokeAlgorithm() {
     // Tell choker to recalculate the choked peers.
@@ -142,9 +143,8 @@ void PeerWireThread::setInterested(bool interested) {
 }
 void PeerWireThread::startUploadTimers() {
     this->stopUploadTimers();
-
-//    scheduleAt(simTime() + this->btClient->uploadRateInterval,
-//        &this->uploadRateTimer);
+    scheduleAt(simTime() + this->btClient->uploadRateInterval,
+        &this->uploadRateTimer);
 }
 void PeerWireThread::stopUploadTimers() {
     cancelEvent(&this->uploadRateTimer);

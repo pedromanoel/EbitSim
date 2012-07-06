@@ -83,8 +83,6 @@
 using boost::make_tuple;
 #include <cassert>
 
-#include "PeerWire_m.h"
-#include "PeerWireMsgBundle_m.h"
 #include "BitTorrentClient.h"
 #include "Choker.h"
 #include "ContentManager.h"

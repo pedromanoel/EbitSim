@@ -245,7 +245,6 @@ void UploadMap_Default::stopMachine(UploadSMContext& context)
 
 void UploadMap_Default::uploadRateTimer(UploadSMContext& context)
 {
-    PeerWireThread& ctxt(context.getOwner());
 
     if (context.getDebugFlag() == true)
     {
@@ -255,8 +254,6 @@ void UploadMap_Default::uploadRateTimer(UploadSMContext& context)
             << std::endl;
     }
 
-    UploadSMState& endState = context.getState();
-
     if (context.getDebugFlag() == true)
     {
         std::ostream& str = context.getDebugStream();
@@ -265,26 +262,14 @@ void UploadMap_Default::uploadRateTimer(UploadSMContext& context)
             << std::endl;
     }
 
-    context.clearState();
-    try
+    if (context.getDebugFlag() == true)
     {
-        ctxt.renewUploadRateTimer();
-        ctxt.calculateUploadRate();
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
+        std::ostream& str = context.getDebugStream();
 
-            str << "EXIT TRANSITION : UploadMap::Default::uploadRateTimer()"
-                << std::endl;
-        }
+        str << "EXIT TRANSITION : UploadMap::Default::uploadRateTimer()"
+            << std::endl;
+    }
 
-        context.setState(endState);
-    }
-    catch (...)
-    {
-        context.setState(endState);
-        throw;
-    }
 
     return;
 }
@@ -920,6 +905,52 @@ void UploadMap_InterestingUnchoking::stopMachine(UploadSMContext& context)
         throw;
     }
     (context.getState()).Entry(context);
+
+    return;
+}
+
+void UploadMap_InterestingUnchoking::uploadRateTimer(UploadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : UploadMap::InterestingUnchoking"
+            << std::endl;
+    }
+
+    UploadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: UploadMap::InterestingUnchoking::uploadRateTimer()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.renewUploadRateTimer();
+        ctxt.calculateUploadRate();
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : UploadMap::InterestingUnchoking::uploadRateTimer()"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
 
     return;
 }

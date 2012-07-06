@@ -92,8 +92,6 @@ public:
     void collect(double now, int totalDownloaded);
     //! Return the average of the last 'n' data rates, where 'n' is the size of the window.
     double getDataRateAverage() const;
-    //! Return the last data rate added.
-    double getLastDataRate() const;
 private:
     //! The sum of data rates.
     double dataRateSum;

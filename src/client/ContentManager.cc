@@ -86,6 +86,13 @@
 #include "PeerWire_m.h"
 #include "PeerWireMsgBundle_m.h"
 
+// Dumb fix because of the CDT parser (https://bugs.eclipse.org/bugs/show_bug.cgi?id=332278)
+#ifdef __CDT_PARSER__
+#define FOREACH(a, b) for(a : b)
+#else
+#define FOREACH(a, b) BOOST_FOREACH(a, b)
+#endif
+
 namespace {
 std::string toStr(long i) {
     return boost::lexical_cast<std::string>(i);
@@ -427,12 +434,11 @@ void ContentManager::cancelDownloadRequests(int peerId) {
 // to be made to another Peer. If, for some reason, these canceled requests
 // arrive,
     typedef std::pair<int, int> pending_pair_t;
-    BOOST_FOREACH(pending_pair_t const& p, pendingRequests.at(peerId))
-            {
-                int pieceIndex = p.first;
-                int blockIndex = p.second;
-                out << "(" << pieceIndex << ", " << blockIndex << ") ";
-            }
+    FOREACH(pending_pair_t const& p, pendingRequests.at(peerId)) {
+        int pieceIndex = p.first;
+        int blockIndex = p.second;
+        out << "(" << pieceIndex << ", " << blockIndex << ") ";
+    }
     this->pendingRequests.at(peerId).clear();
     this->printDebugMsg(out.str());
 }
@@ -440,11 +446,11 @@ void ContentManager::cancelUploadRequests(int peerId) {
     Enter_Method("cancelUploadRequests(index: %d)", peerId);
     this->tokenBucket->cancelUploadRequests(peerId);
 }
-bool ContentManager::isBitFieldEmpty() {
+bool ContentManager::isBitFieldEmpty() const {
     Enter_Method("isBitFieldEmpty()");
     return this->clientBitField.empty();
 }
-BitFieldMsg* ContentManager::getClientBitFieldMsg() {
+BitFieldMsg* ContentManager::getClientBitFieldMsg() const {
     Enter_Method("sendClientBitFieldMsg()");
 
     BitFieldMsg* bitFieldMsg = NULL;
@@ -554,34 +560,18 @@ PieceMsg* ContentManager::getPieceMsg(int peerId) {
     return this->tokenBucket->getPieceMsg(peerId);
 }
 
-int ContentManager::getTotalDownloaded(int peerId) {
+unsigned long ContentManager::getTotalDownloaded(int peerId) const {
     Enter_Method("getDownloadedBytes(peerId: %d)", peerId);
-// error if the peerId is not in the totalDownloaded, meaning that the
-// BitField was not defined.
-    int totalDownloaded;
-    try {
-        totalDownloaded = this->totalDownloadedByPeer.at(peerId);
-    } catch (std::out_of_range & e) {
-        std::ostringstream out;
-        out << "Peer with id '" << peerId << "' is not in the ContentManager.";
-        throw std::logic_error(out.str());
-    }
-    return totalDownloaded;
+    // error if the peerId is not in the totalDownloaded, meaning that the
+    // BitField was not defined.
+    return this->totalDownloadedByPeer.at(peerId);
 
 }
-int ContentManager::getTotalUploaded(int peerId) {
+unsigned long ContentManager::getTotalUploaded(int peerId) const {
     Enter_Method("getUploadedBytes(peerId: %d)", peerId);
-// error if the peerId is not in the totalUploaded, meaning that the
-// BitField was not defined.
-    int totalUploaded;
-    try {
-        totalUploaded = this->totalUploadedByPeer.at(peerId);
-    } catch (std::out_of_range & e) {
-        std::string out = "Peer with id '" + toStr(peerId)
-            + "' is not in the ContentManager.";
-        throw std::logic_error(out);
-    }
-    return totalUploaded;
+    // error if the peerId is not in the totalUploaded, meaning that the
+    // BitField was not defined.
+    return this->totalUploadedByPeer.at(peerId);
 }
 /*!
  * If a piece is completed with this pieceMsg, then schedule the sending of a
@@ -641,7 +631,8 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
             generateDownloadStatistics(pieceIndex);
 
             // schedule the sending of the HaveMsg to all Peers.
-            this->bitTorrentClient->sendHaveMessage(this->infoHash, pieceIndex);
+            this->bitTorrentClient->sendHaveMessages(this->infoHash,
+                pieceIndex);
 
             // became seeder
             bool becameSeeder = this->clientBitField.full();
@@ -803,24 +794,23 @@ std::list<std::pair<int, int> > ContentManager::requestAvailableBlocks(
 
 // get blocks from previously requested pieces
     typedef std::pair<int, Piece> incomplete_pair_t;
-    BOOST_FOREACH(incomplete_pair_t const p, this->incompletePieces)
-            {
-                int pieceId = p.first;
-                Piece const& pieceRef = p.second;
+    FOREACH(incomplete_pair_t const p, this->incompletePieces) {
+        int pieceId = p.first;
+        Piece const& pieceRef = p.second;
 
-                clientBitFieldCopy.addPiece(pieceId); // ignore pieces requested to other peers
+        clientBitFieldCopy.addPiece(pieceId); // ignore pieces requested to other peers
 
-                if (pieceRef.getRequesterId() == peerId) {
-                    std::list<std::pair<int, int> > blocks;
-                    blocks = pieceRef.getMissingBlocks();
-                    // append blocks to availBlocks
-                    availBlocks.splice(availBlocks.end(), blocks);
-                }
+        if (pieceRef.getRequesterId() == peerId) {
+            std::list<std::pair<int, int> > blocks;
+            blocks = pieceRef.getMissingBlocks();
+            // append blocks to availBlocks
+            availBlocks.splice(availBlocks.end(), blocks);
+        }
 
-                if (availBlocks.size() >= this->requestBundleSize) {
-                    break;
-                }
-            }
+        if (availBlocks.size() >= this->requestBundleSize) {
+            break;
+        }
+    }
 
 // If there is space in the bundle, add blocks from interesting pieces
     if (availBlocks.size() < this->requestBundleSize) {
@@ -833,25 +823,24 @@ std::list<std::pair<int, int> > ContentManager::requestAvailableBlocks(
                 intPieces, numberOfPieces);
 
             // get blocks until there are no more space available or until the
-            BOOST_FOREACH(int pieceIndex, rarest)
-                    {
-                        // Return the incomplete piece, or create a new one
-                        // similar to operator[], but without the default constructor
-                        // http://cplusplus.com/reference/stl/map/operator[]/
-                        Piece & piece = this->incompletePieces.insert(
-                            std::make_pair(
+            FOREACH(int pieceIndex, rarest) {
+                // Return the incomplete piece, or create a new one
+                // similar to operator[], but without the default constructor
+                // http://cplusplus.com/reference/stl/map/operator[]/
+                Piece & piece = this->incompletePieces.insert(
+                        std::make_pair(
                                 pieceIndex,
                                 Piece(peerId, pieceIndex,
-                                    this->numberOfSubPieces))).first->second;
-                        // insert the missing blocks into the availableBlocks
-                        std::list<std::pair<int, int> > missingBlocks;
-                        missingBlocks = piece.getMissingBlocks();
-                        availBlocks.splice(availBlocks.end(), missingBlocks);
+                                        this->numberOfSubPieces))).first->second;
+                // insert the missing blocks into the availableBlocks
+                std::list<std::pair<int, int> > missingBlocks;
+                missingBlocks = piece.getMissingBlocks();
+                availBlocks.splice(availBlocks.end(), missingBlocks);
 
-                        if (availBlocks.size() >= this->requestBundleSize) {
-                            break;
-                        }
-                    }
+                if (availBlocks.size() >= this->requestBundleSize) {
+                    break;
+                }
+            }
         }
     }
 
