@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE contentList SYSTEM "BitTorrentTracker.dtd">
 <contentList>
-   <content name="large">
-      <numOfPieces>800</numOfPieces>
+   <content name="large"><!-- 200MB -->
+      <numOfPieces>2048</numOfPieces>
       <numOfSubPieces>8</numOfSubPieces>
       <subPieceSize>32768</subPieceSize>
    </content>
-   <content name="small">
-      <numOfPieces>80</numOfPieces>
+   <content name="medium"><!-- 128MB -->
+      <numOfPieces>512</numOfPieces>
       <numOfSubPieces>8</numOfSubPieces>
       <subPieceSize>32768</subPieceSize>
    </content>
-   <content name="test_simple">
+   <content name="small"><!-- 64MB -->
+      <numOfPieces>256</numOfPieces>
+      <numOfSubPieces>8</numOfSubPieces>
+      <subPieceSize>32768</subPieceSize>
+   </content>
+   <content name="test_simple"><!-- 2.5MB -->
       <numOfPieces>10</numOfPieces>
       <numOfSubPieces>8</numOfSubPieces>
       <subPieceSize>32768</subPieceSize>
