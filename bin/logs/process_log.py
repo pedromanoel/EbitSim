@@ -1,4 +1,7 @@
 #!/usr/bin/python
+### This script breaks a full debug log by Peer. Each Peer will then
+### have a debug log in a separate file, saved in the directory from
+### where this script was called
 
 def process_log(log_file):
     log_data = []
