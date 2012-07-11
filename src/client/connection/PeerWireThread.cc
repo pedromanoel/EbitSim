@@ -90,54 +90,39 @@ Register_Class(PeerWireThread);
 
 namespace {
 std::string toStr(int i) {
-    return boost::lexical_cast<std::string>(i);
+    return boost::lexical_cast < std::string > (i);
 }
 }
 
 // Own methods
 PeerWireThread::PeerWireThread() :
-            connectionSm(*this),
-            downloadSm(*this),
-            uploadSm(*this),
-            activeConnection(false),
-            btClient(NULL),
-            choker(NULL),
-            contentManager(NULL),
-            infoHash(-1),
-            remotePeerId(-1),
-            terminating(false),
-            busy(false),
+        connectionSm(*this), downloadSm(*this), uploadSm(*this), activeConnection(
+                false), btClient(NULL), choker(NULL), contentManager(NULL), infoHash(
+                -1), remotePeerId(-1), terminating(false), busy(false),
 //            peerWireMessageBuffer("Awaiting PeerWire messages"),
 //            applicationMsgQueue("Awaiting Application messages"),
-            messageQueue("Awaiting messages"),
-            postProcessingAppMsg("Post-processing messages"),
-            downloadRateTimer("Download Rate Timer", APP_DOWNLOAD_RATE_TIMER),
-            keepAliveTimer("KeepAlive Timer", APP_KEEP_ALIVE_TIMER),
-            snubbedTimer("Snubbed Timer", APP_SNUBBED_TIMER),
-            timeoutTimer("Timeout Timer", APP_TIMEOUT_TIMER),
-            uploadRateTimer("Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
+        messageQueue("Awaiting messages"), postProcessingAppMsg(
+                "Post-processing messages"), downloadRateTimer(
+                "Download Rate Timer", APP_DOWNLOAD_RATE_TIMER), keepAliveTimer(
+                "KeepAlive Timer", APP_KEEP_ALIVE_TIMER), snubbedTimer(
+                "Snubbed Timer", APP_SNUBBED_TIMER), timeoutTimer(
+                "Timeout Timer", APP_TIMEOUT_TIMER), uploadRateTimer(
+                "Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
 }
 
 PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
-            connectionSm(*this),
-            downloadSm(*this),
-            uploadSm(*this),
-            btClient(NULL),
-            choker(NULL),
-            contentManager(NULL),
-            infoHash(-1),
-            remotePeerId(-1),
-            terminating(false),
-            busy(false),
-            //            peerWireMessageBuffer("Awaiting PeerWire messages"),
-            //            applicationMsgQueue("Awaiting Application messages"),
-            messageQueue("Awaiting messages"),
-            postProcessingAppMsg("Post-processing messages"),
-            downloadRateTimer("Download Rate Timer", APP_DOWNLOAD_RATE_TIMER),
-            keepAliveTimer("KeepAlive Timer", APP_KEEP_ALIVE_TIMER),
-            snubbedTimer("Snubbed Timer", APP_SNUBBED_TIMER),
-            timeoutTimer("Timeout Timer", APP_TIMEOUT_TIMER),
-            uploadRateTimer("Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
+        connectionSm(*this), downloadSm(*this), uploadSm(*this), btClient(NULL), choker(
+                NULL), contentManager(NULL), infoHash(-1), remotePeerId(-1), terminating(
+                false), busy(false),
+        //            peerWireMessageBuffer("Awaiting PeerWire messages"),
+        //            applicationMsgQueue("Awaiting Application messages"),
+        messageQueue("Awaiting messages"), postProcessingAppMsg(
+                "Post-processing messages"), downloadRateTimer(
+                "Download Rate Timer", APP_DOWNLOAD_RATE_TIMER), keepAliveTimer(
+                "KeepAlive Timer", APP_KEEP_ALIVE_TIMER), snubbedTimer(
+                "Snubbed Timer", APP_SNUBBED_TIMER), timeoutTimer(
+                "Timeout Timer", APP_TIMEOUT_TIMER), uploadRateTimer(
+                "Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
     this->activeConnection = true;
     this->infoHash = infoHash;
     this->remotePeerId = remotePeerId;
@@ -304,34 +289,23 @@ void PeerWireThread::printDebugMsgConnection(std::string s) {
 }
 
 // Private methods
-void PeerWireThread::finishProcessing() {
-    // finish processing this thread
-    this->busy = false;
-
-    if (!this->terminating) {
-        // process all application messages that were generated during the
-        // processing of the last PeerWire message.
-
-        if (!this->postProcessingAppMsg.empty()) {
-            this->printDebugMsg("Post-processing.");
-        }
-        while (!this->postProcessingAppMsg.empty()) {
-            cMessage * appMsg = dynamic_cast<cMessage *>(this
-                ->postProcessingAppMsg.pop());
-            this->issueTransition(appMsg);
-        }
-        this->printDebugMsg("Finished processing.");
-    } else {
-        // thread terminated, remove thread from BitTorrentClient
-        this->printDebugMsg("Thread terminated.");
-        this->btClient->removeThread(this);
-    }
-}
 bool PeerWireThread::hasMessagesToProcess() {
     return !this->messageQueue.empty();
 }
 bool PeerWireThread::isProcessing() {
     return this->busy;
+}
+void PeerWireThread::processAppMessages() {
+    while (!this->messageQueue.empty()) {
+        cObject * o = this->messageQueue.front();
+        ApplicationMsg *appMsg = dynamic_cast<ApplicationMsg *>(o);
+        if (appMsg != NULL) {
+            this->messageQueue.pop();
+            this->issueTransition(appMsg);
+        } else {
+            break; // not ApplicationMsg, so break out of loop
+        }
+    }
 }
 simtime_t PeerWireThread::startProcessing() {
     assert(*this->btClient->threadInProcessingIt == this);
@@ -340,28 +314,43 @@ simtime_t PeerWireThread::startProcessing() {
     // start processing this thread
     this->busy = true;
 
-    // process ApplicationMsg that where issued before the processing of a
-    // PeerWireMsg
-    bool isAppMsg = true;
-    while (!this->messageQueue.empty() && isAppMsg) {
-        ApplicationMsg * appMsg = dynamic_cast<ApplicationMsg *>(this
-            ->messageQueue.front());
-        isAppMsg = appMsg != NULL;
-        if (isAppMsg) {
-            this->messageQueue.pop();
-            this->issueTransition(appMsg);
-        }
-    }
+    // process all ApplicationMsgs, since they take zero processing time
+    processAppMessages();
 
-    simtime_t processingTime = 0;
     // PeerWireMsg is the only type of message that take time to process.
+    simtime_t processingTime = 0;
     if (!this->messageQueue.empty()) {
-        PeerWireMsg *messageInProcessing = check_and_cast<PeerWireMsg *>(
-            this->messageQueue.pop());
+        cObject *o = this->messageQueue.pop();
+        cMessage *messageInProcessing = static_cast<cMessage *>(o);
+        assert(dynamic_cast<PeerWireMsg *>(messageInProcessing)); // not NULL
         processingTime = this->btClient->doubleProcessingTimeHist.random();
         this->issueTransition(messageInProcessing);
     }
     return processingTime;
+}
+void PeerWireThread::finishProcessing() {
+    // finish processing this thread
+    this->busy = false;
+
+    if (!this->terminating) {
+        // process all application messages that were generated during the
+        // processing of the last PeerWire message.
+        if (!this->postProcessingAppMsg.empty()) {
+            this->printDebugMsg("Post-processing.");
+        }
+        while (!this->postProcessingAppMsg.empty()) {
+            cObject *o = this->postProcessingAppMsg.pop();
+            cMessage *msg = static_cast<cMessage *>(o);
+            this->issueTransition(msg);
+        }
+        // Process all ApplicationMsg until a PeerWireMsg is found
+        this->processAppMessages();
+        this->printDebugMsg("Finished processing.");
+    } else {
+        // thread terminated, remove thread from BitTorrentClient
+        this->printDebugMsg("Thread terminated.");
+        this->btClient->removeThread(this);
+    }
 }
 
 void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
@@ -519,7 +508,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     CASE(APP_UPLOAD_RATE_TIMER);
     default:
         throw std::logic_error(
-            "Trying to call a non-existing application transition");
+                "Trying to call a non-existing application transition");
         break;
     }
 #undef CASE
@@ -531,7 +520,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     case APP_CONTENT_MANAGER_CLOSE:
     case APP_PEER_INTERESTING:
     case APP_PEER_NOT_INTERESTING:
-    //case APP_SEND_PIECE_MSG:
+        //case APP_SEND_PIECE_MSG:
     case APP_CHOKE_PEER:
     case APP_UNCHOKE_PEER:
         if (this->busy) {

@@ -297,6 +297,11 @@ private:
      * was found in the queue, this time is zero.
      */
     simtime_t startProcessing();
+    /*!
+     * Process all ApplicationMsgs in the queue until a PeerWireMsg is found or
+     * until the queue is empty.
+     */
+    void processAppMessages();
     //@}
 
     /*!
