@@ -16,8 +16,8 @@
       <numOfSubPieces>8</numOfSubPieces>
       <subPieceSize>32768</subPieceSize>
    </content>
-   <content name="test_simple"><!-- 2.5MB -->
-      <numOfPieces>10</numOfPieces>
+   <content name="test_simple"><!-- 10MB -->
+      <numOfPieces>40</numOfPieces>
       <numOfSubPieces>8</numOfSubPieces>
       <subPieceSize>32768</subPieceSize>
    </content>
