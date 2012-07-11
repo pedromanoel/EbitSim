@@ -1,24 +1,28 @@
 #!/bin/bash
-
+echo $ENV
 if [[ $# -lt 1 || $# -gt 2 ]]; then
     echo "Usage: $0 <run> [CONFIG]"
     exit 1
 fi
 
 # script configuration
-DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-EXEC_FILE="$DIR/../src/EbitSim" # path to the simulation executable
-INI_FILE="$DIR/../simulations/BasicConfig.ini" # path to the configuration file
+# BIN_DIR is the directory of the bin folder EbitSim/bin
+# ROOT_DIR is the root directory of the EbitSim project
+#ROOT_DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+PWD=$(pwd) # save the current directory in order to get back later
+cd -P "$( dirname "${BASH_SOURCE[0]}" )/../"
+ROOT_DIR="$(pwd)"
+EXEC_FILE="$ROOT_DIR/src/EbitSim" # path to the simulation executable
+INI_FILE="$ROOT_DIR/simulations/BasicConfig.ini" # path to the configuration file
 if [[ $# == 2 ]]; then
     CONFIG=$2
 else
     CONFIG="SimpleTopology" # name of the configuration
 fi
-ENV="Cmdenv" # Command environment
-LOG_DIR="./logs/run_$1"
-ERR_FILE="err.log" # the log file where all error messages will be written
-OUT_FILE="out.log" # the log file where all log messages will be written
-PWD=pwd # the directory where this script is called
+if [ ! -v ENV ]; then ENV="Cmdenv"; fi # Command environment
+LOG_DIR="$ROOT_DIR/run_logs"
+ERR_FILE="${CONFIG}_$1.err.log" # the log file where all error messages will be written
+OUT_FILE="${CONFIG}_$1.out.log" # the log file where all log messages will be written
 
 # error if the executable file don't exist
 if [ ! -e $EXEC_FILE ]
@@ -60,8 +64,14 @@ fi
 
 # execute the simulation with the passed parameters and send the output to zenity progress dialog
 $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE | tee $LOG_DIR/$OUT_FILE
-cd $LOG_DIR
-../process_log.py $ERR_FILE
+
+# process the error output
+PROCESSED_DIR="${ERR_FILE%%.*}_processed" # get file name without extension 
+rm -r $PROCESSED_DIR 2> /dev/null # delete the old directory, if present
+mkdir -p $LOG_DIR/$PROCESSED_DIR && cd $LOG_DIR/$PROCESSED_DIR
+$ROOT_DIR/bin/process_log.py ../$ERR_FILE
+
+# get back to the original directory
 cd $PWD
 
 exit 0

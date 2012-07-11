@@ -8,6 +8,8 @@ do
     OUTPUT_FILE="${INPUT_FILE%%/*}.csv"
     # Generate a csv file from the log
     echo '"Event #","Simulated Time","Elapsed Time","Events per Second"' > $OUTPUT_FILE
+    # this command applies consecutive substitutions to the output text (sample below)
+    # ** Event #1622183424   T=1754.33044188773   Elapsed: 1838.679s (30m 38s)  2% completed   ev/sec=879488
     sed --quiet '{s/^.*#//; s/\s*T=/,/; s/ .*: /,/; s/s .*=/,/p}' $INPUT_FILE >> $OUTPUT_FILE
 done
 
