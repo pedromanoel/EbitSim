@@ -83,6 +83,8 @@ public:
     : ConnectionSMState(name, stateId)
     {};
 
+    virtual void incomingPeerWireMsg(ConnectionSMContext& context);
+    virtual void keepAliveTimer(ConnectionSMContext& context);
     virtual void remoteClose(ConnectionSMContext& context);
 };
 
@@ -130,7 +132,6 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
-    void Exit(ConnectionSMContext&);
     void contentManagerClose(ConnectionSMContext& context);
     void incomingPeerWireMsg(ConnectionSMContext& context);
     void keepAliveTimer(ConnectionSMContext& context);
@@ -159,6 +160,7 @@ public:
     : ConnectionMap_Default(name, stateId)
     {};
 
+    void Entry(ConnectionSMContext&);
     void remoteClose(ConnectionSMContext& context);
 };
 
@@ -170,7 +172,7 @@ public:
     : ConnectionMap_Default(name, stateId)
     {};
 
-    void incomingPeerWireMsg(ConnectionSMContext& context);
+    void Entry(ConnectionSMContext&);
     void localClose(ConnectionSMContext& context);
 };
 

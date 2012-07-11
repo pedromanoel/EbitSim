@@ -125,8 +125,7 @@ Exit
     // the Peer started the connection with the Client
     tcpPassiveConnection
         WaitHandshake
-            {
-            }
+            {}
 }
 
 HandshakeSent
@@ -134,8 +133,7 @@ HandshakeSent
     // this transition is called if the handshake is valid and if the client BitField is empty
     handshakeMsg(hs: Handshake const&)[ctxt.checkHandshake(hs) && ctxt.isBitFieldEmpty()]
         Connected
-            {
-            }
+            {}
     // this transition is called if the handshake is valid and if the client BitField is NOT empty
     handshakeMsg(hs: Handshake const&)[ctxt.checkHandshake(hs)]
         Connected
@@ -170,11 +168,9 @@ WaitHandshake
 }
 Connected
 Entry {
+	printDebugMsgConnection("Entering state Connected");
     addConnectedPeer();
     startHandshakeTimers();
-}
-Exit {
-    stopHandshakeTimers();
 }
 {
     // every time a PeerWireMsg arrives, renew the timeout timer.
@@ -201,16 +197,15 @@ Exit {
             }
     timeout
         ClosingConnection
-            {
-            }
+            {}
     contentManagerClose
         ClosingConnection
-            {
-            }
+            {}
 }
 
 ClosingConnection
 Entry {
+	printDebugMsgConnection("Entering state ClosingConnection");
     stopHandshakeTimers();
     closeLocalConnection();
 }
@@ -220,30 +215,24 @@ Entry {
             {}
     remoteClose
         RemoteClosed
-            {
-            }
+            {}
 }
 
 LocalClosed
 Entry {
-    //stop_UploadMachine();
+	printDebugMsgConnection("Entering state LocalClosed");
 }
 {
-remoteClose
+	remoteClose
         Closed
             {}
 }
 
 RemoteClosed
 Entry {
-    //stop_DownloadMachine();
+	printDebugMsgConnection("Entering state RemoteClosed");
 }
 {
-    incomingPeerWireMsg()
-        nil
-            {
-                renewTimeoutTimer();
-            }
     localClose
         Closed
             {}
@@ -251,7 +240,7 @@ Entry {
 
 Closed
 Entry {
-    printDebugMsgConnection("Connection closed");
+	printDebugMsgConnection("Entering state Closed");
     stopMachines();
     terminateThread();
 }
@@ -261,14 +250,18 @@ Entry {
 // Fallback transitions, called when a transition occurs in a state that don't
 // know how to handle it.
 Default
-Exit {
-    stopHandshakeTimers();
-}
 {
+    incomingPeerWireMsg // the message might be in the queue already
+        nil
+            {}
+    keepAliveTimer // the message might be in the queue already
+        nil
+            {}
     remoteClose
         RemoteClosed
             {
-                closeLocalConnection();
+    			stopHandshakeTimers();
+    			closeLocalConnection();
             }
 }
 %%
