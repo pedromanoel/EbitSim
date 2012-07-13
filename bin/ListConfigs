@@ -1,11 +1,11 @@
 #!/bin/bash
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 <CONFIG>"
+    exit 1
+fi
 # script configuration
 EXEC_FILE="../src/EbitSim" # path to the simulation executable
 INI_FILE="../simulations/BasicConfig.ini" # path to the configuration file
-if [[ $# == 1 ]]; then
-    CONFIG=$1
-else
-    CONFIG="SimpleTopology" # name of the configuration
-fi
+CONFIG=$1 # name of the configuration
 #CONFIG="BigScope" # name of the configuration
 $EXEC_FILE -f $INI_FILE -x $CONFIG -g

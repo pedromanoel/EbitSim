@@ -1,7 +1,6 @@
 #!/bin/bash
-echo $ENV
-if [[ $# -lt 1 || $# -gt 2 ]]; then
-    echo "Usage: $0 <run> [CONFIG]"
+if [[ $# -ne 2 ]]; then
+    echo "Usage: $0 <run> <CONFIG>"
     exit 1
 fi
 
@@ -14,11 +13,7 @@ cd -P "$( dirname "${BASH_SOURCE[0]}" )/../"
 ROOT_DIR="$(pwd)"
 EXEC_FILE="$ROOT_DIR/src/EbitSim" # path to the simulation executable
 INI_FILE="$ROOT_DIR/simulations/BasicConfig.ini" # path to the configuration file
-if [[ $# == 2 ]]; then
-    CONFIG=$2
-else
-    CONFIG="SimpleTopology" # name of the configuration
-fi
+CONFIG=$2 # name of the configuration
 if [ ! -v ENV ]; then ENV="Cmdenv"; fi # Command environment
 LOG_DIR="$ROOT_DIR/run_logs"
 ERR_FILE="${CONFIG}_$1.err.log" # the log file where all error messages will be written
@@ -63,13 +58,22 @@ elif [ -v CALLCHECK ]; then
 fi
 
 # execute the simulation with the passed parameters and send the output to zenity progress dialog
-$EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE | tee $LOG_DIR/$OUT_FILE
+ulimit -c unlimited
+$EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE &
+PID=$!
+echo "Started $CONFIG -r$1 ($PID)"
+touch "$LOG_DIR/${CONFIG}_$1_$PID" # save the pid for posteriority
+wait
+echo "Finished $CONFIG -r$1 ($PID)"
 
-# process the error output
-PROCESSED_DIR="${ERR_FILE%%.*}_processed" # get file name without extension 
-rm -r $PROCESSED_DIR 2> /dev/null # delete the old directory, if present
-mkdir -p $LOG_DIR/$PROCESSED_DIR && cd $LOG_DIR/$PROCESSED_DIR
-$ROOT_DIR/bin/process_log.py ../$ERR_FILE
+if [ -v DEBUG ]
+then
+    # process the error output
+    PROCESSED_DIR="${ERR_FILE%%.*}_processed" # get file name without extension 
+    rm -r $PROCESSED_DIR 2> /dev/null # delete the old directory, if present
+    mkdir -p $LOG_DIR/$PROCESSED_DIR && cd $LOG_DIR/$PROCESSED_DIR
+    $ROOT_DIR/bin/process_log.py ../$ERR_FILE
+fi
 
 # get back to the original directory
 cd $PWD
