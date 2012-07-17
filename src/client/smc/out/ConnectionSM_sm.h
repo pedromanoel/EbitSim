@@ -44,7 +44,7 @@ public:
     virtual void Entry(ConnectionSMContext&) {};
     virtual void Exit(ConnectionSMContext&) {};
 
-    virtual void contentManagerClose(ConnectionSMContext& context);
+    virtual void applicationClose(ConnectionSMContext& context);
     virtual void handshakeMsg(ConnectionSMContext& context, Handshake const& hs);
     virtual void incomingPeerWireMsg(ConnectionSMContext& context);
     virtual void keepAliveTimer(ConnectionSMContext& context);
@@ -132,7 +132,8 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
-    void contentManagerClose(ConnectionSMContext& context);
+    void Exit(ConnectionSMContext&);
+    void applicationClose(ConnectionSMContext& context);
     void incomingPeerWireMsg(ConnectionSMContext& context);
     void keepAliveTimer(ConnectionSMContext& context);
     void outgoingPeerWireMsg(ConnectionSMContext& context, cPacket * msg);
@@ -148,6 +149,7 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
+    void applicationClose(ConnectionSMContext& context);
     void localClose(ConnectionSMContext& context);
     void remoteClose(ConnectionSMContext& context);
 };
@@ -161,6 +163,7 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
+    void applicationClose(ConnectionSMContext& context);
     void remoteClose(ConnectionSMContext& context);
 };
 
@@ -173,6 +176,7 @@ public:
     {};
 
     void Entry(ConnectionSMContext&);
+    void applicationClose(ConnectionSMContext& context);
     void localClose(ConnectionSMContext& context);
 };
 
@@ -223,10 +227,10 @@ public:
         return (dynamic_cast<ConnectionSMState&>(*_state));
     };
 
-    void contentManagerClose()
+    void applicationClose()
     {
-        setTransition("contentManagerClose");
-        (getState()).contentManagerClose(*this);
+        setTransition("applicationClose");
+        (getState()).applicationClose(*this);
         setTransition(NULL);
     };
 

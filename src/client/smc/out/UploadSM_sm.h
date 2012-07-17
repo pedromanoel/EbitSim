@@ -15,11 +15,11 @@
 
 // Forward declarations.
 class UploadMap;
+class UploadMap_Stopped;
 class UploadMap_NotInterestingChoking;
 class UploadMap_InterestingChoking;
 class UploadMap_NotInterestingUnchoking;
 class UploadMap_InterestingUnchoking;
-class UploadMap_Stopped;
 class UploadMap_Default;
 class UploadSMState;
 class UploadSMContext;
@@ -45,6 +45,7 @@ public:
     virtual void notInterestedMsg(UploadSMContext& context);
     virtual void requestMsg(UploadSMContext& context, RequestMsg const& msg);
     virtual void sendPieceMsg(UploadSMContext& context);
+    virtual void startMachine(UploadSMContext& context);
     virtual void stopMachine(UploadSMContext& context);
     virtual void unchokePeer(UploadSMContext& context);
     virtual void uploadRateTimer(UploadSMContext& context);
@@ -58,11 +59,11 @@ class UploadMap
 {
 public:
 
+    static UploadMap_Stopped Stopped;
     static UploadMap_NotInterestingChoking NotInterestingChoking;
     static UploadMap_InterestingChoking InterestingChoking;
     static UploadMap_NotInterestingUnchoking NotInterestingUnchoking;
     static UploadMap_InterestingUnchoking InterestingUnchoking;
-    static UploadMap_Stopped Stopped;
 };
 
 class UploadMap_Default :
@@ -77,6 +78,19 @@ public:
     virtual void sendPieceMsg(UploadSMContext& context);
     virtual void stopMachine(UploadSMContext& context);
     virtual void uploadRateTimer(UploadSMContext& context);
+};
+
+class UploadMap_Stopped :
+    public UploadMap_Default
+{
+public:
+    UploadMap_Stopped(const char *name, int stateId)
+    : UploadMap_Default(name, stateId)
+    {};
+
+    void Entry(UploadSMContext&);
+    void Default(UploadSMContext& context);
+    void startMachine(UploadSMContext& context);
 };
 
 class UploadMap_NotInterestingChoking :
@@ -138,25 +152,13 @@ public:
     void uploadRateTimer(UploadSMContext& context);
 };
 
-class UploadMap_Stopped :
-    public UploadMap_Default
-{
-public:
-    UploadMap_Stopped(const char *name, int stateId)
-    : UploadMap_Default(name, stateId)
-    {};
-
-    void Entry(UploadSMContext&);
-    void Default(UploadSMContext& context);
-};
-
 class UploadSMContext :
     public statemap::FSMContext
 {
 public:
 
     UploadSMContext(PeerWireThread& owner)
-    : FSMContext(UploadMap::NotInterestingChoking),
+    : FSMContext(UploadMap::Stopped),
       _owner(owner)
     {};
 
@@ -225,6 +227,13 @@ public:
     {
         setTransition("sendPieceMsg");
         (getState()).sendPieceMsg(*this);
+        setTransition(NULL);
+    };
+
+    void startMachine()
+    {
+        setTransition("startMachine");
+        (getState()).startMachine(*this);
         setTransition(NULL);
     };
 

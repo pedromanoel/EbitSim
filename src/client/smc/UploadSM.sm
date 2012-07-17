@@ -77,7 +77,7 @@
 %include PeerWire_m.h
 %class PeerWireThread
 %header PeerWireThread.h
-%start UploadMap::NotInterestingChoking
+%start UploadMap::Stopped
 
 // == Syntax ==
 //CurrentState
@@ -96,6 +96,22 @@
 //}
 %map UploadMap
 %%
+Stopped
+Entry {
+    stopUploadTimers();
+    printDebugMsgUpload("Entering state Closed");
+}
+{
+    startMachine
+        NotInterestingChoking
+            {}
+    Default
+        nil
+            {
+                printDebugMsgUpload("Thread terminated");
+            }
+}
+
 NotInterestingChoking
 Entry {
     printDebugMsgUpload("Entering state NotInterestingChoking");
@@ -201,19 +217,6 @@ Exit {
             {
                 renewUploadRateTimer();
                 calculateUploadRate();
-            }
-}
-
-Stopped
-Entry {
-    stopUploadTimers();
-    printDebugMsgUpload("Entering state Closed");
-}
-{
-    Default
-        nil
-            {
-                printDebugMsgUpload("Thread terminated");
             }
 }
 

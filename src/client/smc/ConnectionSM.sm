@@ -169,8 +169,12 @@ WaitHandshake
 Connected
 Entry {
 	printDebugMsgConnection("Entering state Connected");
-    addConnectedPeer();
+    startMachines();
+    connected();
     startHandshakeTimers();
+}
+Exit {
+    stopMachines();
 }
 {
     // every time a PeerWireMsg arrives, renew the timeout timer.
@@ -198,7 +202,7 @@ Entry {
     timeout
         ClosingConnection
             {}
-    contentManagerClose
+    applicationClose
         ClosingConnection
             {}
 }
@@ -210,6 +214,10 @@ Entry {
     closeLocalConnection();
 }
 {
+    // For when the ContentManager closes, and the SwarmManager closes again
+    applicationClose
+        nil
+            {}
     localClose
         LocalClosed
             {}
@@ -223,6 +231,10 @@ Entry {
 	printDebugMsgConnection("Entering state LocalClosed");
 }
 {
+    // For when the ContentManager closes, and the SwarmManager closes again
+    applicationClose
+        nil
+            {}
 	remoteClose
         Closed
             {}
@@ -233,6 +245,10 @@ Entry {
 	printDebugMsgConnection("Entering state RemoteClosed");
 }
 {
+    // For when the ContentManager closes, and the SwarmManager closes again
+    applicationClose
+        nil
+            {}
     localClose
         Closed
             {}
@@ -241,8 +257,7 @@ Entry {
 Closed
 Entry {
 	printDebugMsgConnection("Entering state Closed");
-    stopMachines();
-    terminateThread();
+    removeFromSwarm();
 }
 {
 }

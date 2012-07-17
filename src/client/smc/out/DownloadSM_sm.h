@@ -15,11 +15,11 @@
 
 // Forward declarations.
 class DownloadMap;
+class DownloadMap_Stopped;
 class DownloadMap_NotInterestedChoked;
 class DownloadMap_InterestedChoked;
 class DownloadMap_NotInterestedUnchoked;
 class DownloadMap_InterestedUnchoked;
-class DownloadMap_Stopped;
 class DownloadMap_Default;
 class DownloadSMState;
 class DownloadSMContext;
@@ -47,6 +47,7 @@ public:
     virtual void peerNotInteresting(DownloadSMContext& context);
     virtual void pieceMsg(DownloadSMContext& context, PieceMsg const& msg);
     virtual void snubbedTimer(DownloadSMContext& context);
+    virtual void startMachine(DownloadSMContext& context);
     virtual void stopMachine(DownloadSMContext& context);
     virtual void unchokeMsg(DownloadSMContext& context);
 
@@ -59,11 +60,11 @@ class DownloadMap
 {
 public:
 
+    static DownloadMap_Stopped Stopped;
     static DownloadMap_NotInterestedChoked NotInterestedChoked;
     static DownloadMap_InterestedChoked InterestedChoked;
     static DownloadMap_NotInterestedUnchoked NotInterestedUnchoked;
     static DownloadMap_InterestedUnchoked InterestedUnchoked;
-    static DownloadMap_Stopped Stopped;
 };
 
 class DownloadMap_Default :
@@ -79,6 +80,19 @@ public:
     virtual void downloadRateTimer(DownloadSMContext& context);
     virtual void stopMachine(DownloadSMContext& context);
     virtual void haveMsg(DownloadSMContext& context, HaveMsg const& msg);
+};
+
+class DownloadMap_Stopped :
+    public DownloadMap_Default
+{
+public:
+    DownloadMap_Stopped(const char *name, int stateId)
+    : DownloadMap_Default(name, stateId)
+    {};
+
+    void Entry(DownloadSMContext&);
+    void Default(DownloadSMContext& context);
+    void startMachine(DownloadSMContext& context);
 };
 
 class DownloadMap_NotInterestedChoked :
@@ -144,25 +158,13 @@ public:
     void unchokeMsg(DownloadSMContext& context);
 };
 
-class DownloadMap_Stopped :
-    public DownloadMap_Default
-{
-public:
-    DownloadMap_Stopped(const char *name, int stateId)
-    : DownloadMap_Default(name, stateId)
-    {};
-
-    void Entry(DownloadSMContext&);
-    void Default(DownloadSMContext& context);
-};
-
 class DownloadSMContext :
     public statemap::FSMContext
 {
 public:
 
     DownloadSMContext(PeerWireThread& owner)
-    : FSMContext(DownloadMap::NotInterestedChoked),
+    : FSMContext(DownloadMap::Stopped),
       _owner(owner)
     {};
 
@@ -245,6 +247,13 @@ public:
     {
         setTransition("snubbedTimer");
         (getState()).snubbedTimer(*this);
+        setTransition(NULL);
+    };
+
+    void startMachine()
+    {
+        setTransition("startMachine");
+        (getState()).startMachine(*this);
         setTransition(NULL);
     };
 

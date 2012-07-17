@@ -86,11 +86,11 @@
 using namespace statemap;
 
 // Static class declarations.
-UploadMap_NotInterestingChoking UploadMap::NotInterestingChoking("UploadMap::NotInterestingChoking", 0);
-UploadMap_InterestingChoking UploadMap::InterestingChoking("UploadMap::InterestingChoking", 1);
-UploadMap_NotInterestingUnchoking UploadMap::NotInterestingUnchoking("UploadMap::NotInterestingUnchoking", 2);
-UploadMap_InterestingUnchoking UploadMap::InterestingUnchoking("UploadMap::InterestingUnchoking", 3);
-UploadMap_Stopped UploadMap::Stopped("UploadMap::Stopped", 4);
+UploadMap_Stopped UploadMap::Stopped("UploadMap::Stopped", 0);
+UploadMap_NotInterestingChoking UploadMap::NotInterestingChoking("UploadMap::NotInterestingChoking", 1);
+UploadMap_InterestingChoking UploadMap::InterestingChoking("UploadMap::InterestingChoking", 2);
+UploadMap_NotInterestingUnchoking UploadMap::NotInterestingUnchoking("UploadMap::NotInterestingUnchoking", 3);
+UploadMap_InterestingUnchoking UploadMap::InterestingUnchoking("UploadMap::InterestingUnchoking", 4);
 
 void UploadSMState::cancelMsg(UploadSMContext& context, CancelMsg const& msg)
 {
@@ -123,6 +123,12 @@ void UploadSMState::requestMsg(UploadSMContext& context, RequestMsg const& msg)
 }
 
 void UploadSMState::sendPieceMsg(UploadSMContext& context)
+{
+    Default(context);
+    return;
+}
+
+void UploadSMState::startMachine(UploadSMContext& context)
 {
     Default(context);
     return;
@@ -270,6 +276,95 @@ void UploadMap_Default::uploadRateTimer(UploadSMContext& context)
             << std::endl;
     }
 
+
+    return;
+}
+
+void UploadMap_Stopped::Entry(UploadSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.stopUploadTimers();
+    ctxt.printDebugMsgUpload("Entering state Closed");
+    return;
+}
+
+void UploadMap_Stopped::Default(UploadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : UploadMap::Stopped"
+            << std::endl;
+    }
+
+    UploadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: UploadMap::Stopped::Default()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.printDebugMsgUpload("Thread terminated");
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : UploadMap::Stopped::Default()"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
+
+    return;
+}
+
+void UploadMap_Stopped::startMachine(UploadSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : UploadMap::Stopped"
+            << std::endl;
+    }
+
+    (context.getState()).Exit(context);
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: UploadMap::Stopped::startMachine()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : UploadMap::Stopped::startMachine()"
+            << std::endl;
+    }
+
+    context.setState(UploadMap::NotInterestingChoking);
+    (context.getState()).Entry(context);
 
     return;
 }
@@ -941,61 +1036,6 @@ void UploadMap_InterestingUnchoking::uploadRateTimer(UploadSMContext& context)
             std::ostream& str = context.getDebugStream();
 
             str << "EXIT TRANSITION : UploadMap::InterestingUnchoking::uploadRateTimer()"
-                << std::endl;
-        }
-
-        context.setState(endState);
-    }
-    catch (...)
-    {
-        context.setState(endState);
-        throw;
-    }
-
-    return;
-}
-
-void UploadMap_Stopped::Entry(UploadSMContext& context)
-
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    ctxt.stopUploadTimers();
-    ctxt.printDebugMsgUpload("Entering state Closed");
-    return;
-}
-
-void UploadMap_Stopped::Default(UploadSMContext& context)
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "LEAVING STATE   : UploadMap::Stopped"
-            << std::endl;
-    }
-
-    UploadSMState& endState = context.getState();
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "ENTER TRANSITION: UploadMap::Stopped::Default()"
-            << std::endl;
-    }
-
-    context.clearState();
-    try
-    {
-        ctxt.printDebugMsgUpload("Thread terminated");
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : UploadMap::Stopped::Default()"
                 << std::endl;
         }
 

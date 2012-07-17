@@ -76,7 +76,7 @@
 %declare class HaveMsg
 %class PeerWireThread
 %header PeerWireThread.h
-%start DownloadMap::NotInterestedChoked
+%start DownloadMap::Stopped
 
 // == Syntax ==
 //CurrentState
@@ -107,6 +107,22 @@
 
 %map DownloadMap
 %%
+Stopped
+Entry {
+    stopDownloadTimers();
+    printDebugMsgDownload("Entering state Closed");
+}
+{
+    startMachine
+        NotInterestedChoked
+            {}
+    Default
+        nil
+            {
+                printDebugMsgDownload("Thread terminated");
+            }
+}
+
 NotInterestedChoked
 Entry {
     printDebugMsgDownload("Entering state NotInterestedChoked");
@@ -194,12 +210,12 @@ Entry {
 }
 Exit {
     stopDownloadTimers();
-    setSnubbed(false);
 }
 {
     chokeMsg
         InterestedChoked
             {
+                setSnubbed(false);
                 cancelDownloadRequests();
             }
     pieceMsg(msg: PieceMsg const&)
@@ -217,6 +233,7 @@ Exit {
     peerNotInteresting
         NotInterestedUnchoked
             {
+                setSnubbed(false);
                 // send NotInterested
                 outgoingPeerWireMsg_ConnectionSM(ctxt.getNotInterestedMsg());
             }
@@ -230,19 +247,6 @@ Exit {
             {
                 renewDownloadRateTimer();
                 calculateDownloadRate();
-            }
-}
-
-Stopped
-Entry {
-    stopDownloadTimers();
-    printDebugMsgDownload("Entering state Closed");
-}
-{
-    Default
-        nil
-            {
-                printDebugMsgDownload("Thread terminated");
             }
 }
 

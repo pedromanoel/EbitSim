@@ -94,7 +94,7 @@ ConnectionMap_LocalClosed ConnectionMap::LocalClosed("ConnectionMap::LocalClosed
 ConnectionMap_RemoteClosed ConnectionMap::RemoteClosed("ConnectionMap::RemoteClosed", 6);
 ConnectionMap_Closed ConnectionMap::Closed("ConnectionMap::Closed", 7);
 
-void ConnectionSMState::contentManagerClose(ConnectionSMContext& context)
+void ConnectionSMState::applicationClose(ConnectionSMContext& context)
 {
     Default(context);
     return;
@@ -572,12 +572,22 @@ void ConnectionMap_Connected::Entry(ConnectionSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.printDebugMsgConnection("Entering state Connected");
-    ctxt.addConnectedPeer();
+    ctxt.startMachines();
+    ctxt.connected();
     ctxt.startHandshakeTimers();
     return;
 }
 
-void ConnectionMap_Connected::contentManagerClose(ConnectionSMContext& context)
+void ConnectionMap_Connected::Exit(ConnectionSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.stopMachines();
+    return;
+}
+
+void ConnectionMap_Connected::applicationClose(ConnectionSMContext& context)
 {
 
     if (context.getDebugFlag() == true)
@@ -593,7 +603,7 @@ void ConnectionMap_Connected::contentManagerClose(ConnectionSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "ENTER TRANSITION: ConnectionMap::Connected::contentManagerClose()"
+        str << "ENTER TRANSITION: ConnectionMap::Connected::applicationClose()"
             << std::endl;
     }
 
@@ -601,7 +611,7 @@ void ConnectionMap_Connected::contentManagerClose(ConnectionSMContext& context)
     {
         std::ostream& str = context.getDebugStream();
 
-        str << "EXIT TRANSITION : ConnectionMap::Connected::contentManagerClose()"
+        str << "EXIT TRANSITION : ConnectionMap::Connected::applicationClose()"
             << std::endl;
     }
 
@@ -793,6 +803,37 @@ void ConnectionMap_ClosingConnection::Entry(ConnectionSMContext& context)
     return;
 }
 
+void ConnectionMap_ClosingConnection::applicationClose(ConnectionSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : ConnectionMap::ClosingConnection"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: ConnectionMap::ClosingConnection::applicationClose()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : ConnectionMap::ClosingConnection::applicationClose()"
+            << std::endl;
+    }
+
+
+    return;
+}
+
 void ConnectionMap_ClosingConnection::localClose(ConnectionSMContext& context)
 {
 
@@ -870,6 +911,37 @@ void ConnectionMap_LocalClosed::Entry(ConnectionSMContext& context)
     return;
 }
 
+void ConnectionMap_LocalClosed::applicationClose(ConnectionSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : ConnectionMap::LocalClosed"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: ConnectionMap::LocalClosed::applicationClose()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : ConnectionMap::LocalClosed::applicationClose()"
+            << std::endl;
+    }
+
+
+    return;
+}
+
 void ConnectionMap_LocalClosed::remoteClose(ConnectionSMContext& context)
 {
 
@@ -913,6 +985,37 @@ void ConnectionMap_RemoteClosed::Entry(ConnectionSMContext& context)
     return;
 }
 
+void ConnectionMap_RemoteClosed::applicationClose(ConnectionSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : ConnectionMap::RemoteClosed"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: ConnectionMap::RemoteClosed::applicationClose()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : ConnectionMap::RemoteClosed::applicationClose()"
+            << std::endl;
+    }
+
+
+    return;
+}
+
 void ConnectionMap_RemoteClosed::localClose(ConnectionSMContext& context)
 {
 
@@ -953,8 +1056,7 @@ void ConnectionMap_Closed::Entry(ConnectionSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.printDebugMsgConnection("Entering state Closed");
-    ctxt.stopMachines();
-    ctxt.terminateThread();
+    ctxt.removeFromSwarm();
     return;
 }
 

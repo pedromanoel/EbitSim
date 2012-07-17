@@ -85,11 +85,11 @@
 using namespace statemap;
 
 // Static class declarations.
-DownloadMap_NotInterestedChoked DownloadMap::NotInterestedChoked("DownloadMap::NotInterestedChoked", 0);
-DownloadMap_InterestedChoked DownloadMap::InterestedChoked("DownloadMap::InterestedChoked", 1);
-DownloadMap_NotInterestedUnchoked DownloadMap::NotInterestedUnchoked("DownloadMap::NotInterestedUnchoked", 2);
-DownloadMap_InterestedUnchoked DownloadMap::InterestedUnchoked("DownloadMap::InterestedUnchoked", 3);
-DownloadMap_Stopped DownloadMap::Stopped("DownloadMap::Stopped", 4);
+DownloadMap_Stopped DownloadMap::Stopped("DownloadMap::Stopped", 0);
+DownloadMap_NotInterestedChoked DownloadMap::NotInterestedChoked("DownloadMap::NotInterestedChoked", 1);
+DownloadMap_InterestedChoked DownloadMap::InterestedChoked("DownloadMap::InterestedChoked", 2);
+DownloadMap_NotInterestedUnchoked DownloadMap::NotInterestedUnchoked("DownloadMap::NotInterestedUnchoked", 3);
+DownloadMap_InterestedUnchoked DownloadMap::InterestedUnchoked("DownloadMap::InterestedUnchoked", 4);
 
 void DownloadSMState::bitFieldMsg(DownloadSMContext& context, BitFieldMsg const& msg)
 {
@@ -134,6 +134,12 @@ void DownloadSMState::pieceMsg(DownloadSMContext& context, PieceMsg const& msg)
 }
 
 void DownloadSMState::snubbedTimer(DownloadSMContext& context)
+{
+    Default(context);
+    return;
+}
+
+void DownloadSMState::startMachine(DownloadSMContext& context)
 {
     Default(context);
     return;
@@ -306,6 +312,95 @@ void DownloadMap_Default::haveMsg(DownloadSMContext& context, HaveMsg const& msg
         context.setState(endState);
         throw;
     }
+
+    return;
+}
+
+void DownloadMap_Stopped::Entry(DownloadSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.stopDownloadTimers();
+    ctxt.printDebugMsgDownload("Entering state Closed");
+    return;
+}
+
+void DownloadMap_Stopped::Default(DownloadSMContext& context)
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::Stopped"
+            << std::endl;
+    }
+
+    DownloadSMState& endState = context.getState();
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::Stopped::Default()"
+            << std::endl;
+    }
+
+    context.clearState();
+    try
+    {
+        ctxt.printDebugMsgDownload("Thread terminated");
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : DownloadMap::Stopped::Default()"
+                << std::endl;
+        }
+
+        context.setState(endState);
+    }
+    catch (...)
+    {
+        context.setState(endState);
+        throw;
+    }
+
+    return;
+}
+
+void DownloadMap_Stopped::startMachine(DownloadSMContext& context)
+{
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "LEAVING STATE   : DownloadMap::Stopped"
+            << std::endl;
+    }
+
+    (context.getState()).Exit(context);
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "ENTER TRANSITION: DownloadMap::Stopped::startMachine()"
+            << std::endl;
+    }
+
+    if (context.getDebugFlag() == true)
+    {
+        std::ostream& str = context.getDebugStream();
+
+        str << "EXIT TRANSITION : DownloadMap::Stopped::startMachine()"
+            << std::endl;
+    }
+
+    context.setState(DownloadMap::NotInterestedChoked);
+    (context.getState()).Entry(context);
 
     return;
 }
@@ -831,7 +926,6 @@ void DownloadMap_InterestedUnchoked::Exit(DownloadSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.stopDownloadTimers();
-    ctxt.setSnubbed(false);
     return;
 }
 
@@ -859,6 +953,7 @@ void DownloadMap_InterestedUnchoked::chokeMsg(DownloadSMContext& context)
     context.clearState();
     try
     {
+        ctxt.setSnubbed(false);
         ctxt.cancelDownloadRequests();
         if (context.getDebugFlag() == true)
         {
@@ -950,6 +1045,7 @@ void DownloadMap_InterestedUnchoked::peerNotInteresting(DownloadSMContext& conte
     context.clearState();
     try
     {
+        ctxt.setSnubbed(false);
         ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.getNotInterestedMsg());
         if (context.getDebugFlag() == true)
         {
@@ -1090,61 +1186,6 @@ void DownloadMap_InterestedUnchoked::unchokeMsg(DownloadSMContext& context)
             << std::endl;
     }
 
-
-    return;
-}
-
-void DownloadMap_Stopped::Entry(DownloadSMContext& context)
-
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    ctxt.stopDownloadTimers();
-    ctxt.printDebugMsgDownload("Entering state Closed");
-    return;
-}
-
-void DownloadMap_Stopped::Default(DownloadSMContext& context)
-{
-    PeerWireThread& ctxt(context.getOwner());
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "LEAVING STATE   : DownloadMap::Stopped"
-            << std::endl;
-    }
-
-    DownloadSMState& endState = context.getState();
-
-    if (context.getDebugFlag() == true)
-    {
-        std::ostream& str = context.getDebugStream();
-
-        str << "ENTER TRANSITION: DownloadMap::Stopped::Default()"
-            << std::endl;
-    }
-
-    context.clearState();
-    try
-    {
-        ctxt.printDebugMsgDownload("Thread terminated");
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : DownloadMap::Stopped::Default()"
-                << std::endl;
-        }
-
-        context.setState(endState);
-    }
-    catch (...)
-    {
-        context.setState(endState);
-        throw;
-    }
 
     return;
 }
