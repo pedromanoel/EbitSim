@@ -85,7 +85,10 @@ class SwarmManager;
  * This module is responsible for controlling the Client's behavior: what content
  * to download, when to start downloading, how long should the seeding time be.
  */
-class ClientController: public cSimpleModule {
+class ClientController: public cSimpleModule, cListener {
+public:
+    //!cListener overloaded method
+    void receiveSignal(cComponent *source, simsignal_t signalID, long l);
 public:
     ClientController();
     virtual ~ClientController();
@@ -108,8 +111,6 @@ private:
     void updateStatusString();
     //!@name Signal registration and subscription methods
     //@{
-    //! Register all signals this module is going to emit.
-    void registerEmittedSignals();
     //! Subscribe to signals.
     void subscribeToSignals();
     //@}

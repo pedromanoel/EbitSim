@@ -87,7 +87,7 @@ simple ClientController
         @display("i=block/user");
         bool debugFlag = default(false);
         xml profile;
-        double seederPercentage;
+        int numSeeders; // The number of initial seeders in each swarm
         double startTime @unit(s) = default(10s); // the entry time of the first peer
         string trackerAddress = default("tracker");  // tracker address
         int trackerPort = default(8082); //The port number to connect to
