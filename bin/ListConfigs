@@ -3,9 +3,14 @@ if [[ $# -ne 1 ]]; then
     echo "Usage: $0 <CONFIG>"
     exit 1
 fi
+
+PWD=$(pwd) # save the current directory in order to get back later
+cd -P "$( dirname "${BASH_SOURCE[0]}" )/../"
+ROOT_DIR="$(pwd)"
 # script configuration
-EXEC_FILE="../src/EbitSim" # path to the simulation executable
-INI_FILE="../simulations/BasicConfig.ini" # path to the configuration file
+EXEC_FILE="$ROOT_DIR/src/EbitSim" # path to the simulation executable
+INI_FILE="$ROOT_DIR/simulations/BasicConfig.ini" # path to the configuration file
 CONFIG=$1 # name of the configuration
 #CONFIG="BigScope" # name of the configuration
 $EXEC_FILE -f $INI_FILE -x $CONFIG -g
+cd $PWD

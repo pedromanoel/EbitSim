@@ -61,8 +61,7 @@ fi
 ulimit -c unlimited
 $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE &
 PID=$!
-echo "Started $CONFIG -r$1 ($PID)"
-touch "$LOG_DIR/${CONFIG}_$1_$PID" # save the pid for posteriority
+touch "$LOG_DIR/${CONFIG}_${PID}_$1" # save the pid for later checking
 wait
 echo "Finished $CONFIG -r$1 ($PID)"
 
