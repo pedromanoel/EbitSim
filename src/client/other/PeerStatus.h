@@ -96,22 +96,22 @@ class PeerWireThread;
  *
  * A connected Peer must have a pointer to the corresponding PeerWireThread.
  */
-class PeerEntry {
+class PeerStatus {
 public:
-    PeerEntry(int peerId, PeerWireThread* thread);
+    PeerStatus(int peerId, PeerWireThread* thread);
 
-    //! Return a string representation of this PeerEntry object.
+    //! Return a string representation of this PeerStatus object.
     std::string str() const;
 
-    //!@name PeerEntry main attributes.
+    //!@name PeerStatus main attributes.
     //@{
-    //! Return the Id of the PeerEntry.
+    //! Return the Id of the PeerStatus.
     int getPeerId() const;
     //! Return pointer to the thread opened when this Peer connected with the client.
     PeerWireThread* getThread() const;
     //@}
 
-    //!@name Setters for the attributes used when sorting the PeerEntry'es in the ConnectedPeerManager.
+    //!@name Setters for the attributes used when sorting the PeerStatus'es in the ConnectedPeerManager.
     //@{
     //! Set to true if the Peer is snubbing the Client (did not answer any piece requests in the last minute).
     void setSnubbed(bool snubbed);
@@ -137,12 +137,12 @@ public:
     double getUploadRate() const;
     //@}
 
-    //!@name Static methods used to sort a list of PeerEntry'es
+    //!@name Static methods used to sort a list of PeerStatus'es
     //@{
     //! Return true if lhs comes before rhs.
-    static bool sortByDownloadRate(const PeerEntry* lhs, const PeerEntry* rhs);
+    static bool sortByDownloadRate(const PeerStatus* lhs, const PeerStatus* rhs);
     //! Return true if lhs comes before rhs.
-    static bool sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs);
+    static bool sortByUploadRate(const PeerStatus* lhs, const PeerStatus* rhs);
     //@}
 private:
     /*!
@@ -171,8 +171,8 @@ private:
     DataRateRollingAverage downloadDataRate;
 };
 
-//! Output operator used by the WATCH_SET macro to print info about the PeerEntry.
-std::ostream& operator<<(std::ostream& os, PeerEntry const& peer);
+//! Output operator used by the WATCH_SET macro to print info about the PeerStatus.
+std::ostream& operator<<(std::ostream& os, PeerStatus const& peer);
 
 #endif /* PEERENTR_H_ */
 

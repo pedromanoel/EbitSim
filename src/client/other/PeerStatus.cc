@@ -77,15 +77,15 @@
  *      Author: pevangelista
  */
 
-#include "PeerEntry.h"
+#include "PeerStatus.h"
 
-// PeerEntry method implementations
-PeerEntry::PeerEntry(int peerId, PeerWireThread* thread) :
+// PeerStatus method implementations
+PeerStatus::PeerStatus(int peerId, PeerWireThread* thread) :
         peerId(peerId), thread(thread), snubbed(false), interested(false),
             unchoked(false), oldUnchoked(false), timeOfLastUnchoke(0) {
 }
 
-std::string PeerEntry::str() const {
+std::string PeerStatus::str() const {
     std::ostringstream out;
     out << "obj address: " << (void *) this << "\n";
 
@@ -102,59 +102,59 @@ std::string PeerEntry::str() const {
     return out.str();
 }
 
-int PeerEntry::getPeerId() const {
+int PeerStatus::getPeerId() const {
     return this->peerId;
 }
-PeerWireThread* PeerEntry::getThread() const {
+PeerWireThread* PeerStatus::getThread() const {
     return this->thread;
 }
 
 // Attributes used when sorting.
-void PeerEntry::setSnubbed(bool snubbed) {
+void PeerStatus::setSnubbed(bool snubbed) {
     this->snubbed = snubbed;
 }
-bool PeerEntry::isSnubbed() const {
+bool PeerStatus::isSnubbed() const {
     return this->snubbed;
 }
-void PeerEntry::setInterested(bool interested) {
+void PeerStatus::setInterested(bool interested) {
     this->interested = interested;
 }
-bool PeerEntry::isInterested() const {
+bool PeerStatus::isInterested() const {
     return this->interested;
 }
-void PeerEntry::setUnchoked(bool unchoked, simtime_t const& now) {
+void PeerStatus::setUnchoked(bool unchoked, simtime_t const& now) {
     if (unchoked) {
         this->timeOfLastUnchoke = now;
     }
     this->unchoked = unchoked;
 }
-bool PeerEntry::isUnchoked() const {
+bool PeerStatus::isUnchoked() const {
     return this->unchoked;
 }
-void PeerEntry::setOldUnchoked(bool oldUnchoked) {
+void PeerStatus::setOldUnchoked(bool oldUnchoked) {
     this->oldUnchoked = oldUnchoked;
 }
-void PeerEntry::setBytesDownloaded(double now, unsigned long bytesDownloaded) {
+void PeerStatus::setBytesDownloaded(double now, unsigned long bytesDownloaded) {
     this->downloadDataRate.collect(now, bytesDownloaded);
 }
-void PeerEntry::setBytesUploaded(double now, unsigned long bytesUploaded) {
+void PeerStatus::setBytesUploaded(double now, unsigned long bytesUploaded) {
     this->uploadDataRate.collect(now, bytesUploaded);
 }
-double PeerEntry::getDownloadRate() const {
+double PeerStatus::getDownloadRate() const {
     return this->downloadDataRate.getDataRateAverage();
 }
-double PeerEntry::getUploadRate() const {
+double PeerStatus::getUploadRate() const {
     return this->uploadDataRate.getDataRateAverage();
 }
 
 //Sorting methods
 /*!
  * Only interested and not snubbed (sent at least one piece in the last 30 seconds)
- * are considered. That means that if one of the PeerEntry'es is not interested or snubbed,
+ * are considered. That means that if one of the PeerStatus'es is not interested or snubbed,
  * than it will come after the other.
  * lhs and rhs are compared based on the download rate from the Client's point of view.
  */
-bool PeerEntry::sortByDownloadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
+bool PeerStatus::sortByDownloadRate(const PeerStatus* lhs, const PeerStatus* rhs) {
 
     // verify if lhs is interested and not snubbed. If not, rhs comes first.
     if (!lhs->interested || lhs->snubbed) {
@@ -169,9 +169,9 @@ bool PeerEntry::sortByDownloadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
 }
 /*!
  * Only peers that are unchoked and interested are considered. That means that
- * if one of the PeerEntry objects is choked or not interested, than it will come
+ * if one of the PeerStatus objects is choked or not interested, than it will come
  * after the other.
- * The PeerEntry lhs and rhs are compared by the following criteria, in the order
+ * The PeerStatus lhs and rhs are compared by the following criteria, in the order
  * presented. If lhs is equal to rhs in one of the criteria, then the following is
  * used, until lhs can be determined to be before or after rhs.
  * <ol>
@@ -187,7 +187,7 @@ bool PeerEntry::sortByDownloadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
  * time, giving priority to the highest upload. All other peers are ordered according to their
  * upload rate, giving priority to the highest upload.
  */
-bool PeerEntry::sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
+bool PeerStatus::sortByUploadRate(const PeerStatus* lhs, const PeerStatus* rhs) {
     // verify if lhs is unchoked and interested. If not, rhs comes first.
     if (!lhs->interested || !lhs->unchoked) {
         return false;
@@ -217,9 +217,9 @@ bool PeerEntry::sortByUploadRate(const PeerEntry* lhs, const PeerEntry* rhs) {
 }
 
 /*!
- * Print information about this PeerEntry.
+ * Print information about this PeerStatus.
  */
-std::ostream& operator<<(std::ostream& os, PeerEntry const& peer) {
+std::ostream& operator<<(std::ostream& os, PeerStatus const& peer) {
     os << peer.str().c_str();
     return os;
 }
