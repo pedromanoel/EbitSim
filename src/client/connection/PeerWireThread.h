@@ -90,7 +90,6 @@ class PeerWireThread: public TCPServerThreadBase {
 public:
     // own methods
     friend class BitTorrentClient;
-//    PeerWireThread();
     PeerWireThread(int infoHash, int remotePeerId);
     virtual ~PeerWireThread();
 public:
@@ -226,6 +225,7 @@ public:
     void stopUploadTimers();
     //@}
     //! Print a debug message with information about the thread.
+    std::string getThreadId();
     void printDebugMsg(std::string s);
     void printDebugMsgUpload(std::string s);
     void printDebugMsgDownload(std::string s);

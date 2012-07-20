@@ -207,7 +207,6 @@ void PeerWireThread::stopHandshakeTimers() {
     this->cancelEvent(&this->keepAliveTimer);
 }
 void PeerWireThread::removeFromSwarm() {
-    this->printDebugMsg("Removed Peer from swarm");
     this->terminating = true;
 
     // Remove the peer from the BitTorrentClient and the swarm related modules

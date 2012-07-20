@@ -469,13 +469,14 @@ void BitTorrentClient::processNextThread() {
         // until a full circle is reached
         bool hasMessages = false;
         std::ostringstream out;
-        out << "====== Next thread: " << (*nextThreadIt)->remotePeerId;
+        out << "====== Next thread: ";
+        out << (*nextThreadIt)->getThreadId();
         do {
             ++nextThreadIt;
             if (nextThreadIt == this->allThreads.end()) {
                 nextThreadIt = this->allThreads.begin();
             }
-            out << " > " << (*nextThreadIt)->remotePeerId;
+            out << " > " << (*nextThreadIt)->getThreadId();
             hasMessages = (*nextThreadIt)->hasMessagesToProcess();
         } while (nextThreadIt != this->threadInProcessingIt && !hasMessages);
 
@@ -888,6 +889,10 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
             if (!this->allThreads.empty()) {
                 this->processNextThread();
             }
+        } else if (msg->isName("Delete thread")) {
+            this->printDebugMsg("Thread terminated.");
+            PeerWireThread * thread = static_cast<PeerWireThread *>(msg->getContextPointer());
+            this->removeThread(thread);
         } else {
             // PeerWireThread self-messages
             PeerWireThread *thread =

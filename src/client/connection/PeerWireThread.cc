@@ -95,24 +95,6 @@ std::string toStr(int i) {
 }
 
 // Own methods
-//PeerWireThread::PeerWireThread() :
-//    // initialize the state machines
-//    connectionSm(*this), downloadSm(*this), uploadSm(*this),
-//    // initialize the pointers to other objects
-//    btClient(NULL), choker(NULL), contentManager(NULL),
-//    // initialize the connection parameters
-//    activeConnection(false), infoHash(-1), remotePeerId(-1), //
-//    terminating(false), busy(false),
-//    // initialize the cObjects with names
-//    messageQueue("Awaiting messages"), //
-//    postProcessingAppMsg("Post-processing messages"), //
-//    downloadRateTimer("Download Rate Timer", APP_DOWNLOAD_RATE_TIMER), //
-//    keepAliveTimer("KeepAlive Timer", APP_KEEP_ALIVE_TIMER), //
-//    snubbedTimer("Snubbed Timer", APP_SNUBBED_TIMER), //
-//    timeoutTimer("Timeout Timer", APP_TIMEOUT_TIMER), //
-//    uploadRateTimer("Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
-//}
-
 PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
     // initialize the state machines
     connectionSm(*this), downloadSm(*this), uploadSm(*this),
@@ -120,7 +102,8 @@ PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
     btClient(NULL), choker(NULL), contentManager(NULL), //
     // initialize the connection parameters
     activeConnection(true), infoHash(infoHash), remotePeerId(remotePeerId), //
-    terminating(false), busy(false),
+    terminating(false),
+    busy(false),
     // initialize the cObjects with names
     messageQueue("Awaiting messages"), //
     postProcessingAppMsg("Post-processing messages"), //
@@ -217,6 +200,12 @@ void PeerWireThread::timerExpired(cMessage *timer) {
 }
 
 // public methods
+std::string PeerWireThread::getThreadId() {
+    std::ostringstream out;
+    out << this->sock->getConnectionId() << "(";
+    out << this->remotePeerId << ")";
+    return out.str();
+}
 void PeerWireThread::printDebugMsg(std::string s) {
     std::ostringstream out;
     out << "(Thread) connId " << this->sock->getConnectionId();
@@ -314,23 +303,29 @@ void PeerWireThread::finishProcessing() {
     // finish processing this thread
     this->busy = false;
 
-    if (!this->terminating) {
-        this->printDebugMsg("Post-processing.");
-        // process all application messages that were generated during the
-        // processing of the last PeerWire message.
-        while (!this->postProcessingAppMsg.empty()) {
-            cObject *o = this->postProcessingAppMsg.pop();
-            cMessage *msg = static_cast<cMessage *>(o);
-            this->issueTransition(msg);
-        }
-        // Process all ApplicationMsg until a PeerWireMsg is found
-        this->processAppMessages();
-        this->printDebugMsg("Finished processing.");
-    } else {
-        // thread terminated, remove thread from BitTorrentClient
-        this->printDebugMsg("Thread terminated.");
-        this->btClient->removeThread(this);
+    //    if (!this->terminating) {
+    this->printDebugMsg("Post-processing.");
+    // process all application messages that were generated during the
+    // processing of the last PeerWire message.
+    while (!this->postProcessingAppMsg.empty()) {
+        cObject *o = this->postProcessingAppMsg.pop();
+        cMessage *msg = static_cast<cMessage *>(o);
+        this->issueTransition(msg);
     }
+    // Process all ApplicationMsg until a PeerWireMsg is found
+    this->processAppMessages();
+    this->printDebugMsg("Finished processing.");
+
+    if (this->terminating) {
+        cMessage * deleteMsg = new cMessage("Delete thread");
+        deleteMsg->setContextPointer(this);
+        this->btClient->scheduleAt(simTime(), deleteMsg);
+    }
+    //    } else {
+    //        // thread terminated, remove thread from BitTorrentClient
+    //        this->printDebugMsg("Thread terminated.");
+    //        this->btClient->removeThread(this);
+    //    }
 }
 void PeerWireThread::processAppMessages() {
     while (!this->messageQueue.empty()) {
