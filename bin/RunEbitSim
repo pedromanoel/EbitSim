@@ -61,9 +61,14 @@ fi
 ulimit -c unlimited
 $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE &
 PID=$!
-touch "$LOG_DIR/${CONFIG}_${PID}_$1" # save the pid for later checking
-wait
-echo "Finished $CONFIG -r$1 ($PID)"
+touch "${PID}_${CONFIG}_$1" # save the pid so that if there's a core dump, the run can be identified
+wait $PID
+if [ $? -eq 0 ]
+then
+    echo "Finished $CONFIG $1"
+else
+    echo "Error $CONFIG $1"
+fi
 
 if [ -v DEBUG ]
 then
