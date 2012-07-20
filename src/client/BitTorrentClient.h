@@ -81,22 +81,36 @@ using boost::tuple;
 using boost::make_tuple;
 using boost::tie;
 
-#include "PeerEntry.h"
+#include "PeerStatus.h"
 
-class PeerEntry;
+class PeerStatus;
 class PeerInfo;
 class PeerWireThread;
 class SwarmManager;
 
-//! Vector of PeerEntry pointers.
-typedef std::vector<PeerEntry const*> PeerVector;
-// list of unconnected Peers
-typedef std::list<tuple<int, IPvXAddress, int> > UnconnectedList;
-// Map of peer entries with peerId as key
-typedef std::map<int, PeerEntry> PeerMap;
-// Swarm (numActive, numPassive, PeerMap, UnconnectedList, seeding)
-typedef tuple<int, int, PeerMap, UnconnectedList, bool> Swarm;
-// map of swarms with infoHash as key
+class Choker;
+class ContentManager;
+
+//! Vector of PeerStatus pointers.
+typedef std::vector<PeerStatus const*> PeerVector;
+//! Tuple with connect information about a Peer. <PeerId, IpAddress, Port>
+typedef tuple<int, IPvXAddress, int> PeerConnInfo;
+//! List of unconnected Peers
+typedef std::list<PeerConnInfo> UnconnectedList;
+//! Map of peer entries with peerId as key
+typedef std::map<int, PeerStatus> PeerMap;
+//! Swarm (numActive, numPassive, PeerMap, UnconnectedList, seeding)
+struct Swarm {
+    int numActive;
+    int numPassive;
+    PeerMap peerMap;
+    UnconnectedList unconnectedList;
+    bool seeding;
+    bool closing;
+    Choker * choker;
+    ContentManager* contentManager;
+};
+//! map of swarms with infoHash as key
 typedef std::map<int, Swarm> SwarmMap;
 
 // Iterators
@@ -105,6 +119,7 @@ typedef UnconnectedList::iterator UnconnectedSetIt;
 typedef PeerMap::iterator PeerMapIt;
 typedef PeerMap::const_iterator PeerMapConstIt;
 typedef SwarmMap::iterator SwarmMapIt;
+typedef SwarmMap::const_iterator SwarmMapConstIt;
 
 /**
  * The BitTorrent Client implementation, which acts like a TCP server
@@ -119,6 +134,12 @@ public:
     //! Delete the sockets and threads
     virtual ~BitTorrentClient();
 
+    //!@name Methods used by the SwarmManagerThread
+    //@{
+    //! Add the Peer to the ConnectedPeerManager as an unconnected Peer.
+    void addUnconnectedPeers(int infoHash, UnconnectedList & peers);
+    //@}
+
     //!@name Methods used by the Choker
     //@{
     /*!
@@ -129,14 +150,14 @@ public:
      */
     void chokePeer(int infoHash, int peerId);
     /*!
-     * Return a vector of pointers to PeerEntry objects, ordered by their upload
+     * Return a vector of pointers to PeerStatus objects, ordered by their upload
      * rate from the Client.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      */
-    PeerVector getFastestToUpload(int infoHash);
+    PeerVector getFastestToUpload(int infoHash) const;
     /*!
-     * Return a vector of pointers to PeerEntry objects, ordered by their
+     * Return a vector of pointers to PeerStatus objects, ordered by their
      * download rate to the Client.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
@@ -159,7 +180,7 @@ public:
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param peerId[in] The id of the Peer.
      */
-    void closeConnection(int infoHash, int peerId);
+    void closeConnection(int infoHash, int peerId) const;
     /*!
      * Change the swarm to seed status, warning that this Client is now seeding
      * content to this swarm.
@@ -172,28 +193,28 @@ public:
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param peerId[in] The id of the Peer.
      */
-    void peerInteresting(int infoHash, int peerId);
+    void peerInteresting(int infoHash, int peerId) const;
     /*!
      * Show lack of interest in the Peer.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param peerId[in] The id of the Peer.
      */
-    void peerNotInteresting(int infoHash, int peerId);
+    void peerNotInteresting(int infoHash, int peerId) const;
     /*!
      * Send HaveMsg to all connected Peers warning that a piece was downloaded.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param pieceIndex[in] The index of the Piece that was downloaded.
      */
-    void sendHaveMessages(int infoHash, int pieceIndex);
+    void sendHaveMessages(int infoHash, int pieceIndex) const;
     /*!
      * Tell the corresponding thread that there is a piece available for sending.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param peerId[in] The id of the Peer.
      */
-    void sendPieceMessage(int infoHash, int peerId);
+    void sendPieceMessage(int infoHash, int peerId) const;
     /*!
      * Update the upload rate of the Peer.
      *
@@ -203,7 +224,8 @@ public:
      * this call.
      * @return The calculated download rate.
      */
-    double updateDownloadRate(int infoHash, int peerId, unsigned long totalDownloaded);
+    double updateDownloadRate(int infoHash, int peerId,
+        unsigned long totalDownloaded);
     /*!
      * Update the upload rate of the Peer.
      *
@@ -213,11 +235,14 @@ public:
      * this call.
      * @return The calculated upload rate.
      */
-    double updateUploadRate(int infoHash, int peerId, unsigned long totalUploaded);
+    double updateUploadRate(int infoHash, int peerId,
+        unsigned long totalUploaded);
     //@}
 
     //!@name Methods used by the SwarmManager
     //@{
+    //! Return the id of this peer.
+    int getLocalPeerId() const;
     /*!
      * Create the swarm.
      * A swarm is a list of Peers that have the same content.
@@ -225,13 +250,14 @@ public:
      * @param infoHash[in] The infoHash that identifies the swarm.
      * @param newSwarmSeeding[in] True if this Client is seeding for this swarm.
      */
-    void addSwarm(int infoHash, bool newSwarmSeeding);
+    void createSwarm(int infoHash, int numOfPieces, int numOfSubPieces,
+        int subPieceSize, bool newSwarmSeeding);
     /*!
      * Delete the swarm from the Client.
      *
      * @param infoHash[in] The infoHash that identifies the swarm.
      */
-    void removeSwarm(int infoHash);
+    void deleteSwarm(int infoHash);
     //@}
 private:
     /*!
@@ -239,15 +265,6 @@ private:
      * behavior are intimately connected.
      */
     friend class PeerWireThread;
-    friend class SwarmManagerThread;
-
-    //!@name Methods used by the SwarmManagerThread
-    //@{
-    //! Add the Peer to the ConnectedPeerManager as an unconnected Peer.
-    void addUnconnectedPeers(int infoHash,
-            std::list<tuple<int, IPvXAddress, int> > & peers);
-    //@}
-
     //!@name Methods used by the PeerWireThread
     //@{
     /*!
@@ -255,8 +272,8 @@ private:
      * with the client.
      * Return true if the connection can be established.
      */
-    void addConnectedPeer(int infoHash, int peerId, PeerWireThread* thread,
-            bool active);
+    void addPeerToSwarm(int infoHash, int peerId, PeerWireThread* thread,
+        bool active);
     /*!
      * Return true if the Peer can connect with the Client. The connection will
      * not be possible if there are no connection slots available or if the Peer
@@ -264,12 +281,20 @@ private:
      */
     bool canConnect(int infoHash, int peerId, bool active) const;
     /*!
+     * Return the choker and content manager to this swarm.
+     *
+     * @param infoHash The infoHash of the desired swarm.
+     * @return A pair with the Choker and ContentManager pointers. Both are set
+     * to NULL if there is no swarm with the passed infoHash.
+     */
+    std::pair<Choker*, ContentManager*> checkSwarm(int infoHash);
+    /*!
      * Schedule the start of processing for the next Thread with messages
      * waiting.
      */
     void processNextThread();
     //! Remove this peer from the ConnectedPeerManager.
-    void removePeerInfo(int infoHash, int peerId, int connId, bool active);
+    void removePeerFromSwarm(int infoHash, int peerId, int connId, bool active);
     //! Set to true if the Peer is interested in the Client.
     void setInterested(bool interested, int infoHash, int peerId);
     //! Set to true if the peer was not recently unchoked.
@@ -295,16 +320,7 @@ private:
     cDoubleHistogram doubleProcessingTimeHist;
     //@}
 
-    /*!
-     * This data structure is a map of Swarms, where a Swarm is the tuple of
-     * number of active connections, number of passive connections, map of Peers
-     * and list of unconnected Peers.
-     * Structure:
-     * SwarmMap => {infoHash: Swarm}
-     * Swarm => {peerId: (numOfActive, numOfPassive, PeerMap, UnconnectedList)}
-     * PeerMap => {peerId: PeerEntry}
-     * UnconnectedList => [(peerId, IPvXAddress, port)]
-     */
+    //! Contains the list of swarms mapped by their infoHash
     SwarmMap swarmMap;
     /*!
      * Set with all active connections established or attempted by this Peer.
@@ -343,14 +359,16 @@ private:
     int localPort;
     //! The peerId of this Client.
     int localPeerId;
-    //! Set to true to print debug messages
+    //! Set to true to print debug messages.
     bool debugFlag;
+    //! Set to true to print debug messages for the swarm modules.
+    bool subModulesDebugFlag;
     //! TODO document this
     int globalNumberOfPeers;
     //! TODO document this
-    int numberOfActivePeers;
+    int numActiveConn;
     //! TODO document this
-    int numberOfPassivePeers;
+    int numPassiveConn;
     //!@name Signals and helper variables
     //@{
     unsigned int prevNumUnconnected;
@@ -389,40 +407,41 @@ private:
     simsignal_t unchokeReceived_Signal;
     //@}
 private:
+    // Private Methods
     //! TODO document this
     void attemptActiveConnections(Swarm & swarm, int infoHash);
     //! Open a TCP connection with this Peer.
-    void connect(int infoHash, const tuple<int, IPvXAddress, int> & peer);
+    void connect(int infoHash, const PeerConnInfo & peer);
     //! Close the server socket so that other Peers cannot connect with the Client.
-    void closeListeningSocket();
+    //    void closeListeningSocket();
     //! Emit a signal corresponding to reception of a message with the passed message id.
     void emitReceivedSignal(int messageId);
     //! Emit a signal corresponding to sending of a message with the passed message id.
     void emitSentSignal(int messageId);
-    //! TODO document this
+    //! Return a reference to the Swarm with infoHash.
     Swarm & getSwarm(int infoHash);
+    //! Return a const reference to the Swarm with infoHash.
     const Swarm & getSwarm(int infoHash) const;
-    //! TODO document this
-    PeerEntry & getPeerEntry(int infoHash, int peerId);
+    //! Return a reference to the Peer with peerId inside the Swarm with infoHash.
+    PeerStatus & getPeerStatus(int infoHash, int peerId);
+    //! Return a const reference to the Peer with peerId inside the Swarm with infoHash.
+    const PeerStatus & getPeerStatus(int infoHash, int peerId) const;
     //! Open the server socket so that other Peers can connect with the Client.
-    void openListeningSocket();
+    //    void openListeningSocket();
     /*!
      * Will emit signals for statistical purposes.
      * If sending is true, the signal emitted is for messages being sent.
      */
-    void peerWireStatistics(cMessage const*msg, bool sending);
+    void peerWireStatistics(const cMessage *msg, bool sending);
     //! Print a debug message to the passed ostream, which defaults to clog.
     void printDebugMsg(std::string s) const;
-    void printDebugMsgConnections(std::string methodName, int infoHash,
-            Swarm const& swarm) const;
+    void printDebugMsgConnections(std::string methodName, int infoHash, const Swarm & swarm) const;
     //! TODO document this
     void removeThread(PeerWireThread *thread);
     //!@name Signal registration and subscription methods
     //@{
     //! Register all signals this module is going to emit.
     void registerEmittedSignals();
-    //! Subscribe to signals.
-    void subscribeToSignals();
     //@}
 
 protected:
@@ -432,7 +451,11 @@ protected:
     virtual void finish();
     //! Open a port for incoming peer connections. Already defined in TCPSrvHostApp
     virtual void initialize(int stage);
-    //! Must check if the Client can still open passive connections.
+    /*!
+     * This method is a copy of the TCPSrvHostApp::handleMessage method, but with
+     * one major difference: It treats self messages from the BitTorrentClient module
+     * itself.
+     */
     virtual void handleMessage(cMessage* msg);
 };
 

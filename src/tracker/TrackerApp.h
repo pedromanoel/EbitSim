@@ -117,14 +117,12 @@ private:
     std::vector<PeerInfo const*> getRandomPeers(PeerInfo const& peerInfo,
             int infoHash, unsigned int numberOfPeers) const;
     void updatePeerStatus(PeerInfo const& peerInfo, int infoHash,
-            ANNOUNCE_TYPE status);
+            AnnounceType status);
     void startupPeerList();
     //!@name Signal registration and subscription methods
     //@{
     //! Register all signals this module is going to emit.
     void registerEmittedSignals();
-    //! Subscribe to signals.
-    void subscribeToSignals();
     //@}
 protected:
     virtual void initialize();

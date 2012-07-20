@@ -71,26 +71,20 @@
 // EXCLUSION MAY NOT APPLY TO YOU.
 
 #include "ContentManager.h"
-#include <cmath>
-#include <stdexcept>
-#include <sstream>
-#include <sstream>
-#include <algorithm>
-#include <iomanip>
-#include <deque>
+#include <cassert>
+#include <iostream>
+#include <queue>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 
 #include "BitTorrentClient.h"
-#include "SwarmManager.h"
 #include "PeerWire_m.h"
 #include "PeerWireMsgBundle_m.h"
 
 // Dumb fix because of the CDT parser (https://bugs.eclipse.org/bugs/show_bug.cgi?id=332278)
 #ifdef __CDT_PARSER__
-#define FOREACH(a, b) for(a : b)
-#else
-#define FOREACH(a, b) BOOST_FOREACH(a, b)
+#undef BOOST_FOREACH
+#define BOOST_FOREACH(a, b) for(a; b; )
 #endif
 
 namespace {
@@ -99,13 +93,85 @@ std::string toStr(long i) {
 }
 }
 
+/*!
+ * Object that keeps track of pending requests for a piece.
+ */
+class ContentManager::PieceRequests {
+public:
+    PieceRequests(int pieceIndex, int numOfBlocks) :
+        numOfBlocks(numOfBlocks), pieceIndex(pieceIndex), blocks(numOfBlocks) {
+        for (unsigned int i = 0; i < this->numOfBlocks; ++i) {
+            this->requests.push_back(std::make_pair(this->pieceIndex, i));
+        }
+    }
+    //! Reset the request list to contain all blocks that are not set yet.
+    bool resetRequests() {
+        std::list<std::pair<int, int> > requests;
+        for (unsigned int i = 0; i < this->numOfBlocks; ++i) {
+            if (!this->blocks.test(i)) {
+                requests.push_back(std::make_pair(this->pieceIndex, i));
+            }
+        }
+        this->requests = requests;
+    }
+    //! Set the passed block inside the piece. Return true if the piece is completed.
+    bool setBlock(int blockIndex) {
+        this->blocks[blockIndex] = 1;
+        return this->blocks.count() == this->numOfBlocks;
+    }
+    /*!
+     * Return a reference to the list of requests not performed yet.
+     *
+     * A request is removed from this list when used.
+     * @return Reference to the list of requests, where each request is a pair
+     * (pieceIndex, blockIndex) that was not set yet.
+     */
+    std::list<std::pair<int, int> > & getRequests() {
+        return this->requests;
+    }
+private:
+    unsigned int numOfBlocks;
+    unsigned int pieceIndex;
+    std::list<std::pair<int, int> > requests;
+    boost::dynamic_bitset<> blocks;
+};
+
 //!@name Rate Control using token bucket
 class ContentManager::TokenBucket {
+private:
+    //! Piece request abstraction
+    struct Request {
+        int index;
+        int begin;
+        int reqLength;
+    };
+    typedef std::queue<Request *> RequestQueue;
+    typedef std::map<int, RequestQueue> RequestQueueMap;
+    typedef RequestQueueMap::iterator RequestQueueMapIt;
+
+    ContentManager * contentManager;
+
+    //! The number of PieceMsgs that could be sent in a burst.
+    unsigned long bucketSize;
+    //! The number of bytes added at each interval.
+    unsigned long tokenSize;
+    //! The current number of tokens, in bytes.
+    unsigned long tokens;
+    //! The interval between addition of tokens. t = subPieceSize/bytesSec.
+    simtime_t incInterval;
+    //! Timer message for adding tokens.
+    cMessage tokenIncTimerMsg;
+    //! Iterator to the queue from where the next message will be popped.
+    RequestQueueMapIt currentQueueIt;
+    //! Maps peerIds to the piece blocks they made.
+    RequestQueueMap requestQueues;
+    //! Maps peerIds to the pieces waiting to be transmitted.
+    RequestQueueMap sendQueues;
 public:
     TokenBucket(ContentManager * contentManager, int subPieceSize,
         int burstSize, unsigned long bytesSec) :
-            tokenIncTimerMsg("Add Tokens") {
-        this->contentManager = static_cast<ContentManager *>(contentManager);
+        tokenIncTimerMsg("Add Tokens") {
+        this->contentManager = contentManager;
         this->bucketSize = subPieceSize * burstSize;
         this->tokenSize = subPieceSize;
         this->tokens = 0;
@@ -117,28 +183,21 @@ public:
         this->contentManager->cancelEvent(&this->tokenIncTimerMsg);
     }
     PieceMsg* getPieceMsg(int peerId) {
-        RequestQueueMapIt sendQueueIt = this->sendQueues.find(peerId);
-        if (sendQueueIt == this->requestQueues.end()) {
-            throw std::logic_error("No piece found.");
-        }
+        assert(this->sendQueues.count(peerId));
+
         // Get the request info and delete it from the queue
-        RequestQueue & peerQueue = sendQueueIt->second;
-        PieceRequest * pieceRequest = peerQueue.front();
-        int begin = pieceRequest->begin;
-        int index = pieceRequest->index;
-        int reqLength = pieceRequest->reqLength;
+        RequestQueue & peerQueue = this->sendQueues.at(peerId);
+        Request * pieceRequest = peerQueue.front();
         peerQueue.pop();
-        delete pieceRequest;
 
-        // erase the queue if empty
-        if (peerQueue.empty()) {
-            this->sendQueues.erase(sendQueueIt);
-        }
+        std::string out = "Piece " + this->getRequestName(pieceRequest)
+            + " taken by peer " + toStr(peerId);
+        this->contentManager->printDebugMsg(out);
 
-        std::string name = "PieceMsg(" + toStr(index) + ", "
-            + toStr(begin / reqLength) + ")";
+        std::string name = "PieceMsg" + this->getRequestName(pieceRequest);
         PieceMsg* pieceMsg = new PieceMsg(name.c_str());
 
+        int reqLength = pieceRequest->reqLength;
         // sent this block to the Peer with the passed peerId
         this->contentManager->totalUploadedByPeer[peerId] += reqLength;
         this->contentManager->totalBytesUploaded += reqLength;
@@ -147,19 +206,26 @@ public:
             this->contentManager->totalBytesUploaded);
 
         // fill in the pieceMessage attributes from the request.
-        pieceMsg->setIndex(index);
-        pieceMsg->setBegin(begin);
+        pieceMsg->setIndex(pieceRequest->index);
+        pieceMsg->setBegin(pieceRequest->begin);
         pieceMsg->setBlockSize(reqLength);
         // piece has variable length, so must set the variablePayloadLen attribute
         pieceMsg->setVariablePayloadLen(reqLength);
+
+        delete pieceRequest; // don't need the object anymore
+
         return pieceMsg;
     }
     void requestPieceMsg(int peerId, int index, int begin, int reqLength) {
         // store the request
-        PieceRequest * pieceRequest = new PieceRequest();
+        Request * pieceRequest = new Request();
         pieceRequest->begin = begin;
         pieceRequest->index = index;
         pieceRequest->reqLength = reqLength;
+
+        std::string out = "Request " + this->getRequestName(pieceRequest)
+            + " made by peer " + toStr(peerId);
+        this->contentManager->printDebugMsg(out);
 
         this->requestQueues[peerId].push(pieceRequest);
         // Fix the iterator, since the queue is definitely not empty anymore
@@ -167,20 +233,25 @@ public:
         this->tryToSend();
     }
     /*!
-     * Cancel all requests in the peer pending and send queues.
+     * Cancel all blocks in the peer pending and send queues.
      */
     void cancelUploadRequests(int peerId) {
+        std::ostringstream out;
+        out << "Cancel requests ";
+        int currentTokens = this->tokens;
         RequestQueueMapIt sendIt = this->sendQueues.find(peerId);
         if (sendIt != this->sendQueues.end()) {
+            out << " Ready to send: ";
+
             // Erase the corresponding send queue
             RequestQueue & sendQueue = sendIt->second;
             while (!sendQueue.empty()) {
-                PieceRequest * p = sendQueue.front();
-                this->addTokens(p->reqLength);
-                this->contentManager->printDebugMsg(
-                    "Canceling piece send (" + toStr(p->index) + ", "
-                        + toStr(p->begin / p->reqLength) + ")");
-                delete p;
+                Request * pieceRequest = sendQueue.front();
+                this->addTokens(pieceRequest->reqLength);
+
+                out << this->getRequestName(pieceRequest);
+
+                delete pieceRequest;
                 sendQueue.pop();
             }
             this->sendQueues.erase(sendIt);
@@ -188,17 +259,18 @@ public:
         // Erase the request queue
         RequestQueueMapIt reqIt = this->requestQueues.find(peerId);
         if (reqIt != this->requestQueues.end()) {
+            out << " In bucket: ";
+
             RequestQueue & requestQueue = reqIt->second;
-            std::string out = "Canceling piece requests :";
             while (!requestQueue.empty()) {
-                PieceRequest * p = requestQueue.front();
-                this->addTokens(p->reqLength);
-                out += "(" + toStr(p->index) + ", "
-                    + toStr(p->begin / p->reqLength) + ") ";
-                delete p;
+                Request * pieceRequest = requestQueue.front();
+
+                out << this->getRequestName(pieceRequest);
+
+                delete pieceRequest;
                 requestQueue.pop();
             }
-            this->contentManager->printDebugMsg(out);
+
             // erase the request queue and keep the currentQueueIt valid
             if (this->currentQueueIt == reqIt) {
                 this->requestQueues.erase(this->currentQueueIt++);
@@ -207,6 +279,10 @@ public:
                 this->requestQueues.erase(reqIt);
             }
         }
+
+        out << " (" << (this->tokens - currentTokens)
+            << " tokens returned) for peer " << peerId;
+        this->contentManager->printDebugMsg(out.str());
     }
     /*!
      * Handle the increment timer by adding tokenSize to the bucket. If the
@@ -222,9 +298,13 @@ public:
         }
     }
 private:
-    typedef std::queue<PieceRequest *> RequestQueue;
-    typedef std::map<int, RequestQueue> RequestQueueMap;
-    typedef RequestQueueMap::iterator RequestQueueMapIt;
+    std::string getRequestName(Request const* pieceRequest) {
+        int pieceIndex = pieceRequest->index;
+        int blockIndex = pieceRequest->begin / pieceRequest->reqLength;
+        std::string out = "(" + toStr(pieceIndex) + "," + toStr(blockIndex)
+            + ")";
+        return out;
+    }
 
     //! Schedule the timer used to increment the tokens.
     void scheduleAt() {
@@ -239,13 +319,14 @@ private:
      */
     bool addTokens(unsigned long tokenSize) {
         std::string out;
+        out = "Tokens added. ";
         // cap the number of tokens
         this->tokens += tokenSize;
         if (this->tokens > this->bucketSize) {
             this->tokens = this->bucketSize;
             out = "Max tokens reached: ";
         } else {
-            out = "Tokens added: ";
+            out = "Current: ";
         }
         this->contentManager->printDebugMsg(out + toStr(this->tokens));
         return this->tokens < this->bucketSize;
@@ -260,32 +341,41 @@ private:
         // more messages
         while (hasEnoughTokens && !this->requestQueues.empty()) {
             RequestQueue & currentQueueRef = this->currentQueueIt->second;
-            int reqLength = static_cast<PieceRequest *>(currentQueueRef.front())
-                ->reqLength;
+            unsigned long reqLength =
+                static_cast<Request *>(currentQueueRef.front())->reqLength;
             hasEnoughTokens = reqLength <= this->tokens;
             if (hasEnoughTokens) {
                 // Consume the tokens
                 this->tokens -= reqLength;
-                std::string out = "Tokens subtracted: " + toStr(this->tokens);
-                this->contentManager->printDebugMsg(out);
 
                 // Move the request from the requestQueue to the sendQueue
                 int peerId = this->currentQueueIt->first;
-                sendQueues[peerId].push(currentQueueRef.front());
+                Request * pieceRequest = currentQueueRef.front();
+                this->sendQueues[peerId].push(pieceRequest);
+
+                std::string out = "Request "
+                    + this->getRequestName(pieceRequest)
+                    + " ready to send to peer " + toStr(peerId);
+                this->contentManager->printDebugMsg(out);
+
                 currentQueueRef.pop();
+                // If empty, erase the request queue and forward the current it
+                if (currentQueueRef.empty()) {
+                    this->requestQueues.erase(this->currentQueueIt++);
+
+                    std::string out = "No more requests pending for peer "
+                        + toStr(peerId);
+                    this->contentManager->printDebugMsg(out);
+                } else {
+                    ++this->currentQueueIt;
+                }
+                // Ensure the iterator remains valid after forwarding
+                this->fixCurrentIt();
+
                 // Warn the thread that there's a piece waiting
                 this->contentManager->bitTorrentClient->sendPieceMessage(
                     this->contentManager->infoHash, peerId);
 
-                // forward the iterator to the current request queue
-
-                // If empty, erase the request queue. Also forward the current it
-                if (currentQueueRef.empty()) {
-                    this->requestQueues.erase(this->currentQueueIt++);
-                } else {
-                    ++this->currentQueueIt;
-                }
-                this->fixCurrentIt();
                 // Un-pause the increment timer (if paused)
                 if (!this->tokenIncTimerMsg.isScheduled()) {
                     scheduleAt();
@@ -303,147 +393,119 @@ private:
             this->currentQueueIt = this->requestQueues.begin();
         }
     }
-private:
-    ContentManager * contentManager;
-
-//! The number of PieceMsgs that could be sent in a burst.
-    unsigned long bucketSize;
-//! The number of bytes added at each interval.
-    unsigned long tokenSize;
-//! The current number of tokens, in bytes.
-    unsigned long tokens;
-//! The interval between addition of tokens. t = subPieceSize/bytesSec.
-    simtime_t incInterval;
-//! Timer message for adding tokens.
-    cMessage tokenIncTimerMsg;
-//! Iterator to the queue from where the next message will be popped.
-    RequestQueueMapIt currentQueueIt;
-//! Maps peerIds to the piece requests they made.
-    RequestQueueMap requestQueues;
-//! Maps peerIds to the pieces waiting to be transmitted.
-    RequestQueueMap sendQueues;
 };
-
-ContentManager::Piece::Piece(int requesterPeerId, int pieceIndex,
-    int numOfBlocks) :
-        requesterPeerId(requesterPeerId), downloadedBlocks(0),
-            numOfBlocks(numOfBlocks), pieceIndex(pieceIndex),
-            blocks(numOfBlocks) {
-}
-bool ContentManager::Piece::setBlock(int blockIndex) {
-    this->blocks[blockIndex] = 1;
-    return this->blocks.count() == this->numOfBlocks;
-}
-std::list<std::pair<int, int> > ContentManager::Piece::getMissingBlocks() const {
-    std::list<std::pair<int, int> > missingBlocks;
-
-    for (int i = 0; i < this->numOfBlocks; ++i) {
-        if (!this->blocks.test(i)) {
-            missingBlocks.push_back(std::make_pair(this->pieceIndex, i));
-        }
-    }
-
-    return missingBlocks;
-}
-int ContentManager::Piece::getPieceIndex() const {
-    return this->pieceIndex;
-}
-int ContentManager::Piece::getRequesterId() const {
-    return this->requesterPeerId;
-}
-std::string ContentManager::Piece::str() const {
-    std::string strRep;
-    boost::to_string(this->blocks, strRep);
-    return strRep;
-}
 
 Define_Module(ContentManager);
 
 ContentManager::ContentManager() :
-        bitTorrentClient(NULL), tokenBucket(NULL), subPieceSize(0),
-            debugFlag(false), haveBundleSize(0), numberOfSubPieces(0),
-            numberOfPieces(0), requestBundleSize(0), totalBytesDownloaded(0),
-            totalBytesUploaded(0), infoHash(-1), localPeerId(-1),
-            firstMarkEmitted(false), secondMarkEmitted(false),
-            thirdMarkEmitted(false) {
+    bitTorrentClient(NULL), tokenBucket(NULL), subPieceSize(0), debugFlag(
+        false), haveBundleSize(0), numberOfSubPieces(0), numberOfPieces(0), requestBundleSize(
+        0), totalBytesDownloaded(0), totalBytesUploaded(0), infoHash(-1), localPeerId(
+        -1), firstMarkEmitted(false), secondMarkEmitted(false), thirdMarkEmitted(
+        false) {
 }
 ContentManager::~ContentManager() {
     delete this->tokenBucket;
-    std::cerr << this->localPeerId << " completed ";
-    std::cerr << this->clientBitField.getCompletedPercentage();
-    std::cerr << "% of " << this->infoHash << " - ";
-    std::cerr << this->clientBitField.unavailablePieces();
-    std::cerr << "\n";
+    double completePerc = this->clientBitField.getCompletedPercentage();
+    std::ostringstream out;
+    out << "Completed " << completePerc << "% of the download";
+    if (!this->clientBitField.full()) {
+        out << ". Missing pieces - ";
+        out << this->clientBitField.unavailablePieces();
+    }
+
+    this->printDebugMsg(out.str());
 }
 
 void ContentManager::addEmptyBitField(int peerId) {
     Enter_Method("addEmptyBitField(id: %d)", peerId);
+    assert(!this->peerBitFields.count(peerId));
 
-    if (this->peerBitFields.count(peerId)) {
-        std::ostringstream out;
-        out << "Peer with id '" << peerId << "' already has a BitField";
-        throw std::logic_error(out.str());
-    }
-
-// initializes all maps
+    // initializes all maps
     this->peerBitFields.insert(
         std::make_pair(peerId, BitField(this->clientBitField.size(), false)));
-    this->pendingRequests[peerId]; // default empty set
+    this->numPendingRequests[peerId] = 0;
     this->totalDownloadedByPeer[peerId] = 0;
     this->totalUploadedByPeer[peerId] = 0;
 }
 void ContentManager::addPeerBitField(BitField const& bitField, int peerId) {
     Enter_Method("setPeerBitField(id: %d)", peerId);
+    // If not empty, BitField already set
+    assert(this->peerBitFields.at(peerId).empty());
 
-    BitField & peerBitField = this->peerBitFields.at(peerId);
+    // add BitField to pieceCount. Throw error if BitField is invalid
+    this->rarestPieceCounter.addBitField(bitField);
 
-    if (!peerBitField.empty()) {
-        std::string out = "Peer with id '" + toStr(peerId)
-            + "' already has a BitField.";
-        throw std::logic_error(out);
-    }
-
-// reset the Peer BitField
-    peerBitField = bitField;
-
-// add BitField to pieceCount. Throw error if BitField is invalid
-    this->rarestPieceCounter.addBitField(peerBitField);
-
-// initializes all maps
-    this->peerBitFields.insert(std::make_pair(peerId, peerBitField));
-    this->pendingRequests[peerId]; // default empty set
+    // initializes all maps
+    this->peerBitFields.at(peerId) = bitField; // reset the Peer BitField
+    this->numPendingRequests[peerId] = 0;
     this->totalDownloadedByPeer[peerId] = 0;
     this->totalUploadedByPeer[peerId] = 0;
 
-    if (this->clientBitField.isBitFieldInteresting(peerBitField)) {
+    if (this->isPeerInteresting(peerId)) {
         this->interestingPeers.insert(peerId);
         // peer interesting
         this->bitTorrentClient->peerInteresting(this->infoHash, peerId);
-    } else if (peerBitField.full()) {
+    } else if (bitField.full()) {
         // if this client is not interested in a seeder, that means it is
         // also a seeder and this connection has no use, so it is dropped.
         this->bitTorrentClient->closeConnection(this->infoHash, peerId);
     }
 }
+void ContentManager::removePeerBitField(int peerId) {
+    Enter_Method("removePeerBitField(id: %d)", peerId);
+    assert(this->peerBitFields.count(peerId));
+
+    std::ostringstream out;
+    out << "removing peer " << peerId;
+    this->printDebugMsg(out.str());
+
+    // subtract BitField from pieceCount
+    this->rarestPieceCounter.removeBitField(this->peerBitFields[peerId]);
+
+    // remove from the interesting set
+    this->interestingPeers.erase(peerId);
+    // remove pieces requested by this peer
+    this->requestedPieces.erase(peerId);
+
+    // remove peerId from token bucket
+    this->tokenBucket->cancelUploadRequests(peerId);
+
+    // remove peerId from all maps
+    this->peerBitFields.erase(peerId);
+    this->numPendingRequests.erase(peerId);
+    this->totalDownloadedByPeer.erase(peerId);
+    this->totalUploadedByPeer.erase(peerId);
+
+    this->updateStatusString();
+}
 void ContentManager::cancelDownloadRequests(int peerId) {
     Enter_Method("cancelDownloadRequests(index: %d)", peerId);
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
 
     std::ostringstream out;
     out << "Canceling requested pieces: ";
-// Clear the requests for the current Peer. This allows for these requests
-// to be made to another Peer. If, for some reason, these canceled requests
-// arrive,
-    typedef std::pair<int, int> pending_pair_t;
-    FOREACH(pending_pair_t const& p, pendingRequests.at(peerId)) {
-        int pieceIndex = p.first;
-        int blockIndex = p.second;
-        out << "(" << pieceIndex << ", " << blockIndex << ") ";
+
+    std::multimap<int, int>::iterator begin, end;
+    boost::tie(begin, end) = this->requestedPieces.equal_range(peerId);
+    while (begin != end) {
+        // Restore the requests that were not responded.
+        this->remainingRequests.at(begin->second).resetRequests();
+        out << begin->second << " ";
+        ++begin;
     }
-    this->pendingRequests.at(peerId).clear();
+    // Remove the requested pieces so others can request them
+    this->requestedPieces.erase(peerId);
+    // Clear the number of pending requests
+    this->numPendingRequests.at(peerId) = 0;
     this->printDebugMsg(out.str());
 }
 void ContentManager::cancelUploadRequests(int peerId) {
     Enter_Method("cancelUploadRequests(index: %d)", peerId);
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
+
     this->tokenBucket->cancelUploadRequests(peerId);
 }
 bool ContentManager::isBitFieldEmpty() const {
@@ -466,75 +528,40 @@ BitFieldMsg* ContentManager::getClientBitFieldMsg() const {
 }
 PeerWireMsgBundle* ContentManager::getNextRequestBundle(int peerId) {
     Enter_Method("getNextRequestBundle(index: %d)", peerId);
-
-// error if the peerId is not in the pendingRequestQueues, meaning that the
-// BitField was not defined.
-    std::map<int, std::set<std::pair<int, int> > >::iterator peerPendingRequestsIt =
-        this->pendingRequests.find(peerId);
-    if (peerPendingRequestsIt == this->pendingRequests.end()) {
-        std::string out = "Peer with id '" + toStr(peerId)
-            + "' is not in the ContentManager.";
-        throw std::logic_error(out);
-    }
-
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
+    int & numPendingRequests = this->numPendingRequests.at(peerId);
     PeerWireMsgBundle* requestBundle = NULL;
 
-// make new request only if there are no pending ones
-    if (peerPendingRequestsIt->second.empty()) {
-        std::list<std::pair<int, int> > nextBlocksToRequestFromPeer = this
-            ->requestAvailableBlocks(peerId);
+    // make new request only if there are no pending ones
+    if (numPendingRequests == 0) {
+        // The bundle to be filled with blocks
+        cPacketQueue* bundle = new cPacketQueue();
+        std::ostringstream bundleMsgName;
+        bundleMsgName << "RequestBundle(";
 
-        // make requests with the blocks in this list
-        if (!nextBlocksToRequestFromPeer.empty()) {
-            std::ostringstream bundleMsgName;
-            bundleMsgName << "RequestBundle(";
+        this->getRemainingPieces(bundle, bundleMsgName, peerId);
+        this->getInterestingPieces(bundle, bundleMsgName, peerId);
 
-            cPacketQueue bundle;
+        // The bundle must not be larger then the requestBundleSize
+        assert(bundle->getLength() <= this->requestBundleSize);
+        numPendingRequests += bundle->getLength();
 
-            // fill the bundle to the limit
-            while (bundle.getLength() < this->requestBundleSize
-                && !nextBlocksToRequestFromPeer.empty()) {
-                std::pair<int, int> & block =
-                    nextBlocksToRequestFromPeer.front();
-
-                // save the instant the download started
-                std::map<int, simtime_t>::iterator pieceRequestTimeIt;
-                pieceRequestTimeIt = this->pieceRequestTime.lower_bound(
-                    block.first);
-                if (pieceRequestTimeIt == this->pieceRequestTime.end()
-                    || pieceRequestTimeIt->second != block.first) {
-                    this->pieceRequestTime.insert(pieceRequestTimeIt,
-                        std::make_pair(block.first, simTime()));
-                }
-
-                // create the request and insert it in the bundle
-                RequestMsg* request = this->createRequestMsg(block.first,
-                    block.second);
-                bundle.insert(request);
-                bundleMsgName << "(" << block.first << "," << block.second
-                    << ")";
-
-                // insert the requested block in the pending set
-                peerPendingRequestsIt->second.insert(block);
-
-                // remove the block from the list
-                nextBlocksToRequestFromPeer.pop_front();
-            }
+        if (!bundle->empty()) {
             bundleMsgName << ")";
-
             requestBundle = new PeerWireMsgBundle(bundleMsgName.str().c_str());
             requestBundle->setBundle(bundle);
         } else {
+            delete bundle;
             std::ostringstream out;
             out << "There are no blocks available for download";
             this->printDebugMsg(out.str());
         }
     } else {
         std::ostringstream out;
-        out << "There are requests pending";
+        out << "There are blocks pending";
         this->printDebugMsg(out.str());
     }
-
     return requestBundle;
 }
 void ContentManager::requestPieceMsg(int peerId, int index, int begin,
@@ -546,22 +573,25 @@ void ContentManager::requestPieceMsg(int peerId, int index, int begin,
     if (index < 0 || index >= this->numberOfPieces) {
         throw std::out_of_range("The piece index is out of bounds");
     }
+    // The piece must be available
+    assert(this->clientBitField.hasPiece(index));
 
-    if (!this->clientBitField.hasPiece(index)) {
-        std::ostringstream out;
-        out << "The requested piece is not available" << std::endl;
-        throw std::logic_error(out.str());
-    }
     this->tokenBucket->requestPieceMsg(peerId, index, begin, reqLength);
 }
 
 PieceMsg* ContentManager::getPieceMsg(int peerId) {
     Enter_Method("getPieceMsg(peerId: %d)", peerId);
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
+
     return this->tokenBucket->getPieceMsg(peerId);
 }
 
 unsigned long ContentManager::getTotalDownloaded(int peerId) const {
     Enter_Method("getDownloadedBytes(peerId: %d)", peerId);
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
+
     // error if the peerId is not in the totalDownloaded, meaning that the
     // BitField was not defined.
     return this->totalDownloadedByPeer.at(peerId);
@@ -569,6 +599,9 @@ unsigned long ContentManager::getTotalDownloaded(int peerId) const {
 }
 unsigned long ContentManager::getTotalUploaded(int peerId) const {
     Enter_Method("getUploadedBytes(peerId: %d)", peerId);
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
+
     // error if the peerId is not in the totalUploaded, meaning that the
     // BitField was not defined.
     return this->totalUploadedByPeer.at(peerId);
@@ -588,33 +621,46 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
         throw std::out_of_range("The piece index is out of bounds");
     }
 
-// update bytes counter
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
+
+    // update bytes counter
     this->totalDownloadedByPeer[peerId] += blockSize;
     this->totalBytesDownloaded += blockSize;
     emit(this->totalBytesDownloaded_Signal, this->totalBytesDownloaded);
+    // Decrement the number of pending requests
+    --this->numPendingRequests.at(peerId);
 
-    int blockIndex = begin / blockSize;
-// remove the received block from the Peer's pending request queue
-    this->pendingRequests.at(peerId).erase(
-        std::make_pair(pieceIndex, blockIndex));
-
-// ignore block if the piece is already complete
+    // ignore block if the piece is already complete
     if (!this->clientBitField.hasPiece(pieceIndex)) {
         // Return the incomplete piece, or create a new one
-        // similar to operator[], but without the default constructor
+        // similar to operator[], but not using the default constructor
         // http://cplusplus.com/reference/stl/map/operator[]/
-        Piece & piece = this->incompletePieces.insert(
-            std::make_pair(pieceIndex,
-                Piece(peerId, pieceIndex, this->numberOfSubPieces))).first
-            ->second;
-
+        PieceRequests & req =
+            this->remainingRequests.insert(
+                std::make_pair(pieceIndex,
+                    PieceRequests(pieceIndex, this->numberOfSubPieces))).first->second;
+        int blockIndex = begin / blockSize;
         // set the block into the Piece, and verify if the piece is now complete
-        if (piece.setBlock(blockIndex)) {
+        if (req.setBlock(blockIndex)) {
+            // piece no longer incomplete
+            this->remainingRequests.erase(pieceIndex);
+
             // downloaded whole piece
             {
                 std::ostringstream out;
                 out << "Downloaded piece " << pieceIndex;
                 this->printDebugMsg(out.str());
+            }
+            std::multimap<int, int>::iterator begin, end;
+            tie(begin, end) = this->requestedPieces.equal_range(peerId);
+            assert(begin != end); // the piece must be in the requestedPieces
+            while (begin != end) {
+                if (begin->second == pieceIndex) {
+                    this->requestedPieces.erase(begin);
+                    break;
+                }
+                ++begin;
             }
 
             if (this->clientBitField.empty()) {
@@ -622,103 +668,67 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
                 this->downloadStartTime = simTime();
             }
 
-            // piece no longer incomplete
-            this->incompletePieces.erase(pieceIndex);
             // add the piece to the Client's BitField
             this->clientBitField.addPiece(pieceIndex);
-
+            // Check if the connected peers continue to be interesting
+            this->verifyInterestOnAllPeers();
             // Statistics
             generateDownloadStatistics(pieceIndex);
-
             // schedule the sending of the HaveMsg to all Peers.
             this->bitTorrentClient->sendHaveMessages(this->infoHash,
                 pieceIndex);
 
-            // became seeder
-            bool becameSeeder = this->clientBitField.full();
-            if (becameSeeder) {
-                std::ostringstream out;
-                out << "Became a seeder";
-                this->printDebugMsg(out.str());
-
+            if (this->clientBitField.full()) { // became seeder
+                this->printDebugMsg("Became a seeder");
                 // warn the tracker
                 this->bitTorrentClient->finishedDownload(this->infoHash);
             }
-
-            // might drop this connection, if both the client and the peer are seeders.
-            this->verifyInterestOnAllPeers();
 
             this->updateStatusString();
         }
     }
 }
-void ContentManager::processHaveMsg(int index, int peerId) {
-    Enter_Method("updatePeerBitField(index: %d, id: %d)", index, peerId);
+void ContentManager::processHaveMsg(int pieceIndex, int peerId) {
+    Enter_Method("updatePeerBitField(index: %d, id: %d)", pieceIndex, peerId);
 
-    if (index < 0 || index >= this->numberOfPieces) {
+    if (pieceIndex < 0 || pieceIndex >= this->numberOfPieces) {
         throw std::out_of_range("The piece index is out of bounds");
     }
 
-    try {
-        BitField& peerBitField = this->peerBitFields.at(peerId);
-        peerBitField.addPiece(index);
+    // The peer must be registered here
+    assert(this->peerBitFields.count(peerId));
 
-        this->rarestPieceCounter.addPiece(index);
+    this->rarestPieceCounter.addPiece(pieceIndex);
+    // add the piece to the client's BitField
+    BitField & peerBitField = this->peerBitFields.at(peerId);
+    peerBitField.addPiece(pieceIndex);
 
-        // Last piece resulted in the Peer becoming a seeder
-        if (peerBitField.full()) {
-            std::string out;
-            std::string peerIdStr = toStr(peerId);
-            if (this->clientBitField.full()) {
-                out = "Both the Client and Peer " + peerIdStr + " are seeders.";
-                // the connection between two seeders is useless. Drop it.
-                this->bitTorrentClient->closeConnection(this->infoHash, peerId);
-            } else {
-                out = "Peer " + peerIdStr + " became a seeder.";
-            }
-            this->printDebugMsg(out);
-        }
-
-        // Verify if the peer with peerId became interesting only if the piece
-        // is not being requested already (strict priority policy)
-        if (!this->incompletePieces.count(index)
-            && !this->interestingPeers.count(peerId)
-            && this->clientBitField.isBitFieldInteresting(peerBitField)) {
-            this->interestingPeers.insert(peerId);
-            this->bitTorrentClient->peerInteresting(this->infoHash, peerId);
-        }
-    } catch (std::out_of_range & e) {
-        std::ostringstream out;
-        out << "Peer with id '" << peerId << "' not found.";
-        throw std::logic_error(out.str());
+    if (!this->interestingPeers.count(peerId) && // Peer was not interesting
+        this->isPeerInteresting(peerId)) { // but now is
+        this->interestingPeers.insert(peerId);
+        this->bitTorrentClient->peerInteresting(this->infoHash, peerId);
     }
-}
-void ContentManager::removePeerInfo(int peerId) {
-    if (this->peerBitFields.count(peerId)) {
-        std::ostringstream out;
-        out << "removing peer " << peerId;
-        this->printDebugMsg(out.str());
 
-        // subtract BitField from pieceCount
-        this->rarestPieceCounter.removeBitField(this->peerBitFields[peerId]);
-
-        // remove peerId from all maps
-        this->interestingPeers.erase(peerId);
-
-        this->peerBitFields.erase(peerId);
-        this->pendingRequests.erase(peerId);
-
-        // TODO can I really erase these before the end of simulation?
-        this->totalDownloadedByPeer.erase(peerId);
-        this->totalUploadedByPeer.erase(peerId);
-
-        this->updateStatusString();
+    // Last piece resulted in the Peer becoming a seeder
+    if (peerBitField.full()) {
+        std::string out;
+        std::string peerIdStr = toStr(peerId);
+        if (this->clientBitField.full()) {
+            out = "Both the Client and Peer " + peerIdStr + " are seeders.";
+            // the connection between two seeders is useless. Drop it.
+            this->bitTorrentClient->closeConnection(this->infoHash, peerId);
+        } else {
+            out = "Peer " + peerIdStr + " became a seeder.";
+        }
+        this->printDebugMsg(out);
     }
 }
 
 // private methods
-RequestMsg *ContentManager::createRequestMsg(int pieceIndex, int blockIndex) {
-// create the request and insert it in the bundle
+void ContentManager::insertRequestInBundle(cPacketQueue * const bundle,
+    std::ostringstream & bundleMsgName, int pieceIndex, int blockIndex) {
+    assert(bundle->length() < this->requestBundleSize);
+    // create the request and insert it in the bundle
     RequestMsg *request;
     std::ostringstream name;
     name << "RequestMsg(" << pieceIndex << ", " << blockIndex << ")";
@@ -726,23 +736,118 @@ RequestMsg *ContentManager::createRequestMsg(int pieceIndex, int blockIndex) {
     request->setIndex(pieceIndex);
     request->setBegin(blockIndex * this->subPieceSize);
     request->setReqLength(this->subPieceSize);
-// set the size of the request
+    // set the size of the request
     request->setByteLength(request->getHeaderLen() + request->getPayloadLen());
-    return request;
+
+    bundleMsgName << "(" << pieceIndex << ", " << blockIndex << ")";
+    bundle->insert(request);
+}
+void ContentManager::getRemainingPieces(cPacketQueue * const bundle,
+    std::ostringstream & bundleMsgName, int peerId) {
+    assert(bundle->getLength() == 0); // Bundle starts empty
+    // get blocks from pieces previously requested by this peerId
+    std::multimap<int, int>::iterator it;
+    std::multimap<int, int>::const_iterator end;
+    tie(it, end) = this->requestedPieces.equal_range(peerId);
+    typedef std::pair<int, int> pair_t;
+    while (it != end) {
+        PieceRequests & req = this->remainingRequests.at(it->second);
+        std::list<pair_t> & blocks = req.getRequests();
+        while (!blocks.empty()) {
+            pair_t block = blocks.front();
+            this->insertRequestInBundle(bundle, bundleMsgName, block.first,
+                block.second);
+            blocks.pop_front();
+            // exit the loop because the bundle is full
+            if (bundle->getLength() == this->requestBundleSize) break;
+        }
+
+        // exit the loop because the bundle is full
+        if (bundle->getLength() == this->requestBundleSize) break;
+        ++it;
+    }
+}
+void ContentManager::getInterestingPieces(cPacketQueue * const bundle,
+    std::ostringstream & bundleMsgName, int peerId) {
+
+    // If there is still space in the bundle, add blocks from interesting pieces
+    if (bundle->getLength() == this->requestBundleSize) {
+        return;
+    }
+
+    // Ignore all pieces previously requested (including the ones requested by
+    // this peerId because they were already added to the bundle).
+    BitField allRequestBitField = this->clientBitField; // get a copy
+    typedef std::pair<int, int> pair_t;
+    BOOST_FOREACH(pair_t p, this->requestedPieces) {
+        allRequestBitField.addPiece(p.second);
+    }
+
+    std::set<int> const& intPieces = allRequestBitField.getInterestingPieces(
+        this->peerBitFields.at(peerId));
+
+    if (!intPieces.empty()) {
+        // get the rarest pieces among the interesting ones.
+        std::vector<int> const& rarest =
+            this->rarestPieceCounter.getRarestPieces(intPieces, numberOfPieces);
+        BOOST_FOREACH (int pieceIndex, rarest) {
+            // Return the incomplete piece, or create a new one
+            // similar to operator[], but without the default constructor
+            // http://cplusplus.com/reference/stl/map/operator[]/
+            PieceRequests & req =
+                this->remainingRequests.insert(
+                    std::make_pair(pieceIndex,
+                        PieceRequests(pieceIndex, this->numberOfSubPieces))).first->second;
+
+            // Add the piece to the requested map
+            this->requestedPieces.insert(std::make_pair(peerId, pieceIndex));
+            // Save the time this request was made
+            this->pieceRequestTime[pieceIndex];
+
+            // use the blocks from the request object
+            typedef std::pair<int, int> pair_t;
+            std::list<pair_t> & blocks = req.getRequests();
+            while (!blocks.empty()) {
+                pair_t block = blocks.front();
+                this->insertRequestInBundle(bundle, bundleMsgName, block.first,
+                    block.second);
+                blocks.pop_front();
+                // exit the loop because the bundle is full
+                if (bundle->getLength() == this->requestBundleSize) break;
+            }
+
+            // exit the loop because the bundle is full
+            if (bundle->length() == this->requestBundleSize) break;
+        }
+    }
+}
+bool ContentManager::isPeerInteresting(int peerId) const {
+    assert(this->peerBitFields.count(peerId));
+    // Ignore the pieces requested by other peers, but not the ones this peer
+    // has requested.
+    BitField clientRequestBitField = this->clientBitField; // get a copy
+    typedef std::pair<int, int> pair_t;
+    BOOST_FOREACH(pair_t p, this->requestedPieces) {
+        if (p.first != peerId) clientRequestBitField.addPiece(p.second);
+    }
+    BitField const& peerBitField = this->peerBitFields.at(peerId);
+    return clientRequestBitField.isBitFieldInteresting(peerBitField);
+
 }
 void ContentManager::generateDownloadStatistics(int pieceIndex) {
-// Gather statistics in the completion time
+    assert(this->pieceRequestTime.count(pieceIndex));
+    // Gather statistics in the completion time
     emit(this->pieceDownloadTime_Signal,
         simTime() - this->pieceRequestTime.at(pieceIndex));
     emit(this->downloadPiece_Signal, pieceIndex);
-// request time already used, so delete it
+    // request time already used, so delete it
     this->pieceRequestTime.erase(pieceIndex);
 
     simsignal_t markTime_Signal;
     bool emitCompletionSignal = false;
 
-// download statistics
-// when one of the download marks is reached, send the corresponding signal
+    // download statistics
+    // when one of the download marks is reached, send the corresponding signal
     if (!this->firstMarkEmitted
         && this->clientBitField.getCompletedPercentage() >= 25.0) {
         this->firstMarkEmitted = emitCompletionSignal = true;
@@ -779,91 +884,12 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
         emit(markTime_Signal, downloadInterval);
     }
 }
-/*!
- * The returned list has enough elements to fill a request bundle.
- *
- * @param peerId The id of the Peer from which the blocks will be acquired.
- */
-std::list<std::pair<int, int> > ContentManager::requestAvailableBlocks(
-    int peerId) {
-    std::list<std::pair<int, int> > availBlocks;
-
-// Get a COPY of the Client BitField and use it to evaluate which pieces
-// from the current Peer are interesting.
-    BitField clientBitFieldCopy = this->clientBitField;
-
-// get blocks from previously requested pieces
-    typedef std::pair<int, Piece> incomplete_pair_t;
-    FOREACH(incomplete_pair_t const p, this->incompletePieces) {
-        int pieceId = p.first;
-        Piece const& pieceRef = p.second;
-
-        clientBitFieldCopy.addPiece(pieceId); // ignore pieces requested to other peers
-
-        if (pieceRef.getRequesterId() == peerId) {
-            std::list<std::pair<int, int> > blocks;
-            blocks = pieceRef.getMissingBlocks();
-            // append blocks to availBlocks
-            availBlocks.splice(availBlocks.end(), blocks);
-        }
-
-        if (availBlocks.size() >= this->requestBundleSize) {
-            break;
-        }
-    }
-
-// If there is space in the bundle, add blocks from interesting pieces
-    if (availBlocks.size() < this->requestBundleSize) {
-        std::set<int> intPieces = clientBitFieldCopy.getInterestingPieces(
-            this->peerBitFields.at(peerId));
-
-        if (!intPieces.empty()) {
-            // get the rarest pieces among the interesting ones.
-            std::vector<int> rarest = this->rarestPieceCounter.getRarestPieces(
-                intPieces, numberOfPieces);
-
-            // get blocks until there are no more space available or until the
-            FOREACH(int pieceIndex, rarest) {
-                // Return the incomplete piece, or create a new one
-                // similar to operator[], but without the default constructor
-                // http://cplusplus.com/reference/stl/map/operator[]/
-                Piece & piece = this->incompletePieces.insert(
-                        std::make_pair(
-                                pieceIndex,
-                                Piece(peerId, pieceIndex,
-                                        this->numberOfSubPieces))).first->second;
-                // insert the missing blocks into the availableBlocks
-                std::list<std::pair<int, int> > missingBlocks;
-                missingBlocks = piece.getMissingBlocks();
-                availBlocks.splice(availBlocks.end(), missingBlocks);
-
-                if (availBlocks.size() >= this->requestBundleSize) {
-                    break;
-                }
-            }
-        }
-    }
-
-    return availBlocks;
-}
 void ContentManager::verifyInterestOnAllPeers() {
-// Send NotInterestedMsg to all Peers in which the client lost interest
-// and, if now seeding, disconnect from all other seeders
-    std::set<int>::iterator interestingPeersIt = this->interestingPeers.begin();
-
-// Send a NotInterested message to each Peer that is no longer
-// interesting to the Client.
-    while (interestingPeersIt != this->interestingPeers.end()) {
-        // Copy then increment. Deleting this iterator don't invalidate it.
-        std::set<int>::iterator currentPeerIt = interestingPeersIt++;
+    std::set<int>::iterator it = this->interestingPeers.begin();
+    while (it != this->interestingPeers.end()) {
+        // Copy then increment. Delete using this iterator don't invalidate 'it'.
+        std::set<int>::iterator currentPeerIt = it++;
         int peerId = *currentPeerIt;
-
-        // ignore already requested pieces
-        BitField clientBitFieldCopy = this->clientBitField;
-//        typedef std::pair<int, Piece> pair_t;
-//        BOOST_FOREACH(pair_t p, this->incompletePieces) {
-//            clientBitFieldCopy.addPiece(p.first);
-//        }
 
         BitField const& peerBitField = this->peerBitFields.at(peerId);
         // Drop this connection because it is no longer useful.
@@ -872,22 +898,13 @@ void ContentManager::verifyInterestOnAllPeers() {
                 + " are seeders.";
             this->printDebugMsg(out);
             this->bitTorrentClient->closeConnection(this->infoHash, peerId);
-        } else if (!clientBitFieldCopy.isBitFieldInteresting(peerBitField)) {
+        } else if (!this->isPeerInteresting(peerId)) {
             // not interesting anymore
             this->interestingPeers.erase(currentPeerIt);
             this->bitTorrentClient->peerNotInteresting(this->infoHash, peerId);
         }
     }
 }
-//void ContentManager::eraseRequestedPiece(int pieceIndex) {
-//    IntPairSetIt requestedPiecesIt;
-//    requestedPiecesIt = this->requestedPieces.lower_bound(
-//        std::make_pair(pieceIndex, -1));
-//
-//    if (requestedPiecesIt != this->requestedPieces.end()) {
-//        this->requestedPieces.erase(requestedPiecesIt);
-//    }
-//}
 // signal methods
 void ContentManager::registerEmittedSignals() {
 // Configure signals
@@ -907,8 +924,6 @@ void ContentManager::registerEmittedSignals() {
     SIGNAL(downloadPiece_Signal, DownloadPiece);
 #undef SIGNAL
 }
-void ContentManager::subscribeToSignals() {
-}
 // module methods
 void ContentManager::printDebugMsg(std::string s) {
     if (this->debugFlag) {
@@ -927,8 +942,9 @@ void ContentManager::updateStatusString() {
         if (this->clientBitField.full()) {
             out << "Seeder";
         } else {
-            out << std::setprecision(2) << std::fixed
-                << this->clientBitField.getCompletedPercentage() << "%";
+            out.precision(2);
+            out.setf(std::ios::fixed);
+            out << this->clientBitField.getCompletedPercentage() << "%";
         }
 
         // TODO show more info
@@ -939,25 +955,14 @@ void ContentManager::updateStatusString() {
 // protected methods
 void ContentManager::initialize() {
     this->registerEmittedSignals();
-
-// TODO allow peers to start with random BitFields.
-// will throw an error if this module is not owned by a SwarmManager
-    SwarmManager * swarmManager = check_and_cast<SwarmManager*>(
-        getParentModule());
-    this->localPeerId = swarmManager->getParentModule()->getParentModule()
-        ->getId();
-
-    cModule* bitTorrentClient = swarmManager->getParentModule()->getSubmodule(
-        "bitTorrentClient");
-
-    if (bitTorrentClient == NULL) {
-        throw cException("BitTorrentClient module not found");
-    }
-
+    // TODO allow peers to start with random BitFields.
+    // will throw an error if this module is not owned by a SwarmManager
     this->bitTorrentClient = check_and_cast<BitTorrentClient*>(
-        bitTorrentClient);
+        getParentModule());
 
-// setting parameters from NED
+    this->localPeerId = this->bitTorrentClient->getLocalPeerId();
+
+    // setting parameters from NED
     this->numberOfPieces = par("numOfPieces").longValue();
     this->numberOfSubPieces = par("numOfSubPieces").longValue();
     this->subPieceSize = par("subPieceSize").longValue();
@@ -967,18 +972,18 @@ void ContentManager::initialize() {
     this->infoHash = par("infoHash").longValue();
     bool seeder = par("seeder").boolValue();
 
-// create an empty or full BitField, depending on the parameter "seeder"
+    // create an empty or full BitField, depending on the parameter "seeder"
     this->clientBitField = BitField(this->numberOfPieces, seeder);
 
     if (seeder) {
         this->updateStatusString();
     }
 
-// Token bucket stuff
+    // Token bucket stuff
     this->tokenBucket = new TokenBucket(this, this->subPieceSize,
         par("burstSize").longValue(), par("bytesSec").longValue());
 
-// create an empty RarestPieceCounter
+    // create an empty RarestPieceCounter
     this->rarestPieceCounter = RarestPieceCounter(this->numberOfPieces);
     this->debugFlag = par("debugFlag").boolValue();
 }

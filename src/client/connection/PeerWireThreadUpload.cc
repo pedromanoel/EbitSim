@@ -88,41 +88,46 @@
 
 // Upload State Machine methods
 void PeerWireThread::cancelPiece(CancelMsg const& msg) {
+    //TODO
     throw std::logic_error("Cancel not implemented");
-    //TODO The requests are responded as soon as they arrive.
-    //TODO There is no output queue, so there is nothing to cancel.
 }
 void PeerWireThread::cancelUploadRequests() {
+    assert(this->contentManager);
     this->contentManager->cancelUploadRequests(this->remotePeerId);
 }
 void PeerWireThread::calculateUploadRate() {
-    unsigned long totalUploaded = this->contentManager->getTotalUploaded(this->remotePeerId);
-    double upRate = this->btClient->updateUploadRate(this->infoHash, this->remotePeerId, totalUploaded);
+    assert(this->contentManager);
+    unsigned long totalUploaded = this->contentManager->getTotalUploaded(
+        this->remotePeerId);
+    double upRate = this->btClient->updateUploadRate(this->infoHash,
+        this->remotePeerId, totalUploaded);
 
-    std::string out = "Upload rate: " + boost::lexical_cast<std::string>(upRate);
+    std::string out = "Upload rate: "
+        + boost::lexical_cast<std::string>(upRate);
     this->printDebugMsgUpload(out);
 }
 void PeerWireThread::callChokeAlgorithm() {
-    // Tell choker to recalculate the choked peers.
-    if (this->choker) {
-        this->printDebugMsgUpload("Calling choke round");
-
-        this->choker->callChokeAlgorithm();
-    }
+    // The choke algorithm is called when the upload machine stops, even when
+    // it stopped because the swarm has been deleted
+    assert(this->choker);
+    this->choker->callChokeAlgorithm();
 }
-void PeerWireThread::fillUploadSlots() {
-    this->choker->fillUploadSlots(this->remotePeerId);
+void PeerWireThread::addPeerToChoker() {
+    assert(this->choker);
+    this->choker->addInterestedPeer(this->remotePeerId);
 }
 ChokeMsg * PeerWireThread::getChokeMsg() {
     this->printDebugMsgUpload("Get ChokeMsg");
     return new ChokeMsg("ChokeMsg");
 }
 void PeerWireThread::requestPieceMsg(RequestMsg const& msg) {
+    assert(this->contentManager);
     // the Peer must ask for pieces that the
     this->contentManager->requestPieceMsg(this->remotePeerId, msg.getIndex(),
         msg.getBegin(), msg.getReqLength());
 }
 PieceMsg * PeerWireThread::getPieceMsg() {
+    assert(this->contentManager);
     // the Peer must ask for pieces that the
     PieceMsg * pieceMsg = this->contentManager->getPieceMsg(this->remotePeerId);
     return pieceMsg;

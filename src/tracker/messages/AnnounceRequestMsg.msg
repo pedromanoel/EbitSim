@@ -77,7 +77,7 @@ cplusplus {{
 class noncobject BitField;
 
 // announce event types
-enum ANNOUNCE_TYPE
+enum AnnounceType
 {
     A_STARTED   = 1; // announce event=started
     A_STOPPED   = 2; // announce event=stopped
@@ -87,7 +87,7 @@ enum ANNOUNCE_TYPE
 };
 
 packet AnnounceRequestMsg {
-    // The following header was extracted from the prototype, and is being used
+    // The following header was extracted from a real request, and is being used
     // as base for the request size, with length of 163 bytes. Attention to the
     // newline character at the end.
     //
@@ -97,9 +97,10 @@ packet AnnounceRequestMsg {
     // Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
     // Connection: keep-alive
     //
+    // ?infohash=XXXXXXXXXXXXXXXXXXXX&event=A_STARTED&numwant=XXX&peer_id=XXXXXXXXXXXXXXX&port=1234 
     // "
     // It is being used as the base size for the message.
-    int baseByteLength = 163;
+    int messageLength = 272;
 
     // string representation of the announce, determine the size of the message
     string urlEncodedRequest;
@@ -110,7 +111,7 @@ packet AnnounceRequestMsg {
     // announce parameters
     //bool compact;               // True if the requester wants a compact response.
     double downloaded;    // The number of bytes downloaded by the requesting peer.
-    int event enum(ANNOUNCE_TYPE); // The type of the event that generated this request.
+    int event enum(AnnounceType); // The type of the event that generated this request.
     unsigned int numWant;       // The maximum number of peers wanted.
     int peerId;                 // The Id of the requesting peer. See PeerEntry for more info on the Peer id.
     unsigned int port;          // The port that the peer is listening for connections with other peers.

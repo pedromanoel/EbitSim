@@ -73,14 +73,16 @@ cplusplus {{
 
 #include <cpacketqueue.h>
 #include "PeerWire_m.h"
+
+typedef cPacketQueue* cPacketQueuePtr;
 }}
 
-class cPacketQueue;
+class noncobject cPacketQueuePtr;
 
 //
 // Store several PeerWire messages. Used for request and have messages.
 //
 packet PeerWireMsgBundle {
     // a queue containing PeerWire messages.
-    cPacketQueue bundle;
+    cPacketQueuePtr bundle;
 }

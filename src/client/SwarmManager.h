@@ -74,31 +74,28 @@
 #define __TRACKERCLIENT_H__
 
 #include <omnetpp.h>
-#include <TCPSrvHostApp.h>
 #include <signal.h>
+#include <TCPSocketMap.h>
 
-#include "AnnounceRequestMsg_m.h"
-#include "AnnounceResponseMsg_m.h"
-
+class AnnounceRequestMsg;
+class AnnounceResponseMsg;
 class BitTorrentClient;
 class Choker;
 class ContentManager;
-class SwarmManagerThread;
 class TorrentMetadata;
 
-class SwarmManager: public TCPSrvHostApp {
-    friend class SwarmManagerThread;
+class SwarmManager: public cSimpleModule {
+friend class TrackerSocketCallback;
 public:
     SwarmManager();
     virtual ~ SwarmManager();
-
     //!@name Swarm management
     //@{
+    void askMorePeers(int infoHash);
     //! Connect with the Tracker and send a COMPLETE announce message.
     void finishedDownload(int infoHash);
     //@}
 
-    //!@name
     /*!
      * Return true if the SwarmManager has a swarm with the passed infoHash.
      *
@@ -109,19 +106,27 @@ public:
      *      with the passed infoHash or set to NULL if there is no swarm.
      */
     std::pair<Choker*, ContentManager*> checkSwarm(int infoHash);
-
-    void stopChoker(int infoHash);
+    //! Stop the choker timers.
+//    void stopChoker(int infoHash);
 private:
-    class SwarmModules;
-
     //!@name Pointers to other modules.
     //@{
     //! Used by the SwarmManagerThread objects to send the response to this
     //! module
     BitTorrentClient* bitTorrentClient;
     //@}
-    std::map<int, SwarmModules> swarmModulesMap;
-    std::map<int, SwarmManagerThread*> swarmThreads;
+    //! Treat the data received from the Tracker
+    void socketDataArrived(int infoHash, AnnounceResponseMsg *msg);
+
+    //! Used to find the sockets for the arriving messages
+    TCPSocketMap socketMap;
+    //! Base message for creating announce requests
+//    AnnounceRequestMsg * announceRequestBase;
+
+    //! Class that manages the swarm modules
+    class TrackerSocketCallback;
+    //! Maps an infoHash to a SwarmModules object
+    std::map<int, TrackerSocketCallback*> callbacksByInfoHash;
 
     /*! The id of this peer. In the real implementation, it is a 20-byte string.
      * At http://wiki.theory.org/BitTorrentSpecification#peer_id there is a brief explanation
@@ -134,30 +139,42 @@ private:
     //! True to print debug messages.
     bool debugFlag;
     //! True to print debug messages of the submodules.
-    bool subModulesDebugFlag;
+//    bool subModulesDebugFlag;
     //! The number of Peers the Client requests to the Tracker
     int numWant;
     //! The port opened for connection from other Peers
-    int port;
-    //! Time between two announces.
-    double refreshInterval;
-    //! The IP address of the Tracer Host
-    // IPvXAddress trackerAddress;
-    //! The port used by the TrackerApp
-    // int trackerPort;
+    int localPort;
+    //! Normal time between two announces.
+    double normalRefreshInterval;
+    //! Smallest time between two announces.
+    double minimumRefreshInterval;
     //@}
 
 private:
     //!@name Related to user commands
     //@{
+    //! Give the proper treatment to user command messages.
+    void treatUserCommand(cMessage * msg);
+    //! Give the proper treatment to self messages.
+    void treatSelfMessages(cMessage * msg);
+    //! Give the proper treatment to TCP messages.
+    void treatTCPMessage(cMessage * msg);
     /*!
-     * Connect with the Tracker and send the first announce message. If the
-     * Client started as a seeder, the first announce message is of type
-     * COMPLETE, being of type NORMAL otherwise.
+     * Send an announce to the Tracker stating that this Peer entered the swarm.
+     * The response to this announce will be passed to the BitTorrentClient,
+     * which will start connecting with the received peers.
+     * @param torrentInfo Information got from the torrent metadata.
+     * @param seeder True if this Peer is a seeder.
+     * @param trackerAddress The address of the Tracker.
+     * @param trackerPort The port which the Tracker is listening.
      */
     void enterSwarm(TorrentMetadata const& torrentInfo, bool seeder,
             IPvXAddress const& trackerAddress, int trackerPort);
-    //! Connect with the Tracker and send an STOP announce message.
+    /*! Send an announce to the Tracker stating that this Peer is exiting the
+     * swarm. Upon response, close the connections with all the peers and delete
+     * the swarm related modules
+     * @param infoHash The infoHash of the swarm.
+     */
     void leaveSwarm(int infoHash);
     //@}
 
@@ -172,22 +189,15 @@ private:
     simsignal_t uploadRateSignal;
     //!Signal emitted when the swarm is created.
     simsignal_t enterSwarmSignal;
-    //! Signal emitted when the client receives first response from the tracker.
-    simsignal_t enteredSwarmSignal;
     //@}
 
     //! Register all signals this module is going to emit.
     void registerEmittedSignals();
     //@}
 
-
 protected:
     void handleMessage(cMessage *msg);
-    void initialize(int stage);
-    int numInitStages() const;
-
-    double getDownloadRate();
-    double getUploadRate();
+    void initialize();
 };
 
 #endif

@@ -260,7 +260,9 @@ Default
             {} // Ignore the timer outside the state IntestedUnchoked
     stopMachine
         Stopped
-            {}
+            {
+                cancelDownloadRequests();
+            }
     haveMsg(msg: HaveMsg const&)
         nil
             {

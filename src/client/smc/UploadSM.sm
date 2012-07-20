@@ -121,7 +121,7 @@ Entry {
         InterestingChoking
             {
                 setInterested(true);
-                fillUploadSlots();
+                addPeerToChoker();
             }
     unchokePeer
         NotInterestingUnchoking
@@ -229,7 +229,9 @@ Default
             }
     stopMachine
         Stopped
-            {}
+            {
+                cancelUploadRequests();
+            }
     uploadRateTimer()
         nil
             {}

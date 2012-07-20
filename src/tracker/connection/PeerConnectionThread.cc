@@ -167,7 +167,7 @@ AnnounceResponseMsg* PeerConnectionThread::makeResponse(
     // collect all information from the request
     int infoHash = announceRequestMsg->getInfoHash();
     double downloaded = announceRequestMsg->getDownloaded(); // FIXME not used
-    ANNOUNCE_TYPE event = (ANNOUNCE_TYPE) announceRequestMsg->getEvent();
+    AnnounceType event = (AnnounceType) announceRequestMsg->getEvent();
     unsigned int numWant = announceRequestMsg->getNumWant();
     int peerId = announceRequestMsg->getPeerId();
     unsigned int port = announceRequestMsg->getPort();

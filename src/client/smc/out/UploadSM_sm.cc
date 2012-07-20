@@ -403,7 +403,7 @@ void UploadMap_NotInterestingChoking::interestedMsg(UploadSMContext& context)
     try
     {
         ctxt.setInterested(true);
-        ctxt.fillUploadSlots();
+        ctxt.addPeerToChoker();
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();

@@ -142,7 +142,7 @@ std::vector<PeerInfo const*> TrackerApp::getRandomPeers(
 
 // TODO save all other information
 void TrackerApp::updatePeerStatus(PeerInfo const& peerInfo, int infoHash,
-        ANNOUNCE_TYPE status) {
+        AnnounceType status) {
     SwarmPeerList & peerList = this->swarms.at(infoHash);
     SwarmPeerList::iterator it = peerList.find(peerInfo);
 
@@ -212,14 +212,12 @@ void TrackerApp::handleMessage(cMessage* msg) {
 }
 
 TorrentMetadata const& TrackerApp::getTorrentMetaData(std::string contentName) {
+    Enter_Method("getTorrentMetaData(content: %s)", contentName.c_str());
     return this->contents.at(contentName);
 }
 
 void TrackerApp::registerEmittedSignals() {
     // register the signal sent when a peer becomes a seeder
     this->seederSignal = registerSignal("TrackerApp_BecameSeeder");
-}
-//! Subscribe to signals.
-void TrackerApp::subscribeToSignals() {
 }
 

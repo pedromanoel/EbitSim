@@ -88,18 +88,22 @@
 
 // Download State Machine methods
 void PeerWireThread::addBitField(BitFieldMsg const& msg) {
+    assert(this->contentManager);
     this->contentManager->addPeerBitField(msg.getBitField(),
         this->remotePeerId);
 }
 void PeerWireThread::calculateDownloadRate() {
+    assert(this->contentManager);
     unsigned long totalDownloaded = this->contentManager->getTotalDownloaded(
         this->remotePeerId);
-    double downRate = this->btClient->updateDownloadRate(this->infoHash, this->remotePeerId,
-        totalDownloaded);
-    std::string out = "Download rate: " + boost::lexical_cast<std::string>(downRate);
+    double downRate = this->btClient->updateDownloadRate(this->infoHash,
+        this->remotePeerId, totalDownloaded);
+    std::string out = "Download rate: "
+        + boost::lexical_cast<std::string>(downRate);
     this->printDebugMsgDownload(out);
 }
 void PeerWireThread::cancelDownloadRequests() {
+    assert(this->contentManager);
     this->contentManager->cancelDownloadRequests(this->remotePeerId);
 }
 InterestedMsg * PeerWireThread::getInterestedMsg() {
@@ -112,6 +116,7 @@ NotInterestedMsg * PeerWireThread::getNotInterestedMsg() {
 
 }
 PeerWireMsgBundle * PeerWireThread::getRequestMsgBundle() {
+    assert(this->contentManager);
     PeerWireMsgBundle * bundle = this->contentManager->getNextRequestBundle(
         this->remotePeerId);
     if (bundle != NULL) {
@@ -124,10 +129,12 @@ PeerWireMsgBundle * PeerWireThread::getRequestMsgBundle() {
     return bundle;
 }
 void PeerWireThread::processBlock(PieceMsg const& msg) {
+    assert(this->contentManager);
     this->contentManager->processBlock(this->remotePeerId, msg.getIndex(),
         msg.getBegin(), msg.getBlockSize());
 }
 void PeerWireThread::processHaveMsg(HaveMsg const& msg) {
+    assert(this->contentManager);
     this->contentManager->processHaveMsg(msg.getIndex(), this->remotePeerId);
 }
 void PeerWireThread::renewDownloadRateTimer() {

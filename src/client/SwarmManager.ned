@@ -72,9 +72,9 @@
 
 package br.larc.usp.client;
 
-import inet.applications.tcpapp.TCPSrvHostApp;
+import inet.applications.tcpapp.TCPApp;
 
-simple SwarmManager extends TCPSrvHostApp
+simple SwarmManager like TCPApp
 {
     parameters:
 //        @statistic[SwarmManager_EnterSwarm](
@@ -140,17 +140,16 @@ simple SwarmManager extends TCPSrvHostApp
 //        );
 
         @display("i=misc/globe,red");
-        @class(SwarmManager);
-        // parent's parameters
-        // all threads will be activelly created
-        serverThreadClass = "n/a";
-
         // own parameters
         bool debugFlag = default(false);
-        bool subModulesDebugFlag = default(false);
         // The number of Peers the Client requests to the Tracker
         int numWant = default(50);
-        double refreshInterval @unit(s) = default(180s);
+        double normalRefreshInterval @unit(s) = default(180s);
+        double minimumRefreshInterval @unit(s) = default(20s);
+        // probability the Peer will leave the swarm after completion
+        double remainingSeeders;
     gates:
         input userCommand @directIn;
+        input tcpIn @labels(TCPCommand/up);
+        output tcpOut @labels(TCPCommand/down);
 }

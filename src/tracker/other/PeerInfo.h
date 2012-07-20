@@ -94,8 +94,8 @@ public:
     int getPeerId() const;
     IPvXAddress const& getIp() const;
     int getPort() const;
-    void setStatus(ANNOUNCE_TYPE status);
-    ANNOUNCE_TYPE getStatus();
+    void setStatus(AnnounceType status);
+    AnnounceType getStatus();
 
     bool operator==(PeerInfo const& peerInfo) const;
     bool operator!=(PeerInfo const& peerInfo) const;
@@ -108,7 +108,7 @@ private:
     int peerId; //! The peer Id
     IPvXAddress ip; //! The peer IP Address
     unsigned int port; //! The peer TCP port number
-    ANNOUNCE_TYPE status;
+    AnnounceType status;
 };
 
 std::ostream& operator<<(std::ostream& out, PeerInfo const& peerInfo);

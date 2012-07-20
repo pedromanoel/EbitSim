@@ -72,174 +72,330 @@
 
 #include "SwarmManager.h"
 
+#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <string>
 #include <IPAddressResolver.h>
 
 #include "AnnounceRequestMsg_m.h"
+#include "AnnounceResponseMsg_m.h"
 
 #include "BitTorrentClient.h"
 #include "Choker.h"
 #include "ContentManager.h"
-#include "SwarmManagerThread.h"
 #include "UserCommand_m.h"
+
+// Dumb fix because of the CDT parser (https://bugs.eclipse.org/bugs/show_bug.cgi?id=332278)
+#ifdef __CDT_PARSER__
+#undef BOOST_FOREACH
+#define BOOST_FOREACH(a, b) for(a; ; )
+#endif
+
+namespace {
+std::string toStr(int i) {
+    return boost::lexical_cast<std::string>(i);
+}
+
+std::string getEventStr(AnnounceType type) {
+    std::string evStr;
+#define CASE(X) case X: evStr = #X; break
+    switch (type) {
+    CASE(A_STARTED);
+    CASE(A_STOPPED);
+    CASE(A_COMPLETED);
+    CASE(A_NORMAL);
+    default:
+        evStr = "Strange";
+        break;
+    }
+#undef CASE
+    return evStr;
+}
+}
 
 // Private class SwarmModules
 /*!
- * A simple container for the swarm-related modules and the related torrent
- * metadata
+ * The callback class for the Tracker announces
  */
-class SwarmManager::SwarmModules {
+class SwarmManager::TrackerSocketCallback: public TCPSocket::CallbackInterface {
+private:
+    SwarmManager * parent;
+
+    //! True if entering as a seeder.
+    bool seeder;
+    bool pending;
+
+    AnnounceType lastAnnounceType;
+
+    TCPSocket* socket;
+    IPvXAddress trackerAddress;
+    int trackerPort;
+    AnnounceRequestMsg announceRequestBase;
+    //! Timer to count the minimum interval between requests
+    cMessage minimumAnnounceTimer;
+    //! Timer to count the normal interval between requests
+    cMessage normalAnnounceTimer;
 public:
-    ContentManager* contentManager;
-    Choker* choker;
     TorrentMetadata torrent;
 
-    //! Create the modules ContentManager and Choker as a child of parent.
-    SwarmModules(TorrentMetadata const& torrent, bool seeder, bool debugFlag,
-        cModule * parent) :
-            torrent(torrent) {
+    /*!
+     * Create and start the modules ContentManager and Choker
+     *
+     * @param parent The parent module of the ContentManager and Choker.
+     * @param socket The socket object used to contact the Tracker.
+     * @param bitTorrentClient The module that connects to the Peers returned by
+     * the Tracker.
+     * @param announceRequestBase The message which generates the announces to
+     * the Tracker.
+     * @param trackerAddress The IP address of the Tracker.
+     * @param trackerPort The open port of the Tracker.
+     * @param torrent The torrent file used to initialize the ContentManager
+     * module.
+     * @param seeder True if the ContentManager should initialize with all of
+     * the pieces available.
+     * @param debugFlag True if the ContentManager and Choker modules should
+     * print debug messages.
+     */
+    TrackerSocketCallback(SwarmManager * parent, TorrentMetadata const& torrent,
+        bool seeder, TCPSocket* socket, IPvXAddress const& trackerAddress,
+        int trackerPort) :
+        torrent(torrent), parent(parent), seeder(seeder), pending(false), //
+        socket(socket), lastAnnounceType(A_STARTED), //
+        trackerAddress(trackerAddress), trackerPort(trackerPort), //
+        announceRequestBase("Announce Request"), //
+        normalAnnounceTimer("NormalAnnounceTimer"), //
+        minimumAnnounceTimer("MinimumAnnounceTimer") {
 
-        using boost::lexical_cast;
-        using std::string;
-        // create ContentManager module
-        cModule* contentManager;
-        cModuleType *contentManagerType = cModuleType::get("br.larc.usp.client."
-            "ContentManager");
+        this->announceRequestBase.setInfoHash(this->torrent.infoHash);
+        this->announceRequestBase.setNumWant(this->parent->numWant);
+        this->announceRequestBase.setPeerId(this->parent->localPeerId);
+        this->announceRequestBase.setPort(this->parent->localPort);
+        this->announceRequestBase.setDownloaded(0);
+        this->announceRequestBase.setUploaded(0);
+        this->announceRequestBase.setByteLength(
+            this->announceRequestBase.getMessageLength());
 
-        string name_cm = "contentManager_"
-            + lexical_cast<string>(torrent.infoHash);
-        contentManager = contentManagerType->create(name_cm.c_str(), parent);
-        contentManager->par("numOfPieces") = torrent.numOfPieces;
-        contentManager->par("numOfSubPieces") = torrent.numOfSubPieces;
-        contentManager->par("subPieceSize") = torrent.subPieceSize;
-        contentManager->par("debugFlag") = debugFlag;
-        contentManager->par("seeder") = seeder;
-        contentManager->par("infoHash") = torrent.infoHash;
-        contentManager->finalizeParameters();
-        contentManager->buildInside();
-        contentManager->scheduleStart(simTime());
-        contentManager->callInitialize();
-
-        // create Choker module
-        cModule* choker;
-        cModuleType *chokerManagerType = cModuleType::get("br.larc.usp.client."
-            "Choker");
-        string name_c = "choker_" + lexical_cast<string>(torrent.infoHash);
-        choker = chokerManagerType->create(name_c.c_str(), parent);
-        choker->par("debugFlag") = debugFlag;
-        choker->par("infoHash") = torrent.infoHash;
-        choker->par("seeder") = seeder;
-        choker->finalizeParameters();
-        choker->buildInside();
-        choker->scheduleStart(simTime());
-        choker->callInitialize();
-
-        this->contentManager = static_cast<ContentManager*>(contentManager);
-        this->choker = static_cast<Choker*>(choker);
+        this->normalAnnounceTimer.setContextPointer(this);
+        this->minimumAnnounceTimer.setContextPointer(this);
+        this->parent->bitTorrentClient->createSwarm(torrent.infoHash,
+            torrent.numOfPieces, torrent.numOfSubPieces, torrent.subPieceSize,
+            this->seeder);
     }
-    ~SwarmModules() {
+    ~TrackerSocketCallback() {
+        delete socket;
+        // cancel the periodic announce timer
+        this->parent->cancelEvent(&this->normalAnnounceTimer);
+        this->parent->cancelEvent(&this->minimumAnnounceTimer);
+    }
+    //!@name TCPSocket::CallbackInterface virtual methods
+    //@{
+    void socketDataArrived(int connId, void *yourPtr, cPacket *msg,
+        bool urgent) {
+        // If stopping, don't send the response to the peer.
+        if (this->lastAnnounceType != A_STOPPED) {
+            AnnounceResponseMsg* response =
+                check_and_cast<AnnounceResponseMsg*>(msg);
+            // get list of Peers returned by the tracker and tell the
+            // BitTorrentClient to connect with them.
+            std::list<PeerConnInfo> peers;
+            for (unsigned int i = 0; i < response->getPeersArraySize(); ++i) {
+                PeerInfo& info = response->getPeers(i);
+                PeerConnInfo peer = make_tuple(info.getPeerId(), info.getIp(),
+                    info.getPort());
+                peers.push_back(peer);
+            }
+            if (peers.size()) {
+                this->parent->bitTorrentClient->addUnconnectedPeers(
+                    this->torrent.infoHash, peers);
+            }
+        }
+        delete msg;
+        msg = NULL;
+    }
+    void socketPeerClosed(int connId, void *yourPtr) {
+        this->parent->printDebugMsg("Peer closed");
+        this->socket->close(); // close the connection locally
+    }
+    void socketClosed(int connId, void *yourPtr) {
+        this->parent->printDebugMsg("Local closed");
+        // Renewing the socket changes the connid, so remove from the socketMap
+        this->parent->socketMap.removeSocket(this->socket);
+        // make the socket ready to connect again
+        this->socket->renewSocket();
+
+        switch (this->lastAnnounceType) {
+        case A_COMPLETED: {
+            // Check if the peer will leave the swarm after completed
+            if (uniform(0, 1) < parent->par("remainingSeeders").doubleValue()) {
+                cMessage * leaveMsg = new cMessage("Leave");
+                leaveMsg->setContextPointer(this);
+                this->parent->scheduleAt(simTime(), leaveMsg);
+            }
+        }
+            break;
+        case A_STOPPED: {
+            // Exiting the swarm, delete the callback object
+            cMessage * deleteMsg = new cMessage("Delete");
+            deleteMsg->setContextPointer(this);
+            this->parent->scheduleAt(simTime(), deleteMsg);
+        }
+            break;
+        case A_STARTED: /* empty case */
+        case A_NORMAL: /* empty case */
+            // Schedule the next announce only if leeching, since the seeder
+            // won't actively connect
+            if (!this->seeder) {
+                this->pending = false; // the request has been responded
+
+                // Stop and start the timers
+                simtime_t nextMin = simTime(); // next minimum timeout
+                simtime_t nextNormal = simTime(); // next normaltimeout
+                nextMin += this->parent->minimumRefreshInterval;
+                nextNormal += this->parent->normalRefreshInterval;
+                this->parent->cancelEvent(&this->minimumAnnounceTimer);
+                this->parent->cancelEvent(&this->normalAnnounceTimer);
+                this->parent->scheduleAt(nextMin, &this->minimumAnnounceTimer);
+                this->parent->scheduleAt(nextNormal, &this->normalAnnounceTimer);
+            }
+            break;
+        }
+    }
+    //@}
+
+    /*!
+     * Send the announce if the conditions are met. Called directly or when one
+     * of the timers expire.
+     * @param type The type of the announce to be sent to the Tracker.
+     */
+    void sendAnnounce(AnnounceType type) {
+        // Don't connect if the socket is already connected
+        if (this->socket->getState() == TCPSocket::NOT_BOUND) {
+
+            bool sendAnnounce = false;
+            // If not a A_NORMAL announce, OR
+            // if the minimum timer is not scheduled, send the announce
+            sendAnnounce = (type != A_NORMAL)
+                || !this->minimumAnnounceTimer.isScheduled();
+
+            if (sendAnnounce && !this->pending) {
+                // Don't send the next announce until this one has been responded
+                this->pending = true;
+                std::string const& typeStr = getEventStr(type);
+                this->parent->printDebugMsg(
+                    typeStr + " "
+                        + toStr(this->announceRequestBase.getInfoHash()));
+                this->lastAnnounceType = type;
+                // Connect the socket and send a new announce request
+                AnnounceRequestMsg *announceRequest = announceRequestBase.dup();
+                announceRequest->setEvent(type);
+
+                this->parent->socketMap.addSocket(this->socket);
+                this->socket->connect(this->trackerAddress, this->trackerPort);
+                this->socket->send(announceRequest);
+            } else {
+                // The next announce will have this type
+                this->lastAnnounceType = type;
+                this->parent->printDebugMsg("Don't send the announce");
+            }
+        }
     }
 };
 
 Define_Module(SwarmManager);
 // Public methods
 SwarmManager::SwarmManager() :
-        localPeerId(-1), debugFlag(false), numWant(0), port(-1), refreshInterval(
-            0) {
+    localPeerId(-1), debugFlag(false), numWant(0), localPort(-1), normalRefreshInterval(
+        0), minimumRefreshInterval(0) {
 }
 SwarmManager::~SwarmManager() {
-    this->socketMap.deleteSockets();
-    // delete thread objects
-    std::map<int, SwarmManagerThread *>::iterator threadIt;
-    threadIt = this->swarmThreads.begin();
-    for (; threadIt != this->swarmThreads.end(); ++threadIt) {
-        delete threadIt->second;
-        threadIt->second = NULL;
+    typedef std::pair<int, TrackerSocketCallback *> map_t;
+
+    BOOST_FOREACH(map_t const& m, this->callbacksByInfoHash) {
+        delete m.second;
     }
 }
 
+void SwarmManager::askMorePeers(int infoHash) {
+    Enter_Method("askMorePeers(%d)", infoHash);
+    this->printDebugMsg("Ask for more peers for swarm " + toStr(infoHash));
+    TrackerSocketCallback * socketCallback = this->callbacksByInfoHash.at(
+        infoHash);
+    socketCallback->sendAnnounce(A_NORMAL);
+
+}
 void SwarmManager::finishedDownload(int infoHash) {
     // tell simulator that this method is being called.
-    Enter_Method("finishedDownload()");
+    Enter_Method("finishedDownload(%d)", infoHash);
+    this->printDebugMsg("Finished download for swarm " + toStr(infoHash));
 
-    // change the status of the swarm modules
-    this->swarmModulesMap.at(infoHash).choker->par("seeder") = true;
-    this->swarmModulesMap.at(infoHash).contentManager->par("seeder") = true;
-
-    SwarmManagerThread * thread = this->swarmThreads.at(infoHash);
-    thread->sendAnnounce(A_COMPLETED);
-}
-
-std::pair<Choker*, ContentManager*> SwarmManager::checkSwarm(int infoHash) {
-    Enter_Method("checkSwarm(infoHash: %d)", infoHash);
-    std::map<int, SwarmModules>::iterator it = this->swarmModulesMap.find(
+    TrackerSocketCallback * socketCallback = this->callbacksByInfoHash.at(
         infoHash);
-    Choker * choker = NULL;
-    ContentManager * contentManager = NULL;
-    if (it != this->swarmModulesMap.end()) {
-        choker = it->second.choker;
-        contentManager = it->second.contentManager;
-    }
-    return std::make_pair(choker, contentManager);
-}
-void SwarmManager::stopChoker(int infoHash) {
-    Enter_Method("stopChoker(infoHash: %d)", infoHash);
-    SwarmModules & SwarmModules = this->swarmModulesMap.at(infoHash);
-
-    SwarmModules.choker->stopChoker();
+    socketCallback->sendAnnounce(A_COMPLETED);
 }
 
 // Private methods
-
 // Tracker communication methods
 void SwarmManager::enterSwarm(TorrentMetadata const& torrentMetadata,
     bool seeder, IPvXAddress const& trackerAddress, int trackerPort) {
 
-    // Create a new SwarmModules object and insert it in the SwarmModules map.
-    // If the swarm already exists, throw an exception.
-    if (this->swarmModulesMap.count(torrentMetadata.infoHash)) {
-        throw std::logic_error("Tried to create swarm, "
-            "but it already exists.");
-    }
+    // The swarm must be new
+    assert(!this->callbacksByInfoHash.count(torrentMetadata.infoHash));
 
-    SwarmModules const& swarmModules = SwarmModules(torrentMetadata, seeder,
-        this->subModulesDebugFlag, this);
-    this->swarmModulesMap.insert(
-        std::make_pair(torrentMetadata.infoHash, swarmModules));
-    // start the swarm in the BitTorrentClient
-    this->bitTorrentClient->addSwarm(torrentMetadata.infoHash, seeder);
-
-    // create the announce message
-    AnnounceRequestMsg announceRequest("Announce request");
-    announceRequest.setInfoHash(torrentMetadata.infoHash);
-    announceRequest.setDownloaded(0);
-    announceRequest.setEvent(A_STARTED);
-    announceRequest.setNumWant(numWant);
-    announceRequest.setPeerId(this->localPeerId);
-    announceRequest.setPort(this->port);
-    announceRequest.setUploaded(0);
-
-    // send the announce to acquire the list of peers for this swarm
-    SwarmManagerThread * thread = new SwarmManagerThread(announceRequest,
-        this->refreshInterval, seeder, trackerAddress, trackerPort);
+    // Create the socket and the callback objects
     TCPSocket * socket = new TCPSocket();
     socket->setOutputGate(gate("tcpOut"));
-    socket->setCallbackObject(thread);
-    thread->init(this, socket);
 
-    this->swarmThreads[torrentMetadata.infoHash] = thread;
-    thread->sendAnnounce(A_STARTED);
+    TrackerSocketCallback * socketCallback = new TrackerSocketCallback(this,
+        torrentMetadata, seeder, socket, trackerAddress, trackerPort);
+    socket->setCallbackObject(socketCallback);
 
-    // FIXME put this where the response from the tracker arrives
-    // entered the swarm for real
-    // emit(this->enteredSwarmSignal, simTime());
+    socketCallback->sendAnnounce(A_STARTED);
+
+    // Create a new SwarmModules object and insert it in the SwarmModules map.
+    this->callbacksByInfoHash[torrentMetadata.infoHash] = socketCallback;
     emit(this->enterSwarmSignal, simTime());
 }
-
 void SwarmManager::leaveSwarm(int infoHash) {
-    SwarmManagerThread * thread = this->swarmThreads.at(infoHash);
-    thread->sendAnnounce(A_STOPPED);
+    this->callbacksByInfoHash.at(infoHash)->sendAnnounce(A_STOPPED);
+    // remove the swarm from the application, closing all connections
+    // with other peers
+    this->bitTorrentClient->deleteSwarm(infoHash);
+    this->callbacksByInfoHash.erase(infoHash);
+}
+
+// Handle message methods
+void SwarmManager::treatUserCommand(cMessage * msg) {
+    cObject * controlInfo = msg->getControlInfo();
+    if (msg->getKind() == USER_COMMAND_ENTER_SWARM) {
+        EnterSwarmCommand * enterSwarmMsg = check_and_cast<EnterSwarmCommand *>(
+            controlInfo);
+        this->enterSwarm(enterSwarmMsg->getTorrentMetadata(),
+            enterSwarmMsg->getSeeder(), enterSwarmMsg->getTrackerAddress(),
+            enterSwarmMsg->getTrackerPort());
+    } else {
+        throw cException("Bad user command");
+    }
+    delete msg;
+}
+void SwarmManager::treatSelfMessages(cMessage *msg) {
+    TrackerSocketCallback * socketCallback =
+        static_cast<TrackerSocketCallback *>(msg->getContextPointer());
+    if (msg->isName("Leave")) {
+        this->leaveSwarm(socketCallback->torrent.infoHash);
+        delete msg;
+    } else if (msg->isName("Delete")) {
+        delete socketCallback;
+    } else if (msg->isName("NormalAnnounceTimer")
+        || msg->isName("MinimumAnnounceTimer")) {
+        socketCallback->sendAnnounce(A_NORMAL);
+        // don't delete the message, because it is reusable
+    }
+}
+void SwarmManager::treatTCPMessage(cMessage * msg) {
+// This module is not open to connections, so the socket should exist.
+    TCPSocket * socket = this->socketMap.findSocketFor(msg);
+    assert(socket); // Socket should exist
+    socket->processMessage(msg);
 }
 
 void SwarmManager::printDebugMsg(std::string s) {
@@ -259,110 +415,53 @@ void SwarmManager::setStatusString(const char * s) {
 
 // Protected methods
 void SwarmManager::handleMessage(cMessage *msg) {
-    if (msg->isSelfMessage()) {
-        TCPServerThreadBase * thread =
-            static_cast<TCPServerThreadBase *>(msg->getContextPointer());
-
-        switch (msg->getKind()) {
-        case SwarmManagerThread::SELF_THREAD_DELETION:
-            this->removeThread(thread);
-            delete msg;
-            msg = NULL;
-            break;
-        default:
-            thread->timerExpired(msg);
-            break;
-        }
+    if (msg->arrivedOn("userCommand")) {
+        this->treatUserCommand(msg);
     } else if (msg->arrivedOn("tcpIn")) {
-        // Only PEER_CLOSED is accepted without a socket
-        TCPSocket *socket = this->socketMap.findSocketFor(msg);
-        if (socket) {
-            socket->processMessage(msg);
-        } else if (msg->getKind() == TCPSocket::PEER_CLOSED) {
-            delete msg;
-        } else {
-            delete msg;
-            throw cException("The message must have a matching socket");
-        }
-    } else if (msg->arrivedOn("userCommand")) {
-        cObject * controlInfo = msg->getControlInfo();
-        switch (msg->getKind()) {
-        case USER_COMMAND_ENTER_SWARM: {
-            EnterSwarmCommand * enterSwarmMsg = check_and_cast<
-                    EnterSwarmCommand *>(controlInfo);
-            enterSwarm(enterSwarmMsg->getTorrentMetadata(),
-                enterSwarmMsg->getSeeder(), enterSwarmMsg->getTrackerAddress(),
-                enterSwarmMsg->getTrackerPort());
-        }
-            break;
-        case USER_COMMAND_LEAVE_SWARM: {
-            LeaveSwarmCommand * leaveSwarmMsg = check_and_cast<
-                    LeaveSwarmCommand *>(controlInfo);
-            leaveSwarm(leaveSwarmMsg->getInfoHash());
-        }
-            break;
-        default:
-            throw cException("Bad user command");
-            break;
-        }
-        delete msg;
+        this->treatTCPMessage(msg);
+    } else {
+        this->treatSelfMessages(msg);
     }
 }
-void SwarmManager::initialize(int stage) {
-    if (stage == 0) {
-        registerEmittedSignals();
-        cModule* bitTorrentClient = getParentModule()->getSubmodule(
-            "bitTorrentClient");
-        if (bitTorrentClient == NULL) {
-            throw cException("BitTorrentClient module not found");
-        }
-        this->bitTorrentClient = check_and_cast<BitTorrentClient*>(
-            bitTorrentClient);
-
-        // TODO dataRateCollector
-
-        // Make the peerId equal to the module id, which is unique throughout the simulation.
-        this->localPeerId = this->getParentModule()->getParentModule()->getId();
-
-        // Get parameters from ned file
-        this->numWant = par("numWant").longValue();
-        this->port = bitTorrentClient->par("port").longValue();
-        this->refreshInterval = par("refreshInterval").doubleValue();
-
-        if (this->numWant == 0) {
-            throw cException("numWant must be bigger than 0s");
-        }
-        if (this->refreshInterval == 0) {
-            throw cException("refreshInterval must be bigger than 0s");
-        }
-
-        this->debugFlag = par("debugFlag").boolValue();
-        this->subModulesDebugFlag = par("subModulesDebugFlag").boolValue();
+void SwarmManager::initialize() {
+    registerEmittedSignals();
+    cModule* bitTorrentClient = getParentModule()->getSubmodule(
+        "bitTorrentClient");
+    if (bitTorrentClient == NULL) {
+        throw cException("BitTorrentClient module not found");
     }
+    this->bitTorrentClient = check_and_cast<BitTorrentClient*>(
+        bitTorrentClient);
+
+    // Make the peerId equal to the module id, which is unique throughout the simulation.
+    this->localPeerId = this->getParentModule()->getParentModule()->getId();
+
+    // Get parameters from ned file
+    this->numWant = par("numWant").longValue();
+    this->localPort = bitTorrentClient->par("port").longValue();
+    this->normalRefreshInterval = par("normalRefreshInterval").doubleValue();
+    this->minimumRefreshInterval = par("minimumRefreshInterval").doubleValue();
+
+    if (this->numWant == 0) {
+        throw cException("numWant must be bigger than 0s");
+    }
+    if (this->normalRefreshInterval == 0) {
+        throw cException("normalRefreshInterval must be bigger than 0s");
+    }
+    if (this->minimumRefreshInterval == 0) {
+        throw cException("normalRefreshInterval must be bigger than 0s");
+    }
+    if (this->normalRefreshInterval < this->minimumRefreshInterval) {
+        throw cException(
+            "normalRefreshInterval must be bigger than minimumRefreshInterval");
+    }
+
+    this->debugFlag = par("debugFlag").boolValue();
 }
 
-int SwarmManager::numInitStages() const {
-    return 4;
-}
-
-double SwarmManager::getDownloadRate() {
-    //Since the peer has a only one interface, the gateId is 0
-    //    double downloadRate = this->dataRateCollector->getDownloadRate(0);
-    //    emit(this->downloadRateSignal, downloadRate);TODO
-    double downloadRate = 0;
-    return downloadRate;
-}
-double SwarmManager::getUploadRate() {
-    //Since the peer has a only one interface, the gateId is 0
-    //    double uploadRate = this->dataRateCollector->getUploadRate(0);
-    //    emit(this->uploadRateSignal, uploadRate);TODO
-    double uploadRate = 0;
-    return uploadRate;
-}
 void SwarmManager::registerEmittedSignals() {
     // Configure signals
     this->downloadRateSignal = registerSignal("SwarmManager_DownloadRate");
     this->uploadRateSignal = registerSignal("SwarmManager_UploadRate");
     this->enterSwarmSignal = registerSignal("SwarmManager_EnterSwarm");
-    this->enteredSwarmSignal = registerSignal("SwarmManager_EnteredSwarm");
 }

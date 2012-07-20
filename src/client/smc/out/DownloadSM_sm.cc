@@ -239,6 +239,7 @@ void DownloadMap_Default::downloadRateTimer(DownloadSMContext& context)
 
 void DownloadMap_Default::stopMachine(DownloadSMContext& context)
 {
+    PeerWireThread& ctxt(context.getOwner());
 
     if (context.getDebugFlag() == true)
     {
@@ -257,15 +258,25 @@ void DownloadMap_Default::stopMachine(DownloadSMContext& context)
             << std::endl;
     }
 
-    if (context.getDebugFlag() == true)
+    context.clearState();
+    try
     {
-        std::ostream& str = context.getDebugStream();
+        ctxt.cancelDownloadRequests();
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
 
-        str << "EXIT TRANSITION : DownloadMap::Default::stopMachine()"
-            << std::endl;
+            str << "EXIT TRANSITION : DownloadMap::Default::stopMachine()"
+                << std::endl;
+        }
+
+        context.setState(DownloadMap::Stopped);
     }
-
-    context.setState(DownloadMap::Stopped);
+    catch (...)
+    {
+        context.setState(DownloadMap::Stopped);
+        throw;
+    }
     (context.getState()).Entry(context);
 
     return;

@@ -113,10 +113,10 @@ IPvXAddress const& PeerInfo::getIp() const {
 int PeerInfo::getPort() const {
     return this->port;
 }
-void PeerInfo::setStatus(ANNOUNCE_TYPE status) {
+void PeerInfo::setStatus(AnnounceType status) {
     this->status = status;
 }
-ANNOUNCE_TYPE PeerInfo::getStatus() {
+AnnounceType PeerInfo::getStatus() {
     return status;
 }
 

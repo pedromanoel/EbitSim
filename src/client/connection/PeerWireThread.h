@@ -74,7 +74,6 @@
 #define PEERWIRETHREAD_H_
 
 #include <cpacketqueue.h>
-
 #include <TCPSrvHostApp.h>
 
 #include "client/smc/out/ConnectionSM_sm.h"
@@ -110,7 +109,13 @@ public:
     void init(TCPSrvHostApp *hostmodule, TCPSocket *socket);
     //! Send an application message about the Peer closing the TCP connection.
     void peerClosed();
-    //! Send an application message corresponding to the expired timer.
+    /*!
+     * Send an application message corresponding to the expired timer.
+     *
+     * Timer messages are not deleted because they are constantly being
+     * re-scheduled.
+     * @param timer
+     */
     void timerExpired(cMessage *timer);
     //@}
 public:
@@ -124,10 +129,12 @@ public:
 
     //!@name Connection State Machine methods.
     //@{
-    void addConnectedPeer();
+    void connected();
     //! Close the TCP connection from the client's side.
     void closeLocalConnection();
-    //! Close the Download and Upload machines
+    //! Start the Download and Upload machines
+    void startMachines();
+    //! Stop the Download and Upload machines
     void stopMachines();
     //! Send a BitField message to the Peer.
     BitFieldMsg * getBitFieldMsg();
@@ -146,7 +153,7 @@ public:
     //! Stop the timeout and keep-alive timers.
     void stopHandshakeTimers();
     //! Terminate the thread, removing all information about the peer from the swarm
-    void terminateThread();
+    void removeFromSwarm();
     //@}
 
     //!@name Connection State Machine transition guards.
@@ -200,7 +207,7 @@ public:
     void callChokeAlgorithm();
     //! While there are available slots, choked peers that become interested
     //! will be unchoked.
-    void fillUploadSlots();
+    void addPeerToChoker();
     //! Return a new ChokeMsg.
     ChokeMsg * getChokeMsg();
     //! Make a piece request to the ContentManager.
@@ -224,21 +231,26 @@ public:
     void printDebugMsgDownload(std::string s);
     void printDebugMsgConnection(std::string s);
 private:
-    // attributes
-    /*!
-     * @name BitTorrent State Machines
-     */
+    //!@name BitTorrent State Machines
     //@{
     ConnectionSMContext connectionSm;
     DownloadSMContext downloadSm;
     UploadSMContext uploadSm;
     //@}
-    //! True if this thread was created because of an active connection.
-    bool activeConnection;
+
     //! Pointer to the host, cast to the BitTorrentClient class.
     BitTorrentClient *btClient;
-    Choker *choker;
-    ContentManager *contentManager;
+
+    //!@name Swarm-related modules
+    //@{
+    Choker *choker; //! The Swarm's Choker module
+    ContentManager *contentManager; //! The Swarm's Content Manager module
+    //@}
+
+
+    // attributes
+    //! True if this thread was created because of an active connection.
+    bool activeConnection;
     /*!
      * The peerId of the Peer, which can be set in two moments: at the
      * connection, if the Tracker specified it, or at the arrival of the Handshake.
@@ -281,14 +293,12 @@ private:
     cMessage uploadRateTimer;
     //@}
 private:
-    //!@name Thread processing
+    //!@name Message processing
     //@{
-    //! Execute the transitions issued during the processing, or delete the thread
-    void finishProcessing();
+    //! Cancel all the messages in the queue.
+    void cancelMessages();
     //! True if there are messages to process in this thread.
     bool hasMessagesToProcess();
-    //! True if this thread is currently being processed.
-    bool isProcessing();
     /*!
      * Start processing the messages in the message queue. Will process all
      * application messages until it finds a PeerWire message.
@@ -297,26 +307,23 @@ private:
      * was found in the queue, this time is zero.
      */
     simtime_t startProcessing();
+    //! Execute the transitions issued during the processing, or delete the thread
+    void finishProcessing();
     /*!
      * Process all ApplicationMsgs in the queue until a PeerWireMsg is found or
      * until the queue is empty.
      */
     void processAppMessages();
+    //! Insert a message from the Application in the processing queue.
+    void sendApplicationMessage(int kind);
+    //! Insert a message from the connection in the processing queue.
+    void sendPeerWireMessage(cMessage * msg);
     //@}
 
-    /*!
-     * Will queue the ApplicationMsg if the processor is busy, or will execute
-     * it immediately if not.
-     */
-//    void computeApplicationMsg(ApplicationMsg* msg);
     //! Issue a transition to one of the state machines.
     void issueTransition(cMessage const* msg);
     //! The Client was not recently unchoked.
-//    void oldUnchoked();
-    //! The Client is snubbed by the Peer.
-//    void peerSnubbed();
-    //! Send a message from the Application to the state machines.
-    void sendApplicationMessage(int kind);
+    //    void oldUnchoked();
 };
 
 #endif /* PEERWIRETHREAD_H_ */

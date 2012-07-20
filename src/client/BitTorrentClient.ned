@@ -131,8 +131,8 @@ simple BitTorrentClient extends TCPSrvHostApp
         // class name of "thread" objects to launch on incoming connections
         serverThreadClass = "PeerWireThread";
         port = default(6881); // port the client is listening
-        // TODO the following attributes should be parameterized
         bool debugFlag = default(false);
+        bool subModulesDebugFlag = default(false);
         // file-saved histogram with the processing time
         string processingTimeHistogram;
         double downloadRateInterval @unit(s) = default(1s);

@@ -75,7 +75,7 @@ cplusplus {{
 //! Types of messages send by the application to the state machines.
 enum AppMessageType {
     // connection sm
-    APP_CONTENT_MANAGER_CLOSE = 100;
+    APP_CLOSE = 100;
     APP_TCP_LOCAL_CLOSE = 101;
     APP_TCP_REMOTE_CLOSE = 102;
     APP_TCP_ACTIVE_CONNECTION = 103;

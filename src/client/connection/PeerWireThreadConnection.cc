@@ -99,10 +99,11 @@ void PeerWireThread::outgoingPeerWireMsg_ConnectionSM(PeerWireMsgBundle * msg) {
 }
 
 // Connection State Machine transitions
-void PeerWireThread::addConnectedPeer() {
-    this->btClient->addConnectedPeer(this->infoHash, this->remotePeerId, this,
+void PeerWireThread::connected() {
+    this->btClient->addPeerToSwarm(this->infoHash, this->remotePeerId, this,
             this->activeConnection);
     // start an empty BitField for this connection
+    assert(this->contentManager);
     this->contentManager->addEmptyBitField(this->remotePeerId);
 
     std::ostringstream out;
@@ -113,11 +114,16 @@ void PeerWireThread::closeLocalConnection() {
     // close the connection
     this->sock->close();
 }
+void PeerWireThread::startMachines() {
+    this->downloadSm.startMachine();
+    this->uploadSm.startMachine();
+}
 void PeerWireThread::stopMachines() {
     this->downloadSm.stopMachine();
     this->uploadSm.stopMachine();
 }
 BitFieldMsg * PeerWireThread::getBitFieldMsg() {
+    assert(this->contentManager);
     return this->contentManager->getClientBitFieldMsg();
 }
 Handshake * PeerWireThread::getHandshake() {
@@ -152,7 +158,7 @@ void PeerWireThread::sendPeerWireMsg(cPacket * msg) {
         PeerWireMsgBundle* bundle = static_cast<PeerWireMsgBundle*>(msg);
         // Set the size of the packet, then send it. Suppose that the messages
         // inside the bundle have their size correctly set.
-        bundle->setByteLength(bundle->getBundle().length());
+        bundle->setByteLength(bundle->getBundle()->getLength());
     } else if (dynamic_cast<PeerWireMsg*>(msg)) {
         PeerWireMsg * peerWireMsg = static_cast<PeerWireMsg*>(msg);
         // Set the real payload length (constant + variable). See PeerWire.msg
@@ -200,60 +206,23 @@ void PeerWireThread::stopHandshakeTimers() {
     this->cancelEvent(&this->timeoutTimer);
     this->cancelEvent(&this->keepAliveTimer);
 }
-void PeerWireThread::terminateThread() {
-    this->printDebugMsg("Thread removed");
+void PeerWireThread::removeFromSwarm() {
+    this->printDebugMsg("Removed Peer from swarm");
     this->terminating = true;
 
-    // remove the connection from the BitTorrentClient
-    if (this->infoHash != -1 && this->remotePeerId != 1) {
-        this->btClient->removePeerInfo(this->infoHash, this->remotePeerId,
+    // Remove the peer from the BitTorrentClient and the swarm related modules
+    // It is connected only if the ContentManager and Choker modules are set
+    if (this->contentManager != NULL && this->choker != NULL) {
+        this->btClient->removePeerFromSwarm(this->infoHash, this->remotePeerId,
                 this->sock->getConnectionId(), this->activeConnection);
     }
-
-    // remove the peer from the swarm related modules
-    if (this->contentManager != NULL) {
-        this->contentManager->removePeerInfo(this->remotePeerId);
-    }
-    if (this->choker != NULL) {
-        this->choker->removePeerInfo(this->remotePeerId);
-    }
-
-    // cancel all messages that were going to be executed
-    while (!this->messageQueue.empty()) {
-        cObject * msg = this->messageQueue.pop();
-        std::string name = msg->getName();
-        std::string out = "Canceled message \"" + name + "\"";
-        this->printDebugMsg(out);
-        delete msg;
-    }
-    while (!this->postProcessingAppMsg.empty()) {
-        cObject * msg = this->postProcessingAppMsg.pop();
-        std::string name = msg->getName();
-        std::string out = "Canceled post-message \"" + name + "\"";
-        this->printDebugMsg(out);
-        delete msg;
-    }
-//    while (!this->peerWireMessageBuffer.empty()) {
-//        std::ostringstream out;
-//        cObject * msg = this->peerWireMessageBuffer.pop();
-//        out << "Canceled message \"" << msg->getName() << "\"";
-//        this->printDebugMsg(out.str());
-//        delete msg;
-//    }
-//    while (!this->applicationMsgQueue.empty()) {
-//        std::ostringstream out;
-//        cObject * appMsg = this->applicationMsgQueue.pop();
-//
-//        out << "Canceled application message \"" << appMsg->getName() << "\"";
-//        this->printDebugMsg(out.str());
-//        delete appMsg;
-//    }
+    cancelMessages();
 }
 // transition guards
 bool PeerWireThread::checkHandshake(Handshake const& hs) {
     // verify if infoHash is available
     std::pair<Choker*, ContentManager*> modules =
-            this->btClient->swarmManager->checkSwarm(hs.getInfoHash());
+            this->btClient->checkSwarm(hs.getInfoHash());
 
     // true if no peerId is expected or if the received peerId matches the expected.
     bool validPeerId = (this->remotePeerId == -1)
@@ -272,22 +241,16 @@ bool PeerWireThread::checkHandshake(Handshake const& hs) {
         this->choker = modules.first;
         this->contentManager = modules.second;
     } else {
-        std::ostringstream out;
-        out << "Handshake refused";
-        if (!validPeerId) {
-            out << "(invalid peerId)";
-        }
-        if (!canConnect) {
-            out << "(can't connect)";
-        }
-        if (!swarmExists) {
-            out << "(swarm don't exist)";
-        }
-        this->printDebugMsgConnection(out.str());
+        std::string out = "Handshake refused: ";
+        if (!validPeerId)  out += "(invalid peerId)";
+        if (!canConnect)  out += "(can't connect)";
+        if (!swarmExists)  out += "(swarm don't exist)";
+        this->printDebugMsgConnection(out);
     }
 
     return validPeerId && canConnect && swarmExists;
 }
 bool PeerWireThread::isBitFieldEmpty() {
+    assert(this->contentManager);
     return this->contentManager->isBitFieldEmpty();
 }

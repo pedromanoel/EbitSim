@@ -77,7 +77,7 @@
 #include <vector>
 
 class BitTorrentClient;
-class PeerEntry;
+class PeerStatus;
 
 /**
  * The Choker chokes and unchokes Peers connected to the Client.
@@ -141,10 +141,23 @@ public:
     Choker();
     virtual ~Choker();
     void callChokeAlgorithm();
-    void stopChoker();
-    void fillUploadSlots(int peerId);
-    void removePeerInfo(int peerId);
+    void stopChokerRounds();
+    /*!
+     * If there are upload slots available, unchoke the passed Peer. First use
+     * the regular slots, then the optimistic slots. When an optimistic slots is
+     * used, start choke round timer. This method is called to fill up the
+     * upload slots while there aren't enough connections to justify choking.
+     *
+     * @param peerId An interested but choked Peer.
+     */
+    void addInterestedPeer(int peerId);
+    void removePeer(int peerId);
 private:
+    //!@name Pointers to other modules
+    //@{
+    BitTorrentClient *bitTorrentClient;
+    //@}
+
     simtime_t roundInterval;
     unsigned int optimisticRoundRateInLeech;
     unsigned int optimisticRoundRateInSeed;
@@ -168,12 +181,12 @@ private:
     //@}
 
     cMessage roundTimer;
+    //! Used to avoid multiple calls to the choke algorithm in the same event.
     cMessage chokeAlgorithmTimer;
-    BitTorrentClient *bitTorrentClient;
 private:
     void chokeAlgorithm(bool optimisticRound = false);
-    //! Iterator to the vector of PeerEntry pointers.
-    typedef std::vector<PeerEntry const*>::iterator PeerVectorIt;
+    //! Iterator to the vector of PeerStatus pointers.
+    typedef std::vector<PeerStatus const*>::iterator PeerVectorIt;
     /*!
      * Fill the regular slots with the fastest interested peers that are not
      * optimistically unchoked.
@@ -189,6 +202,7 @@ private:
      * slots are full.
      */
     void optimisticUnchoke(PeerVectorIt & it, PeerVectorIt & end);
+    void printUploadSlots();
     //! Print a debug message to clog.
     void printDebugMsg(std::string s);
     void updateStatusString();
