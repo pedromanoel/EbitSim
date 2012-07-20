@@ -177,9 +177,6 @@ public:
 
         this->normalAnnounceTimer.setContextPointer(this);
         this->minimumAnnounceTimer.setContextPointer(this);
-        this->parent->bitTorrentClient->createSwarm(torrent.infoHash,
-            torrent.numOfPieces, torrent.numOfSubPieces, torrent.subPieceSize,
-            this->seeder);
     }
     ~TrackerSocketCallback() {
         delete socket;
@@ -255,7 +252,8 @@ public:
                 this->parent->cancelEvent(&this->minimumAnnounceTimer);
                 this->parent->cancelEvent(&this->normalAnnounceTimer);
                 this->parent->scheduleAt(nextMin, &this->minimumAnnounceTimer);
-                this->parent->scheduleAt(nextNormal, &this->normalAnnounceTimer);
+                this->parent->scheduleAt(nextNormal,
+                    &this->normalAnnounceTimer);
             }
             break;
         }
@@ -335,24 +333,27 @@ void SwarmManager::finishedDownload(int infoHash) {
 
 // Private methods
 // Tracker communication methods
-void SwarmManager::enterSwarm(TorrentMetadata const& torrentMetadata,
-    bool seeder, IPvXAddress const& trackerAddress, int trackerPort) {
+void SwarmManager::enterSwarm(TorrentMetadata const& torrent, bool seeder,
+    IPvXAddress const& trackerAddress, int trackerPort) {
 
     // The swarm must be new
-    assert(!this->callbacksByInfoHash.count(torrentMetadata.infoHash));
+    assert(!this->callbacksByInfoHash.count(torrent.infoHash));
 
     // Create the socket and the callback objects
     TCPSocket * socket = new TCPSocket();
     socket->setOutputGate(gate("tcpOut"));
 
     TrackerSocketCallback * socketCallback = new TrackerSocketCallback(this,
-        torrentMetadata, seeder, socket, trackerAddress, trackerPort);
+        torrent, seeder, socket, trackerAddress, trackerPort);
     socket->setCallbackObject(socketCallback);
 
     socketCallback->sendAnnounce(A_STARTED);
 
     // Create a new SwarmModules object and insert it in the SwarmModules map.
-    this->callbacksByInfoHash[torrentMetadata.infoHash] = socketCallback;
+    this->callbacksByInfoHash[torrent.infoHash] = socketCallback;
+
+    this->bitTorrentClient->createSwarm(torrent.infoHash, torrent.numOfPieces,
+        torrent.numOfSubPieces, torrent.subPieceSize, seeder);
     emit(this->enterSwarmSignal, simTime());
 }
 void SwarmManager::leaveSwarm(int infoHash) {
@@ -361,6 +362,7 @@ void SwarmManager::leaveSwarm(int infoHash) {
     // with other peers
     this->bitTorrentClient->deleteSwarm(infoHash);
     this->callbacksByInfoHash.erase(infoHash);
+    emit(this->leaveSwarmSignal, simTime());
 }
 
 // Handle message methods
@@ -464,4 +466,5 @@ void SwarmManager::registerEmittedSignals() {
     this->downloadRateSignal = registerSignal("SwarmManager_DownloadRate");
     this->uploadRateSignal = registerSignal("SwarmManager_UploadRate");
     this->enterSwarmSignal = registerSignal("SwarmManager_EnterSwarm");
+    this->leaveSwarmSignal = registerSignal("SwarmManager_LeaveSwarm");
 }

@@ -189,6 +189,7 @@ private:
     simsignal_t uploadRateSignal;
     //!Signal emitted when the swarm is created.
     simsignal_t enterSwarmSignal;
+    simsignal_t leaveSwarmSignal;
     //@}
 
     //! Register all signals this module is going to emit.
