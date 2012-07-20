@@ -118,7 +118,6 @@ BitTorrentClient::~BitTorrentClient() {
     // delete all threads, which are not deleted when the sockets are destroyed.
     BOOST_FOREACH(PeerWireThread * thread, this->allThreads) {
         delete thread;
-        thread = NULL;
     }
 
     typedef std::pair<int, Swarm> map_t;
@@ -460,7 +459,7 @@ void BitTorrentClient::processNextThread() {
     // allThreads will never be empty here
     assert(!this->allThreads.empty());
 
-    std::set<PeerWireThread*>::iterator nextThreadIt =
+    std::list<PeerWireThread*>::iterator nextThreadIt =
         this->threadInProcessingIt;
 
     // don't start processing another thread if the current one is still processing
@@ -469,21 +468,21 @@ void BitTorrentClient::processNextThread() {
         // increment the nextThreadIt until a thread with messages is found or
         // until a full circle is reached
         bool hasMessages = false;
+        std::ostringstream out;
+        out << "====== Next thread: " << (*nextThreadIt)->remotePeerId;
         do {
             ++nextThreadIt;
             if (nextThreadIt == this->allThreads.end()) {
                 nextThreadIt = this->allThreads.begin();
             }
-
+            out << " > " << (*nextThreadIt)->remotePeerId;
             hasMessages = (*nextThreadIt)->hasMessagesToProcess();
         } while (nextThreadIt != this->threadInProcessingIt && !hasMessages);
 
-        if (hasMessages) {
-            std::string out = "====== Changing from thread "
-                + toStr((*this->threadInProcessingIt)->remotePeerId) + " to "
-                + toStr((*nextThreadIt)->remotePeerId) + " ======";
-            this->printDebugMsg(out);
+        out << " ======";
+        this->printDebugMsg(out.str());
 
+        if (hasMessages) {
             this->threadInProcessingIt = nextThreadIt;
             simtime_t processingTime =
                 (*this->threadInProcessingIt)->startProcessing();
@@ -551,26 +550,7 @@ void BitTorrentClient::connect(int infoHash, PeerConnInfo const& peer) {
     tie(peerId, ip, port) = peer;
 
     TCPSocket * socket = new TCPSocket();
-    socket->setOutputGate(gate("tcpOut"));
-
-    PeerWireThread *proc = new PeerWireThread(infoHash, peerId);
-    // save the pointer to proc so it can be properly disposed at the end of the
-    // simulation.
-    this->allThreads.insert(proc);
-    if (this->allThreads.size() == 1) {
-        // there was no thread before this insertion, so no processing was being
-        // made. Set the iterator to point to the beginning of the set
-        this->threadInProcessingIt = this->allThreads.begin();
-    }
-
-    // attaches the callback obj to the socket
-    socket->setCallbackObject(proc);
-    proc->init(this, socket);
-
-    this->socketMap.addSocket(socket);
-
-    //update display string
-    this->updateDisplay();
+    this->createThread(socket, infoHash, peerId);
 
     std::string out = "connId ";
     out += toStr(socket->getConnectionId());
@@ -718,6 +698,28 @@ void BitTorrentClient::printDebugMsgConnections(std::string methodName,
     this->printDebugMsg(out.str());
 }
 
+void BitTorrentClient::createThread(TCPSocket * socket, int infoHash, int peerId) {
+    socket->setOutputGate(gate("tcpOut"));
+    assert((infoHash > 0 && peerId > 0) || (infoHash == -1 && peerId == -1));
+    PeerWireThread *proc = new PeerWireThread(infoHash, peerId);
+    // store proc here so it can be deleted at the destructor.
+    this->allThreads.push_back(proc);
+    if (this->allThreads.size() == 1) {
+        // there was no thread before this insertion, so no processing was being
+        // made. Set the iterator to point to the beginning of the set
+        this->threadInProcessingIt = this->allThreads.begin();
+    }
+
+    // attaches the callback obj to the socket
+    socket->setCallbackObject(proc);
+    proc->init(this, socket);
+
+    this->socketMap.addSocket(socket);
+
+    //update display string
+    this->updateDisplay();
+
+}
 void BitTorrentClient::removeThread(PeerWireThread *thread) {
     if (*this->threadInProcessingIt == thread) {
         std::ostringstream out;
@@ -730,13 +732,13 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
         // Iterator  i         =>  i       =>        i =>      i
         // Set      |1|2|3|4|e => |2|3|4|e => |2|3|4|e => |2|3|4|e
 
-        // (1) Iterator points to the current element
+        // (1) Iterator pointing to the current element
         this->allThreads.erase(this->threadInProcessingIt++);
-        // (2) Delete current and keep the iterator valid by post-increment
+        // (2) Erase current and keep the iterator valid by post-incrementing
 
         if (!this->allThreads.empty()) {
+            // (3) If the iterator is begin(), send it to end()
             if (this->threadInProcessingIt == this->allThreads.begin()) {
-                // (3) If the iterator is begin(), send it to end()
                 this->threadInProcessingIt = this->allThreads.end();
             }
             // (4) Decrement so that when incremented by processNextThread(),
@@ -745,7 +747,7 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
         }
     } else {
         this->printDebugMsg("Not processing");
-        this->allThreads.erase(thread);
+        this->allThreads.remove(thread);
     }
 
     int infoHash = thread->infoHash;
@@ -863,25 +865,8 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
             if (msg->getKind() == TCP_I_ESTABLISHED) {
                 // new connection, create socket and process message
                 socket = new TCPSocket(msg);
-                socket->setOutputGate(gate("tcpOut"));
 
-                PeerWireThread *proc = new PeerWireThread();
-                // store proc here so it can be deleted at the destructor.
-                this->allThreads.insert(proc);
-                if (this->allThreads.size() == 1) {
-                    // there was no thread before this insertion, so no processing was being
-                    // made. Set the iterator to point to the beginning of the set
-                    this->threadInProcessingIt = this->allThreads.begin();
-                }
-
-                // attaches the callback obj to the socket
-                socket->setCallbackObject(proc);
-                proc->init(this, socket);
-
-                this->socketMap.addSocket(socket);
-
-                //update display string
-                this->updateDisplay();
+                this->createThread(socket, -1, -1);
             } else {
                 // ignore message
                 std::ostringstream out;

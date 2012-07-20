@@ -129,7 +129,7 @@ simple BitTorrentClient extends TCPSrvHostApp
         @display("i=misc/globe,green");
         @class(BitTorrentClient); // tell omnet++ to use this class instead of TCPSrvHostApp
         // class name of "thread" objects to launch on incoming connections
-        serverThreadClass = "PeerWireThread";
+        serverThreadClass = "n/a";
         port = default(6881); // port the client is listening
         bool debugFlag = default(false);
         bool subModulesDebugFlag = default(false);

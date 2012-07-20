@@ -90,7 +90,7 @@ class PeerWireThread: public TCPServerThreadBase {
 public:
     // own methods
     friend class BitTorrentClient;
-    PeerWireThread();
+//    PeerWireThread();
     PeerWireThread(int infoHash, int remotePeerId);
     virtual ~PeerWireThread();
 public:

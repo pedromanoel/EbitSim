@@ -86,7 +86,7 @@
 
 //#define DEBUG_CONN
 
-Register_Class(PeerWireThread);
+//Register_Class(PeerWireThread);
 
 namespace {
 std::string toStr(int i) {
@@ -95,23 +95,23 @@ std::string toStr(int i) {
 }
 
 // Own methods
-PeerWireThread::PeerWireThread() :
-    // initialize the state machines
-    connectionSm(*this), downloadSm(*this), uploadSm(*this),
-    // initialize the pointers to other objects
-    btClient(NULL), choker(NULL), contentManager(NULL),
-    // initialize the connection parameters
-    activeConnection(false), infoHash(-1), remotePeerId(-1), //
-    terminating(false), busy(false),
-    // initialize the cObjects with names
-    messageQueue("Awaiting messages"), //
-    postProcessingAppMsg("Post-processing messages"), //
-    downloadRateTimer("Download Rate Timer", APP_DOWNLOAD_RATE_TIMER), //
-    keepAliveTimer("KeepAlive Timer", APP_KEEP_ALIVE_TIMER), //
-    snubbedTimer("Snubbed Timer", APP_SNUBBED_TIMER), //
-    timeoutTimer("Timeout Timer", APP_TIMEOUT_TIMER), //
-    uploadRateTimer("Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
-}
+//PeerWireThread::PeerWireThread() :
+//    // initialize the state machines
+//    connectionSm(*this), downloadSm(*this), uploadSm(*this),
+//    // initialize the pointers to other objects
+//    btClient(NULL), choker(NULL), contentManager(NULL),
+//    // initialize the connection parameters
+//    activeConnection(false), infoHash(-1), remotePeerId(-1), //
+//    terminating(false), busy(false),
+//    // initialize the cObjects with names
+//    messageQueue("Awaiting messages"), //
+//    postProcessingAppMsg("Post-processing messages"), //
+//    downloadRateTimer("Download Rate Timer", APP_DOWNLOAD_RATE_TIMER), //
+//    keepAliveTimer("KeepAlive Timer", APP_KEEP_ALIVE_TIMER), //
+//    snubbedTimer("Snubbed Timer", APP_SNUBBED_TIMER), //
+//    timeoutTimer("Timeout Timer", APP_TIMEOUT_TIMER), //
+//    uploadRateTimer("Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
+//}
 
 PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
     // initialize the state machines
@@ -129,6 +129,8 @@ PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
     snubbedTimer("Snubbed Timer", APP_SNUBBED_TIMER), //
     timeoutTimer("Timeout Timer", APP_TIMEOUT_TIMER), //
     uploadRateTimer("Upload Rate Timer", APP_UPLOAD_RATE_TIMER) {
+    // Active connection if both the infoHash and the remotePeerId are undefined
+    this->activeConnection = !(infoHash == -1 && remotePeerId == -1);
 }
 PeerWireThread::~PeerWireThread() {
     this->cancelEvent(&this->downloadRateTimer);
@@ -384,7 +386,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     case APP_CLOSE:
     case APP_PEER_INTERESTING:
     case APP_PEER_NOT_INTERESTING:
-        //case APP_SEND_PIECE_MSG:
+    case APP_SEND_PIECE_MSG:
     case APP_CHOKE_PEER:
     case APP_UNCHOKE_PEER:
         if (this->busy) {

@@ -310,10 +310,13 @@ private:
 
     //!@name Thread processing
     //@{
-    //! Contain all threads that requested the processor while it was busy.
-    std::set<PeerWireThread*> waitingThreads;
     //! Pointer to the thread currently utilizing the processor.
-    std::set<PeerWireThread*>::iterator threadInProcessingIt;
+    std::list<PeerWireThread*>::iterator threadInProcessingIt;
+    /*!
+     * List with all threads created in the BitTorrentClient. Used to control
+     * which thread is being executed.
+     */
+    std::list<PeerWireThread*> allThreads;
     //!
     cMessage endOfProcessingTimer;
     //! Processing time histogram, used to generate values for the simulation
@@ -334,12 +337,6 @@ private:
      * Structure: [(infoHash, peerId),]
      */
     std::set<std::pair<int, int> > activeConnectedPeers;
-    /*!
-     * Set with all threads created in the BitTorrentClient. Used when this
-     * module is deleted at the end of the simulation to delete all unclosed
-     * threads.
-     */
-    std::set<PeerWireThread*> allThreads;
     //!@name Timer intervals
     //@{
     //! The time, in seconds, to occur an snubbed timeout.
@@ -436,7 +433,9 @@ private:
     //! Print a debug message to the passed ostream, which defaults to clog.
     void printDebugMsg(std::string s) const;
     void printDebugMsgConnections(std::string methodName, int infoHash, const Swarm & swarm) const;
-    //! TODO document this
+    //! Create a thread and insert in the BitTorrentClient
+    void createThread(TCPSocket * socket, int infoHash, int peerId);
+    //! Remove the thread from the BitTorrentClient
     void removeThread(PeerWireThread *thread);
     //!@name Signal registration and subscription methods
     //@{
