@@ -183,7 +183,9 @@ public:
         this->contentManager->cancelEvent(&this->tokenIncTimerMsg);
     }
     PieceMsg* getPieceMsg(int peerId) {
-        assert(this->sendQueues.count(peerId));
+        if (!this->sendQueues.count(peerId)) {
+            return NULL;
+        }
 
         // Get the request info and delete it from the queue
         RequestQueue & peerQueue = this->sendQueues.at(peerId);
