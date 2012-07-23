@@ -893,6 +893,7 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
             this->printDebugMsg("Thread terminated.");
             PeerWireThread * thread = static_cast<PeerWireThread *>(msg->getContextPointer());
             this->removeThread(thread);
+            delete msg;
         } else {
             // PeerWireThread self-messages
             PeerWireThread *thread =
