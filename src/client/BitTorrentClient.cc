@@ -114,7 +114,7 @@ BitTorrentClient::BitTorrentClient() :
 BitTorrentClient::~BitTorrentClient() {
     this->cancelEvent(&this->endOfProcessingTimer);
     // delete all sockets
-    this->socketMap.deleteSockets();
+//    this->socketMap.deleteSockets();
     // delete all threads, which are not deleted when the sockets are destroyed.
     BOOST_FOREACH(PeerWireThread * thread, this->allThreads) {
         delete thread;

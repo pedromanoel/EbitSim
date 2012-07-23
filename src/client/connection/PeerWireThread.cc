@@ -116,6 +116,7 @@ PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
     this->activeConnection = !(infoHash == -1 && remotePeerId == -1);
 }
 PeerWireThread::~PeerWireThread() {
+    delete this->sock;
     this->cancelEvent(&this->downloadRateTimer);
     this->cancelEvent(&this->keepAliveTimer);
     this->cancelEvent(&this->snubbedTimer);

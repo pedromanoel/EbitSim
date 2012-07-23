@@ -88,7 +88,7 @@
 // Dumb fix because of the CDT parser (https://bugs.eclipse.org/bugs/show_bug.cgi?id=332278)
 #ifdef __CDT_PARSER__
 #undef BOOST_FOREACH
-#define BOOST_FOREACH(a, b) for(a; ; )
+#define BOOST_FOREACH(a, b) for(a; b; )
 #endif
 
 namespace {
@@ -361,6 +361,7 @@ void SwarmManager::leaveSwarm(int infoHash) {
     // remove the swarm from the application, closing all connections
     // with other peers
     this->bitTorrentClient->deleteSwarm(infoHash);
+    delete this->callbacksByInfoHash.at(infoHash);
     this->callbacksByInfoHash.erase(infoHash);
     emit(this->leaveSwarmSignal, simTime());
 }

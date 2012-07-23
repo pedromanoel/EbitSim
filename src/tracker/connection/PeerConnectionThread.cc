@@ -96,7 +96,7 @@ PeerConnectionThread::PeerConnectionThread() :
 }
 
 PeerConnectionThread::~PeerConnectionThread() {
-    // TODO Auto-generated destructor stub
+    delete this->sock;
 }
 void PeerConnectionThread::closed() {
     // schedule message that will delete the thread
