@@ -14,7 +14,7 @@ ROOT_DIR="$(pwd)"
 EXEC_FILE="$ROOT_DIR/src/EbitSim" # path to the simulation executable
 INI_FILE="$ROOT_DIR/simulations/BasicConfig.ini" # path to the configuration file
 CONFIG=$2 # name of the configuration
-if [ ! -v ENV ]; then ENV="Cmdenv"; fi # Command environment
+if [ ! -z ENV ]; then ENV="Cmdenv"; fi # Command environment
 LOG_DIR="$ROOT_DIR/run_logs"
 ERR_FILE="${CONFIG}_$1.err.log" # the log file where all error messages will be written
 OUT_FILE="${CONFIG}_$1.out.log" # the log file where all log messages will be written
@@ -51,9 +51,9 @@ PATTERN='.*'$EVENT'.*'$SIMTIME'.*'$ELAPSED'.*'$PERCENTAGE'.*'$EVSEC''
 # this pattern rearranges the collected information so it can be used by zenity progress dialog
 SUBST='\4\n#ev=\1\\nelapsed=\3\\nsim time=\2\\n\5'
 
-if [ -v MEMCHECK ]; then
+if [ -z MEMCHECK ]; then
 	EXEC_FILE="valgrind --leak-check=yes --log-file=valgrind.log $EXEC_FILE"
-elif [ -v CALLCHECK ]; then
+elif [ -z CALLCHECK ]; then
 	EXEC_FILE="valgrind --tool=callgrind --log-file=valgrind.log $EXEC_FILE"
 fi
 
@@ -70,7 +70,7 @@ else
     echo "Error $CONFIG $1"
 fi
 
-if [ -v DEBUG ]
+if [ -z DEBUG ]
 then
     # process the error output
     PROCESSED_DIR="${ERR_FILE%%.*}_processed" # get file name without extension 
