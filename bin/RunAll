@@ -26,7 +26,7 @@ echo "all: $a"
 echo
 for (( i=0; i < $num_runs; i++ ))
 do
-    echo -e "r$i:\n\t./$RUN_CMD $i $CONFIG"
+    echo -e "r$i:\n\tHIDE_OUTPUT=1 ./$RUN_CMD $i $CONFIG"
 done
 
 exec 1>&3 3>&- # Restore stdou and close fd #3

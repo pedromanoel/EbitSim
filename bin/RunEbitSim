@@ -4,73 +4,80 @@ if [[ $# -ne 2 ]]; then
     exit 1
 fi
 
-# script configuration
-# BIN_DIR is the directory of the bin folder EbitSim/bin
-# ROOT_DIR is the root directory of the EbitSim project
-#ROOT_DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+# Get the simulation root
 PWD=$(pwd) # save the current directory in order to get back later
 cd -P "$( dirname "${BASH_SOURCE[0]}" )/../"
 ROOT_DIR="$(pwd)"
-EXEC_FILE="$ROOT_DIR/src/EbitSim" # path to the simulation executable
-INI_FILE="$ROOT_DIR/simulations/BasicConfig.ini" # path to the configuration file
-CONFIG=$2 # name of the configuration
-if [ ! -z ENV ]; then ENV="Cmdenv"; fi # Command environment
-LOG_DIR="$ROOT_DIR/run_logs"
-ERR_FILE="${CONFIG}_$1.err.log" # the log file where all error messages will be written
-OUT_FILE="${CONFIG}_$1.out.log" # the log file where all log messages will be written
 
-# error if the executable file don't exist
-if [ ! -e $EXEC_FILE ]
-then
+# Get the executable file
+EXEC_FILE="$ROOT_DIR/src/EbitSim"
+if [ ! -e $EXEC_FILE ]; then
     echo "Executable file \"$EXEC_FILE\" not found."
     exit 1;
 fi
 
-# error if the config file don't exist
-if [ ! -e $INI_FILE ]
-then
-    echo "Initaliazation file \"$INI_FILE\" not found."
+# Get the configuration file
+INI_FILE="$ROOT_DIR/simulations/BasicConfig.ini"
+if [ ! -e $INI_FILE ]; then
+    echo "Initialization file \"$INI_FILE\" not found."
     exit 1;
 fi
 
-# create the log directory if it don't exist
-if [ ! -d "$LOG_DIR" ]
-then
+# Get the simulation configuration
+CONFIG=$2 # name of the configuration
+ENV=${ENV:-Cmdenv} # If ENV is unset, use Cmdenv, or else use the one defined 
+
+MEMCHECK=${MEMCHECK:-no}
+CALLCHECK=${CALLCHECK:-no}
+
+# If MEMCHECK or CALLCHECK is not empty, call the respective valgrind tool
+if [ "$MEMCHECK" != "no"  ]; then
+    EXEC_FILE="valgrind --leak-check=yes --log-file=valgrind.log $EXEC_FILE"
+elif [ "$CALLCHECK" != "no" ]; then
+    EXEC_FILE="valgrind --tool=callgrind --log-file=valgrind.log $EXEC_FILE"
+fi
+
+# always perform a core dump if there is an error
+ulimit -c unlimited
+
+RUN_DIR="$ROOT_DIR/run"
+# Create the log directory if it don't exist
+LOG_DIR="$RUN_DIR/run_logs"
+if [ ! -d "$LOG_DIR" ]; then
     mkdir -p "$LOG_DIR"
 fi
+ERR_FILE="${CONFIG}_$1.err.log" # the log file where all error messages will be written
+OUT_FILE="${CONFIG}_$1.out.log" # the log file where all log messages will be written
 
-#Filter lines with the following pattern:
-#** Event #1   T=0   Elapsed: 0.000s (0m 00s)  0% completed   ev/sec=0
-EVENT='Event #\([0-9]\+\)'
-SIMTIME='T=\([0-9.]\+\)'
-ELAPSED='Elapsed.*(\(.*\))'
-PERCENTAGE='[ ]\+\([0-9]\+\)%'
-EVSEC='\(ev/sec=[0-9]\+\)'
-# this pattern collects all meaningful information from the simulation output
-PATTERN='.*'$EVENT'.*'$SIMTIME'.*'$ELAPSED'.*'$PERCENTAGE'.*'$EVSEC''
-# this pattern rearranges the collected information so it can be used by zenity progress dialog
-SUBST='\4\n#ev=\1\\nelapsed=\3\\nsim time=\2\\n\5'
+# execute the simulation in the RUN_DIR to isolate core dumps and pid files
+cd "$RUN_DIR"
 
-if [ -z MEMCHECK ]; then
-	EXEC_FILE="valgrind --leak-check=yes --log-file=valgrind.log $EXEC_FILE"
-elif [ -z CALLCHECK ]; then
-	EXEC_FILE="valgrind --tool=callgrind --log-file=valgrind.log $EXEC_FILE"
-fi
-
-# execute the simulation with the passed parameters and send the output to zenity progress dialog
-ulimit -c unlimited
-$EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE &
-PID=$!
-touch "${PID}_${CONFIG}_$1" # save the pid so that if there's a core dump, the run can be identified
-wait $PID
-if [ $? -eq 0 ]
-then
-    echo "Finished $CONFIG $1"
+# if HIDE_OUTPUT is defined, don't show the output in stdout
+HIDE_OUTPUT=${HIDE_OUTPUT:-no}
+if [ "$HIDE_OUTPUT" == "no" ]; then
+    mkfifo output_fifo
+    # The simulation is put on the the background to get the PID
+    $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > output_fifo &
+    PID=$!
+    tee $LOG_DIR/$OUT_FILE < output_fifo
+    rm output_fifo
 else
-    echo "Error $CONFIG $1"
+    # The simulation is put on the the background to get the PID
+    $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE &
+    PID=$!
+    wait $PID
+    if [ $? -eq 0 ]
+    then
+        echo "Finished $CONFIG $1"
+    else
+        echo "Error $CONFIG $1"
+    fi
 fi
 
-if [ -z DEBUG ]
+touch "${PID}_${CONFIG}_$1" # save the pid so that if there's a core dump, the run can be identified
+
+PROCESS=${PROCESS:-no}
+if [[ "$PROCESS" != "no" ]]
 then
     # process the error output
     PROCESSED_DIR="${ERR_FILE%%.*}_processed" # get file name without extension 
