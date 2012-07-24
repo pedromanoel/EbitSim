@@ -490,6 +490,8 @@ void BitTorrentClient::processNextThread() {
             emit(this->processingTime_Signal, processingTime);
             this->scheduleAt(simTime() + processingTime,
                 &this->endOfProcessingTimer);
+        } else {
+            this->printDebugMsg("Idle");
         }
     }
 }

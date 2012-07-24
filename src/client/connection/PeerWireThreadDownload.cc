@@ -107,11 +107,9 @@ void PeerWireThread::cancelDownloadRequests() {
     this->contentManager->cancelDownloadRequests(this->remotePeerId);
 }
 InterestedMsg * PeerWireThread::getInterestedMsg() {
-    this->printDebugMsgDownload("Get InterestedMsg");
     return new InterestedMsg("InterestedMsg");
 }
 NotInterestedMsg * PeerWireThread::getNotInterestedMsg() {
-    this->printDebugMsgDownload("Get NotInterestedMsg");
     return new NotInterestedMsg("NotInterestedMsg");
 
 }
@@ -119,11 +117,7 @@ PeerWireMsgBundle * PeerWireThread::getRequestMsgBundle() {
     assert(this->contentManager);
     PeerWireMsgBundle * bundle = this->contentManager->getNextRequestBundle(
         this->remotePeerId);
-    if (bundle != NULL) {
-        std::ostringstream out;
-        out << "Get " << bundle->getName();
-        this->printDebugMsgDownload(out.str());
-    } else {
+    if (bundle == NULL) {
         this->printDebugMsgDownload("Didn't return a Bundle");
     }
     return bundle;

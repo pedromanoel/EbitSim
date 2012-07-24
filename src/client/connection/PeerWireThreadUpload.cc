@@ -117,7 +117,6 @@ void PeerWireThread::addPeerToChoker() {
     this->choker->addInterestedPeer(this->remotePeerId);
 }
 ChokeMsg * PeerWireThread::getChokeMsg() {
-    this->printDebugMsgUpload("Get ChokeMsg");
     return new ChokeMsg("ChokeMsg");
 }
 void PeerWireThread::requestPieceMsg(RequestMsg const& msg) {
@@ -133,7 +132,6 @@ PieceMsg * PeerWireThread::getPieceMsg() {
     return pieceMsg;
 }
 UnchokeMsg * PeerWireThread::getUnchokeMsg() {
-    this->printDebugMsgUpload("Get UnchokeMsg");
     return new UnchokeMsg("UnchokeMsg");
 }
 void PeerWireThread::renewUploadRateTimer() {
