@@ -217,6 +217,7 @@ void UploadMap_Default::sendPieceMsg(UploadSMContext& context)
 
 void UploadMap_Default::stopMachine(UploadSMContext& context)
 {
+    PeerWireThread& ctxt(context.getOwner());
 
     if (context.getDebugFlag() == true)
     {
@@ -235,15 +236,25 @@ void UploadMap_Default::stopMachine(UploadSMContext& context)
             << std::endl;
     }
 
-    if (context.getDebugFlag() == true)
+    context.clearState();
+    try
     {
-        std::ostream& str = context.getDebugStream();
+        ctxt.cancelUploadRequests();
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
 
-        str << "EXIT TRANSITION : UploadMap::Default::stopMachine()"
-            << std::endl;
+            str << "EXIT TRANSITION : UploadMap::Default::stopMachine()"
+                << std::endl;
+        }
+
+        context.setState(UploadMap::Stopped);
     }
-
-    context.setState(UploadMap::Stopped);
+    catch (...)
+    {
+        context.setState(UploadMap::Stopped);
+        throw;
+    }
     (context.getState()).Entry(context);
 
     return;

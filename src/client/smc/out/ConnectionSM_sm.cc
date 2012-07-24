@@ -380,7 +380,31 @@ void ConnectionMap_HandshakeSent::handshakeMsg(ConnectionSMContext& context, Han
             << std::endl;
     }
 
-    if (ctxt.checkHandshake(hs) && ctxt.isBitFieldEmpty())
+    if (!ctxt.checkHandshake(hs))
+    {
+        (context.getState()).Exit(context);
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "ENTER TRANSITION: ConnectionMap::HandshakeSent::handshakeMsg(Handshake const& hs)"
+                << std::endl;
+        }
+
+        // No actions.
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : ConnectionMap::HandshakeSent::handshakeMsg(Handshake const& hs)"
+                << std::endl;
+        }
+
+        context.setState(ConnectionMap::ClosingConnection);
+        (context.getState()).Entry(context);
+    }
+    else if (ctxt.isBitFieldEmpty())
+
     {
         (context.getState()).Exit(context);
         if (context.getDebugFlag() == true)
@@ -403,8 +427,7 @@ void ConnectionMap_HandshakeSent::handshakeMsg(ConnectionSMContext& context, Han
         context.setState(ConnectionMap::Connected);
         (context.getState()).Entry(context);
     }
-    else if (ctxt.checkHandshake(hs))
-
+    else
     {
         (context.getState()).Exit(context);
         if (context.getDebugFlag() == true)
@@ -436,28 +459,6 @@ void ConnectionMap_HandshakeSent::handshakeMsg(ConnectionSMContext& context, Han
         }
         (context.getState()).Entry(context);
     }
-    else
-    {
-        (context.getState()).Exit(context);
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "ENTER TRANSITION: ConnectionMap::HandshakeSent::handshakeMsg(Handshake const& hs)"
-                << std::endl;
-        }
-
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : ConnectionMap::HandshakeSent::handshakeMsg(Handshake const& hs)"
-                << std::endl;
-        }
-
-        context.setState(ConnectionMap::ClosingConnection);
-        (context.getState()).Entry(context);
-    }
 
     return;
 }
@@ -474,7 +475,31 @@ void ConnectionMap_WaitHandshake::handshakeMsg(ConnectionSMContext& context, Han
             << std::endl;
     }
 
-    if (ctxt.checkHandshake(hs) && ctxt.isBitFieldEmpty())
+    if (!ctxt.checkHandshake(hs))
+    {
+        (context.getState()).Exit(context);
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "ENTER TRANSITION: ConnectionMap::WaitHandshake::handshakeMsg(Handshake const& hs)"
+                << std::endl;
+        }
+
+        // No actions.
+        if (context.getDebugFlag() == true)
+        {
+            std::ostream& str = context.getDebugStream();
+
+            str << "EXIT TRANSITION : ConnectionMap::WaitHandshake::handshakeMsg(Handshake const& hs)"
+                << std::endl;
+        }
+
+        context.setState(ConnectionMap::ClosingConnection);
+        (context.getState()).Entry(context);
+    }
+    else if (ctxt.isBitFieldEmpty())
+
     {
         (context.getState()).Exit(context);
         if (context.getDebugFlag() == true)
@@ -506,8 +531,7 @@ void ConnectionMap_WaitHandshake::handshakeMsg(ConnectionSMContext& context, Han
         }
         (context.getState()).Entry(context);
     }
-    else if (ctxt.checkHandshake(hs))
-
+    else
     {
         (context.getState()).Exit(context);
         if (context.getDebugFlag() == true)
@@ -538,28 +562,6 @@ void ConnectionMap_WaitHandshake::handshakeMsg(ConnectionSMContext& context, Han
             context.setState(ConnectionMap::Connected);
             throw;
         }
-        (context.getState()).Entry(context);
-    }
-    else
-    {
-        (context.getState()).Exit(context);
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "ENTER TRANSITION: ConnectionMap::WaitHandshake::handshakeMsg(Handshake const& hs)"
-                << std::endl;
-        }
-
-        if (context.getDebugFlag() == true)
-        {
-            std::ostream& str = context.getDebugStream();
-
-            str << "EXIT TRANSITION : ConnectionMap::WaitHandshake::handshakeMsg(Handshake const& hs)"
-                << std::endl;
-        }
-
-        context.setState(ConnectionMap::ClosingConnection);
         (context.getState()).Entry(context);
     }
 

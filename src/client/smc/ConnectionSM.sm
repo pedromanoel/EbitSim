@@ -130,41 +130,41 @@ Exit
 
 HandshakeSent
 {
+    // The handshake is invalid
+    handshakeMsg(hs: Handshake const&)[!ctxt.checkHandshake(hs)]
+        ClosingConnection
+            {}
     // this transition is called if the handshake is valid and if the client BitField is empty
-    handshakeMsg(hs: Handshake const&)[ctxt.checkHandshake(hs) && ctxt.isBitFieldEmpty()]
+    handshakeMsg(hs: Handshake const&)[ctxt.isBitFieldEmpty()]
         Connected
             {}
     // this transition is called if the handshake is valid and if the client BitField is NOT empty
-    handshakeMsg(hs: Handshake const&)[ctxt.checkHandshake(hs)]
+    handshakeMsg(hs: Handshake const&)
         Connected
             {
                 sendPeerWireMsg(ctxt.getBitFieldMsg());
             }
-    // The handshake is invalid
-    handshakeMsg(hs: Handshake const&)
-        ClosingConnection
-            {}
 }
 
 WaitHandshake
 {
+    // The handshake is invalid
+    handshakeMsg(hs: Handshake const&)[!ctxt.checkHandshake(hs)]
+        ClosingConnection
+            {}
     // this transition is called if the handshake is valid and if the client BitField is empty
-    handshakeMsg(hs: Handshake const&)[ctxt.checkHandshake(hs) && ctxt.isBitFieldEmpty()]
+    handshakeMsg(hs: Handshake const&)[ctxt.isBitFieldEmpty()]
         Connected
             {
                 sendPeerWireMsg(ctxt.getHandshake());
             }
     // this transition is called if the handshake is valid and if the client BitField is NOT empty
-    handshakeMsg(hs: Handshake const&)[ctxt.checkHandshake(hs)]
+    handshakeMsg(hs: Handshake const&)
         Connected
             {
                 sendPeerWireMsg(ctxt.getHandshake());
                 sendPeerWireMsg(ctxt.getBitFieldMsg());
             }
-    // The handshake is invalid
-    handshakeMsg(hs: Handshake const&)
-        ClosingConnection
-            {}
 }
 Connected
 Entry {
