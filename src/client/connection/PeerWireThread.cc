@@ -102,8 +102,7 @@ PeerWireThread::PeerWireThread(int infoHash, int remotePeerId) :
     btClient(NULL), choker(NULL), contentManager(NULL), //
     // initialize the connection parameters
     activeConnection(true), infoHash(infoHash), remotePeerId(remotePeerId), //
-    terminating(false),
-    busy(false),
+    terminating(false), lastEvent(0), busy(false),
     // initialize the cObjects with names
     messageQueue("Awaiting messages"), //
     postProcessingAppMsg("Post-processing messages"), //
@@ -126,11 +125,9 @@ PeerWireThread::~PeerWireThread() {
 
 // Implementation of virtual methods from TCPServerThreadBase
 void PeerWireThread::closed() {
-    this->printDebugMsg("Connection locally closed");
     this->sendApplicationMessage(APP_TCP_LOCAL_CLOSE);
 }
 void PeerWireThread::peerClosed() {
-    this->printDebugMsg("Peer closed.");
     this->sendApplicationMessage(APP_TCP_REMOTE_CLOSE);
 }
 void PeerWireThread::dataArrived(cMessage *msg, bool urgent) {
@@ -377,31 +374,37 @@ void PeerWireThread::sendApplicationMessage(int id) {
     this->printDebugMsg(std::string(debugMsg));
     ApplicationMsg* appMessage = new ApplicationMsg(name);
     appMessage->setMessageId(id);
-    // these messages are generated only when processing messages
-    switch (id) {
-    case APP_CLOSE:
-    case APP_PEER_INTERESTING:
-    case APP_PEER_NOT_INTERESTING:
-    case APP_SEND_PIECE_MSG:
-    case APP_CHOKE_PEER:
-    case APP_UNCHOKE_PEER:
-        if (this->busy) {
-            this->postProcessingAppMsg.insert(appMessage);
-        } else {
-            this->messageQueue.insert(appMessage);
-        }
-        break;
-    default:
-        this->messageQueue.insert(appMessage);
-        break;
+    // What if application messages were instantaneous?
+    if (this->lastEvent < simulation.getEventNumber()) {
+        this->issueTransition(appMessage);
+    } else {
+        this->postProcessingAppMsg.insert(appMessage);
     }
-    // Try to ensure the processing of the first message to arrive.
-    if (!this->busy) this->btClient->processNextThread();
+    // these messages are generated only when processing messages
+//    switch (id) {
+//    case APP_CLOSE:
+//    case APP_PEER_INTERESTING:
+//    case APP_PEER_NOT_INTERESTING:
+//    case APP_SEND_PIECE_MSG:
+//    case APP_CHOKE_PEER:
+//    case APP_UNCHOKE_PEER:
+//        if (this->busy) {
+//            this->postProcessingAppMsg.insert(appMessage);
+//        } else {
+//            this->messageQueue.insert(appMessage);
+//        }
+//        break;
+//    default:
+//        this->messageQueue.insert(appMessage);
+//        break;
+//    }
+//    // Try to ensure the processing of the first message to arrive.
+//    if (!this->busy) this->btClient->processNextThread();
 }
 void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
     ApplicationMsg const* appMsg = dynamic_cast<ApplicationMsg const*>(msg);
     PeerWireMsg const* pwMsg = dynamic_cast<PeerWireMsg const*>(msg);
-
+    this->lastEvent = simulation.getEventNumber();
     int msgId;
 
     if (appMsg) {
@@ -504,7 +507,16 @@ void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
         out << e.what();
         out << " - Transition " << e.getTransition();
         out << " in state " << e.getState();
-        throw std::logic_error(out.str());
+        throw cException(out.str().c_str());
+    } catch (statemap::StateUndefinedException &e) {
+        std::ostringstream out;
+        out << e.what();
+        out << " - Transition " << msg->getName();
+        out << " called";
+
+        delete msg;
+        msg = NULL;
+        throw cException(out.str().c_str());
     } catch (std::invalid_argument &e) {
         delete msg;
         msg = NULL; // consume the message

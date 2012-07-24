@@ -266,6 +266,7 @@ private:
 
     //!@name Message processing
     //@{
+    eventnumber_t lastEvent;
     bool busy;
     /*!
      * Queue with all the messages to be processed. ApplicationMsgs are
