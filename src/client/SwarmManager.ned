@@ -77,14 +77,6 @@ import inet.applications.tcpapp.TCPApp;
 simple SwarmManager like TCPApp
 {
     parameters:
-        @statistic[SwarmManager_EnterSwarm](
-            title="Enter Swarm Command";
-            record=last
-        );
-        @statistic[SwarmManager_LeaveSwarm](
-            title="Leave Swarm Command";
-            record=last
-        );
 //        @statistic[SwarmManager_EnteredSwarm](
 //            title="Enter Swarm Instant";
 //            record=last

@@ -31,11 +31,18 @@ network BasicTopology extends BasicNetwork
 {
     parameters:
         @signal[SwarmManager_EnterSwarm];
-        @signal[ContentManager_100_percentDownloadMarkTime];
-        @statistic[EnteredSwarm](
+        @statistic[EnterSwarm](
             source=SwarmManager_EnterSwarm;
-            title="Enter Swarm Instant"; record=vector
+            title="Enter Swarm Time";
+            record=vector;
         );
+        @signal[SwarmManager_LeaveSwarm];
+        @statistic[LeaveSwarm](
+            source=SwarmManager_LeaveSwarm;
+            title="Leave Swarm Time";
+            record=vector;
+        );
+        @signal[ContentManager_100_percentDownloadMarkTime];
         @statistic[DownloadComplete](
             source=ContentManager_100_percentDownloadMarkTime;
             title="Download Complete";
