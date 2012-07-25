@@ -210,11 +210,9 @@ public:
         msg = NULL;
     }
     void socketPeerClosed(int connId, void *yourPtr) {
-        this->parent->printDebugMsg("Peer closed");
         this->socket->close(); // close the connection locally
     }
     void socketClosed(int connId, void *yourPtr) {
-        this->parent->printDebugMsg("Local closed");
         // Renewing the socket changes the connid, so remove from the socketMap
         this->parent->socketMap.removeSocket(this->socket);
         // make the socket ready to connect again
