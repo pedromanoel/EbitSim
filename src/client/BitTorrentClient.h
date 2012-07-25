@@ -115,7 +115,7 @@ typedef std::map<int, Swarm> SwarmMap;
 
 // Iterators
 typedef PeerVector::iterator PeerVectorIt;
-typedef UnconnectedList::iterator UnconnectedSetIt;
+typedef UnconnectedList::iterator UnconnectedListIt;
 typedef PeerMap::iterator PeerMapIt;
 typedef PeerMap::const_iterator PeerMapConstIt;
 typedef SwarmMap::iterator SwarmMapIt;

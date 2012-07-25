@@ -139,15 +139,27 @@ void BitTorrentClient::addUnconnectedPeers(int infoHash,
 
     // if seeding or closing, don't add unconnected peers
     if (!(swarm.seeding || swarm.closing)) {
-        std::string out = "Adding " + toStr(peers.size()) + " peers";
-        this->printDebugMsg(out);
+        std::ostringstream out;
+
         UnconnectedList & unconnectedList = swarm.unconnectedList;
+        out << "Prev list: ";
+        BOOST_FOREACH(PeerConnInfo p, unconnectedList) {
+            out << boost::get<0>(p) << ", ";
+        }
+
         unconnectedList.splice(unconnectedList.end(), peers);
         // sort the unconnected list in order to remove the duplicates
         unconnectedList.sort();
         unconnectedList.unique();
+
+        out << " Adding " << peers.size() << " peers: ";
+        BOOST_FOREACH(PeerConnInfo p, unconnectedList) {
+            out << boost::get<0>(p) << ", ";
+        }
+        this->printDebugMsg(out.str());
+
         // try to connect to more peers, if possible
-        attemptActiveConnections(swarm, infoHash);
+        this->attemptActiveConnections(swarm, infoHash);
 
         // if the number of unconnected peers changed, emit a signal
         if (this->prevNumUnconnected != unconnectedList.size()) {
@@ -514,34 +526,35 @@ void BitTorrentClient::attemptActiveConnections(Swarm & swarm, int infoHash) {
     if (!(swarm.seeding || swarm.closing)) {
         UnconnectedList & unconnectedList = swarm.unconnectedList;
 
-        if (unconnectedList.empty()) {
-            this->swarmManager->askMorePeers(infoHash);
-        } else {
-            int numActiveSlost = this->numActiveConn - swarm.numActive;
-            while (numActiveSlost && !unconnectedList.empty()) {
-                PeerConnInfo peer = unconnectedList.front();
-                // get the peerId
-                int peerId = peer.get<0>();
-                bool notConnected = !peerMap.count(peerId);
-                bool notConnecting = this->activeConnectedPeers.count(
-                    std::make_pair(infoHash, peerId)) == 0;
-                // only connect if not already connecting or connected
-                if (notConnected && notConnecting) {
-                    --numActiveSlost; // decrease the number of slots
-                    ++swarm.numActive; // increase the number of active connections
-                    // get unconnected peer, connect with it then remove it from the list
-                    this->connect(infoHash, peer); // establish the tcp connection
-                    this->activeConnectedPeers.insert(
-                        std::make_pair(infoHash, peerId));
-                }
-                unconnectedList.pop_front();
+        int numActiveSlost = this->numActiveConn - swarm.numActive;
+        while (numActiveSlost && !unconnectedList.empty()) {
+            // Get a random peer to connect with
+            UnconnectedListIt it = unconnectedList.begin();
+            for (int i = intrand(unconnectedList.size()); i > 0; --i) {
+                ++it;
             }
-
-            this->printDebugMsgConnections("attemptActiveConnections", infoHash,
-                swarm);
+            PeerConnInfo const& peer = *it;
+            int peerId = peer.get<0>();
+            bool notConnected = !peerMap.count(peerId);
+            bool notConnecting = this->activeConnectedPeers.count(
+                std::make_pair(infoHash, peerId)) == 0;
+            // only connect if not already connecting or connected
+            if (notConnected && notConnecting) {
+                --numActiveSlost; // decrease the number of slots
+                ++swarm.numActive; // increase the number of active connections
+                // get unconnected peer, connect with it then remove it from the list
+                this->connect(infoHash, peer); // establish the tcp connection
+                this->activeConnectedPeers.insert(
+                    std::make_pair(infoHash, peerId));
+            }
+            unconnectedList.erase(it);
+        }
+        // Either the active slots are full or the unconnected list is empty
+        // If more than half of the active slots is unoccupied, ask for more peers
+        if (swarm.numActive < this->numActiveConn/2) {
+            this->swarmManager->askMorePeers(infoHash);
         }
     }
-
 }
 /*!
  * The Peer address is acquired from the Tracker.
@@ -701,7 +714,8 @@ void BitTorrentClient::printDebugMsgConnections(std::string methodName,
     this->printDebugMsg(out.str());
 }
 
-void BitTorrentClient::createThread(TCPSocket * socket, int infoHash, int peerId) {
+void BitTorrentClient::createThread(TCPSocket * socket, int infoHash,
+    int peerId) {
     socket->setOutputGate(gate("tcpOut"));
     assert((infoHash > 0 && peerId > 0) || (infoHash == -1 && peerId == -1));
     PeerWireThread *proc = new PeerWireThread(infoHash, peerId);
@@ -724,11 +738,8 @@ void BitTorrentClient::createThread(TCPSocket * socket, int infoHash, int peerId
 
 }
 void BitTorrentClient::removeThread(PeerWireThread *thread) {
+    thread->printDebugMsg("Thread removed");
     if (*this->threadInProcessingIt == thread) {
-        std::ostringstream out;
-        out << "In processing: " << (void*) thread;
-        thread->printDebugMsg(out.str());
-
         // Delete the current thread and set the iterator so that when
         // incremented, the thread after this one will be executed.
         // Steps        (1)    =>    (2)   =>   (3)    =>   (4)
@@ -749,7 +760,6 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
             --this->threadInProcessingIt;
         }
     } else {
-        this->printDebugMsg("Not processing");
         this->allThreads.remove(thread);
     }
 
@@ -772,7 +782,7 @@ void BitTorrentClient::removeThread(PeerWireThread *thread) {
         }
     }
 
-    // remove socket and delete thread.
+    // remove socket from the map and delete the thread.
     TCPSrvHostApp::removeThread(thread);
 }
 void BitTorrentClient::registerEmittedSignals() {
@@ -893,7 +903,8 @@ void BitTorrentClient::handleMessage(cMessage* msg) {
             }
         } else if (msg->isName("Delete thread")) {
             this->printDebugMsg("Thread terminated.");
-            PeerWireThread * thread = static_cast<PeerWireThread *>(msg->getContextPointer());
+            PeerWireThread * thread =
+                static_cast<PeerWireThread *>(msg->getContextPointer());
             this->removeThread(thread);
             delete msg;
         } else {
