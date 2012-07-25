@@ -301,7 +301,6 @@ void PeerWireThread::finishProcessing() {
     // finish processing this thread
     this->busy = false;
 
-    //    if (!this->terminating) {
     this->printDebugMsg("Post-processing.");
     // process all application messages that were generated during the
     // processing of the last PeerWire message.
@@ -315,15 +314,8 @@ void PeerWireThread::finishProcessing() {
     this->printDebugMsg("Finished processing.");
 
     if (this->terminating) {
-        cMessage * deleteMsg = new cMessage("Delete thread");
-        deleteMsg->setContextPointer(this);
-        this->btClient->scheduleAt(simTime(), deleteMsg);
+        this->btClient->removeThread(this);
     }
-    //    } else {
-    //        // thread terminated, remove thread from BitTorrentClient
-    //        this->printDebugMsg("Thread terminated.");
-    //        this->btClient->removeThread(this);
-    //    }
 }
 void PeerWireThread::processAppMessages() {
     while (!this->messageQueue.empty()) {
@@ -374,32 +366,17 @@ void PeerWireThread::sendApplicationMessage(int id) {
     this->printDebugMsg(std::string(debugMsg));
     ApplicationMsg* appMessage = new ApplicationMsg(name);
     appMessage->setMessageId(id);
-    // What if application messages were instantaneous?
+    // If this application message is being issued in the same event as the
+    // last one, then it was issued as a result of a transition in the state
+    // machines. Transitions cannot be issued from inside another transition,
+    // so insert it in the queue for post-processing
     if (this->lastEvent < simulation.getEventNumber()) {
         this->issueTransition(appMessage);
     } else {
         this->postProcessingAppMsg.insert(appMessage);
     }
-    // these messages are generated only when processing messages
-//    switch (id) {
-//    case APP_CLOSE:
-//    case APP_PEER_INTERESTING:
-//    case APP_PEER_NOT_INTERESTING:
-//    case APP_SEND_PIECE_MSG:
-//    case APP_CHOKE_PEER:
-//    case APP_UNCHOKE_PEER:
-//        if (this->busy) {
-//            this->postProcessingAppMsg.insert(appMessage);
-//        } else {
-//            this->messageQueue.insert(appMessage);
-//        }
-//        break;
-//    default:
-//        this->messageQueue.insert(appMessage);
-//        break;
-//    }
-//    // Try to ensure the processing of the first message to arrive.
-//    if (!this->busy) this->btClient->processNextThread();
+    // Ensure the processing of the first message to arrive.
+    if (!this->busy) this->btClient->processNextThread();
 }
 void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
     ApplicationMsg const* appMsg = dynamic_cast<ApplicationMsg const*>(msg);

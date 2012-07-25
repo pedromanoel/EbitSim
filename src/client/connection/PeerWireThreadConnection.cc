@@ -207,8 +207,6 @@ void PeerWireThread::stopHandshakeTimers() {
     this->cancelEvent(&this->keepAliveTimer);
 }
 void PeerWireThread::removeFromSwarm() {
-    this->terminating = true;
-
     // Remove the peer from the BitTorrentClient and the swarm related modules
     // It is connected only if the ContentManager and Choker modules are set
     if (this->contentManager != NULL && this->choker != NULL) {
@@ -216,6 +214,13 @@ void PeerWireThread::removeFromSwarm() {
                 this->sock->getConnectionId(), this->activeConnection);
     }
     cancelMessages();
+
+    // If idle, remove from the thread
+    if (!this->busy) {
+        this->btClient->removeThread(this);
+    } else { // else, remove when finishing processing
+        this->terminating = true;
+    }
 }
 // transition guards
 bool PeerWireThread::checkHandshake(Handshake const& hs) {
