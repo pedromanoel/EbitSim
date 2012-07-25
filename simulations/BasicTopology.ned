@@ -30,6 +30,62 @@ import inet.nodes.inet.StandardHost;
 network BasicTopology extends BasicNetwork
 {
     parameters:
+        @signal[BitTorrentClient_PeerWireBytesSent];
+        @signal[BitTorrentClient_ContentBytesSent];
+        @statistic[PeerWireBytesSent](
+            source=BitTorrentClient_PeerWireBytesSent;
+            title="Total bytes of PeerWire messages sent";
+            record=sum);
+        @statistic[ContentBytesSent](
+            source=BitTorrentClient_ContentBytesSent;
+            title="Total bytes of content sent";
+            record=sum);
+
+        @signal[BitTorrentClient_BitFieldSent];
+        @signal[BitTorrentClient_CancelSent];
+        @signal[BitTorrentClient_ChokeSent];
+        @signal[BitTorrentClient_HandshakeSent];
+        @signal[BitTorrentClient_HaveSent];
+        @signal[BitTorrentClient_InterestedSent];
+        @signal[BitTorrentClient_KeepAliveSent];
+        @signal[BitTorrentClient_NotInterestedSent];
+        @signal[BitTorrentClient_PieceSent];
+        @signal[BitTorrentClient_RequestSent];
+        @signal[BitTorrentClient_UnchokeSent];
+        @statistic[BitFieldSent](
+            source=BitTorrentClient_BitFieldSent;
+            title="Sum of BitFields sent"; record=sum);
+        @statistic[CancelSent](
+            source=BitTorrentClient_CancelSent;
+            title="Sum of Cancels sent"; record=sum);
+        @statistic[ChokeSent](
+            source=BitTorrentClient_ChokeSent;
+            title="Sum of Chokes sent"; record=sum);
+        @statistic[HandshakeSent](
+            source=BitTorrentClient_HandshakeSent;
+            title="Sum of Handshakes sent"; record=sum);
+        @statistic[HaveSent](
+            source=BitTorrentClient_HaveSent;
+            title="Sum of Haves sent"; record=sum);
+        @statistic[InterestedSent](
+            source=BitTorrentClient_InterestedSent;
+            title="Sum of Interesteds sent"; record=sum);
+        @statistic[KeepAliveSent](
+            source=BitTorrentClient_KeepAliveSent;
+            title="Sum of KeepAlives sent "; record=sum);
+        @statistic[NotInterestedSent](
+            source=BitTorrentClient_NotInterestedSent;
+            title="Sum of NotInteresteds sent"; record=sum);
+        @statistic[PieceSent](
+            source=BitTorrentClient_PieceSent;
+            title="Sum of Pieces sent"; record=sum);
+        @statistic[RequestSent](
+            source=BitTorrentClient_RequestSent;
+            title="Sum of Requests sent"; record=sum);
+        @statistic[UnchokeSent](
+            source=BitTorrentClient_UnchokeSent;
+            title="Sum of Unchokes sent"; record=sum);
+    
         @signal[SwarmManager_EnterSwarm];
         @statistic[EnterSwarm](
             source=SwarmManager_EnterSwarm;
