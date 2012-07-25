@@ -314,7 +314,9 @@ void PeerWireThread::finishProcessing() {
     this->printDebugMsg("Finished processing.");
 
     if (this->terminating) {
-        this->btClient->removeThread(this);
+        cMessage * deleteMsg = new cMessage("Delete thread");
+        deleteMsg->setContextPointer(this);
+        this->btClient->scheduleAt(simTime(), deleteMsg);
     }
 }
 void PeerWireThread::processAppMessages() {

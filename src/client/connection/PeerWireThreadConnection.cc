@@ -217,7 +217,9 @@ void PeerWireThread::removeFromSwarm() {
 
     // If idle, remove from the thread
     if (!this->busy) {
-        this->btClient->removeThread(this);
+        cMessage * deleteMsg = new cMessage("Delete thread");
+        deleteMsg->setContextPointer(this);
+        this->btClient->scheduleAt(simTime(), deleteMsg);
     } else { // else, remove when finishing processing
         this->terminating = true;
     }
