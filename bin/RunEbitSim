@@ -55,12 +55,13 @@ cd "$RUN_DIR"
 # if HIDE_OUTPUT is defined, don't show the output in stdout
 HIDE_OUTPUT=${HIDE_OUTPUT:-no}
 if [ "$HIDE_OUTPUT" == "no" ]; then
-    mkfifo output_fifo
+    FIFO="output_fifo_$CONFIG_$1"
+    mkfifo $FIFO
     # The simulation is put on the the background to get the PID
-    $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > output_fifo &
+    $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $FIFO &
     PID=$!
-    tee $LOG_DIR/$OUT_FILE < output_fifo
-    rm output_fifo
+    tee $LOG_DIR/$OUT_FILE < $FIFO
+    rm $FIFO
 else
     # The simulation is put on the the background to get the PID
     $EXEC_FILE -f $INI_FILE -c $CONFIG -u $ENV -r$1 2> $LOG_DIR/$ERR_FILE > $LOG_DIR/$OUT_FILE &
