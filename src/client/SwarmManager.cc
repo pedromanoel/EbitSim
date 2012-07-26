@@ -221,7 +221,7 @@ public:
         switch (this->lastAnnounceType) {
         case A_COMPLETED: {
             // Check if the peer will leave the swarm after completed
-            if (uniform(0, 1) < parent->par("remainingSeeders").doubleValue()) {
+            if (uniform(0, 1) > parent->par("remainingSeeders").doubleValue()) {
                 cMessage * leaveMsg = new cMessage("Leave");
                 leaveMsg->setContextPointer(this);
                 this->parent->scheduleAt(simTime(), leaveMsg);

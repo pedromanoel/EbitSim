@@ -142,7 +142,7 @@ simple SwarmManager like TCPApp
         int numWant = default(50);
         double normalRefreshInterval @unit(s) = default(180s);
         double minimumRefreshInterval @unit(s) = default(20s);
-        // probability the Peer will leave the swarm after completion
+        // probability the Peer will stay in the swarm after completion
         double remainingSeeders;
     gates:
         input userCommand @directIn;
