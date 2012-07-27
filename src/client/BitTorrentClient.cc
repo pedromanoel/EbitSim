@@ -188,7 +188,7 @@ PeerVector BitTorrentClient::getFastestToDownload(int infoHash) const {
     if (peerMap.size()) {
         PeerMapConstIt it = peerMap.begin();
         for (; it != peerMap.end(); ++it) {
-            orderedPeers.push_back(&it->second);
+            orderedPeers.push_back(it->second);
         }
 
         std::sort(orderedPeers.begin(), orderedPeers.end(),
@@ -210,7 +210,7 @@ PeerVector BitTorrentClient::getFastestToUpload(int infoHash) const {
         out << "Connected peers: ";
         for (; it != peerMap.end(); ++it) {
             out << it->second.getPeerId() << " ";
-            vector.push_back(&it->second);
+            vector.push_back(it->second);
         }
         this->printDebugMsg(out.str());
 

@@ -140,9 +140,9 @@ public:
     //!@name Static methods used to sort a list of PeerStatus'es
     //@{
     //! Return true if lhs comes before rhs.
-    static bool sortByDownloadRate(const PeerStatus* lhs, const PeerStatus* rhs);
+    static bool sortByDownloadRate(PeerStatus const& lhs, PeerStatus const& rhs);
     //! Return true if lhs comes before rhs.
-    static bool sortByUploadRate(const PeerStatus* lhs, const PeerStatus* rhs);
+    static bool sortByUploadRate(PeerStatus const& lhs, PeerStatus const& rhs);
     //@}
 private:
     /*!

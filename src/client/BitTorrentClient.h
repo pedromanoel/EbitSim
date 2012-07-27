@@ -92,7 +92,7 @@ class Choker;
 class ContentManager;
 
 //! Vector of PeerStatus pointers.
-typedef std::vector<PeerStatus const*> PeerVector;
+typedef std::vector<PeerStatus> PeerVector;
 //! Tuple with connect information about a Peer. <PeerId, IpAddress, Port>
 typedef tuple<int, IPvXAddress, int> PeerConnInfo;
 //! List of unconnected Peers
@@ -120,7 +120,6 @@ typedef PeerMap::iterator PeerMapIt;
 typedef PeerMap::const_iterator PeerMapConstIt;
 typedef SwarmMap::iterator SwarmMapIt;
 typedef SwarmMap::const_iterator SwarmMapConstIt;
-
 /**
  * The BitTorrent Client implementation, which acts like a TCP server
  * when receiving connections from other Peers.

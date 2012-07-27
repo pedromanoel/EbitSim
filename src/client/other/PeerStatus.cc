@@ -154,18 +154,18 @@ double PeerStatus::getUploadRate() const {
  * than it will come after the other.
  * lhs and rhs are compared based on the download rate from the Client's point of view.
  */
-bool PeerStatus::sortByDownloadRate(const PeerStatus* lhs, const PeerStatus* rhs) {
+bool PeerStatus::sortByDownloadRate(PeerStatus const& lhs, PeerStatus const& rhs) {
 
     // verify if lhs is interested and not snubbed. If not, rhs comes first.
-    if (!lhs->interested || lhs->snubbed) {
+    if (!lhs.interested || lhs.snubbed) {
         return false;
     }
     // verify if rhs is interested and not snubbed. If not, lhs comes first.
-    if (!rhs->interested || rhs->snubbed) {
+    if (!rhs.interested || rhs.snubbed) {
         return true;
     }
-    return lhs->downloadDataRate.getDataRateAverage()
-        > rhs->downloadDataRate.getDataRateAverage();
+    return lhs.downloadDataRate.getDataRateAverage()
+        > rhs.downloadDataRate.getDataRateAverage();
 }
 /*!
  * Only peers that are unchoked and interested are considered. That means that
@@ -187,33 +187,33 @@ bool PeerStatus::sortByDownloadRate(const PeerStatus* lhs, const PeerStatus* rhs
  * time, giving priority to the highest upload. All other peers are ordered according to their
  * upload rate, giving priority to the highest upload.
  */
-bool PeerStatus::sortByUploadRate(const PeerStatus* lhs, const PeerStatus* rhs) {
+bool PeerStatus::sortByUploadRate(PeerStatus const& lhs, PeerStatus const& rhs) {
     // verify if lhs is unchoked and interested. If not, rhs comes first.
-    if (!lhs->interested || !lhs->unchoked) {
+    if (!lhs.interested || !lhs.unchoked) {
         return false;
     }
     // verify if rhs is unchoked and interested. If not, lhs comes first.
-    if (!rhs->interested || !rhs->unchoked) {
+    if (!rhs.interested || !rhs.unchoked) {
         return true;
     }
 
     // verify if lhs is recently unchoked or has pending requests and rhs not.
     // if so, lhs comes first.
-    if ((!lhs->oldUnchoked) ^ (!rhs->oldUnchoked)) { // xor
-        return (!lhs->oldUnchoked);
+    if ((!lhs.oldUnchoked) ^ (!rhs.oldUnchoked)) { // xor
+        return (!lhs.oldUnchoked);
     }
 
     // verify if lhs was unchoked after rhs. If so, lhs comes first.
-    if (!lhs->oldUnchoked) { // if true, it means lhs and rhs are recently unchoked or has pending requests.
-        if (lhs->timeOfLastUnchoke < rhs->timeOfLastUnchoke) {
+    if (!lhs.oldUnchoked) { // if true, it means lhs and rhs are recently unchoked or has pending requests.
+        if (lhs.timeOfLastUnchoke < rhs.timeOfLastUnchoke) {
             return true;
-        } else if (lhs->timeOfLastUnchoke > rhs->timeOfLastUnchoke) {
+        } else if (lhs.timeOfLastUnchoke > rhs.timeOfLastUnchoke) {
             return false;
         }
     }
     // both have the same unchoke time or are not recently unchoked. Order by upload rate.
-    return lhs->uploadDataRate.getDataRateAverage()
-        > rhs->uploadDataRate.getDataRateAverage();
+    return lhs.uploadDataRate.getDataRateAverage()
+        > rhs.uploadDataRate.getDataRateAverage();
 }
 
 /*!
