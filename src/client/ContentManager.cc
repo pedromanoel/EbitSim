@@ -654,15 +654,15 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
                 out << "Downloaded piece " << pieceIndex;
                 this->printDebugMsg(out.str());
             }
-            std::multimap<int, int>::iterator begin, end;
-            tie(begin, end) = this->requestedPieces.equal_range(peerId);
-            assert(begin != end); // the piece must be in the requestedPieces
-            while (begin != end) {
-                if (begin->second == pieceIndex) {
-                    this->requestedPieces.erase(begin);
-                    break;
+            // Erase all the requests from the same piece
+            std::multimap<int, int>::iterator it, end;
+            it = this->requestedPieces.begin();
+            end = this->requestedPieces.end();
+            while (it != end) {
+                std::multimap<int, int>::iterator currentIt = it++;
+                if (currentIt->second == pieceIndex) {
+                    this->requestedPieces.erase(currentIt);
                 }
-                ++begin;
             }
 
             if (this->clientBitField.empty()) {
