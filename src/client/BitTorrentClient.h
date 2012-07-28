@@ -92,7 +92,7 @@ class Choker;
 class ContentManager;
 
 //! Vector of PeerStatus pointers.
-typedef std::vector<PeerStatus> PeerVector;
+typedef std::vector<PeerStatus const*> PeerVector;
 //! Tuple with connect information about a Peer. <PeerId, IpAddress, Port>
 typedef tuple<int, IPvXAddress, int> PeerConnInfo;
 //! List of unconnected Peers
@@ -114,7 +114,7 @@ struct Swarm {
 typedef std::map<int, Swarm> SwarmMap;
 
 // Iterators
-typedef PeerVector::iterator PeerVectorIt;
+//typedef PeerVector::iterator PeerVectorIt;
 typedef UnconnectedList::iterator UnconnectedListIt;
 typedef PeerMap::iterator PeerMapIt;
 typedef PeerMap::const_iterator PeerMapConstIt;

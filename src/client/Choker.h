@@ -185,7 +185,7 @@ private:
     cMessage chokeAlgorithmTimer;
 private:
     void chokeAlgorithm(bool optimisticRound = false);
-    typedef std::vector<PeerStatus>::iterator PeerVectorIt;
+    typedef std::vector<PeerStatus const*>::iterator PeerVectorIt;
     /*!
      * Fill the regular slots with the fastest interested peers that are not
      * optimistically unchoked.

@@ -156,19 +156,19 @@ double PeerStatus::getUploadRate() const {
  *
  * When true is returned, lhs comes before rhs, meaning lhs is worse than rhs.
  */
-bool PeerStatus::sortByDownloadRate(PeerStatus const& lhs, PeerStatus const& rhs) {
-    if (lhs.interested != rhs.interested) {
+bool PeerStatus::sortByDownloadRate(PeerStatus const* lhs, PeerStatus const* rhs) {
+    if (lhs->interested != rhs->interested) {
         // If lhs isn't interest but rhs is, then it is worse than rhs
-        return !lhs.interested;
+        return !lhs->interested;
     }
-    if (lhs.snubbed != rhs.snubbed) {
+    if (lhs->snubbed != rhs->snubbed) {
         // If lhs is snubbed but rhs isn't, then it is worse than rhs
-        return lhs.snubbed;
+        return lhs->snubbed;
     }
     // They have the same interest and snubbing status, so if lhs has lower download
     // rate, then it is worse than rhs
-    int lhsDataRate = lhs.downloadDataRate.getDataRateAverage();
-    int rhsDataRate = rhs.downloadDataRate.getDataRateAverage();
+    int lhsDataRate = lhs->downloadDataRate.getDataRateAverage();
+    int rhsDataRate = rhs->downloadDataRate.getDataRateAverage();
     return (lhsDataRate < rhsDataRate);
 }
 /*!
@@ -193,32 +193,32 @@ bool PeerStatus::sortByDownloadRate(PeerStatus const& lhs, PeerStatus const& rhs
  *
  * When true is returned, lhs comes before rhs, meaning lhs is worse than rhs.
  */
-bool PeerStatus::sortByUploadRate(PeerStatus const& lhs, PeerStatus const& rhs) {
-    if (lhs.interested != rhs.interested) {
+bool PeerStatus::sortByUploadRate(PeerStatus const* lhs, PeerStatus const* rhs) {
+    if (lhs->interested != rhs->interested) {
         // If lhs isn't interested but rhs is, then it is worse than rhs
-        return !lhs.interested;
+        return !lhs->interested;
     }
-    if (lhs.unchoked != rhs.unchoked) {
+    if (lhs->unchoked != rhs->unchoked) {
         // If lhs isn't unchoked but rhs is, then it is worse than rhs
-        return !lhs.unchoked;
+        return !lhs->unchoked;
     }
 
-    if (lhs.oldUnchoked != rhs.oldUnchoked) {
+    if (lhs->oldUnchoked != rhs->oldUnchoked) {
         // If lhs is old unchoked but rhs isn't, then it is worse then rhs
-        return lhs.oldUnchoked;
+        return lhs->oldUnchoked;
     }
 
     // TODO: verify pending requests
 
     // If both are not old unchoked, the oldest is worse
-    if (!lhs.oldUnchoked) {
-        return lhs.timeOfLastUnchoke > rhs.timeOfLastUnchoke;
+    if (!lhs->oldUnchoked) {
+        return lhs->timeOfLastUnchoke > rhs->timeOfLastUnchoke;
     }
 
     // They have the same interest and choking status, and are both old unchokes,
     // so if lhs has lower upload data rate, it is worse than rhs
-    int lhsDataRate = lhs.uploadDataRate.getDataRateAverage();
-    int rhsDataRate = rhs.uploadDataRate.getDataRateAverage();
+    int lhsDataRate = lhs->uploadDataRate.getDataRateAverage();
+    int rhsDataRate = rhs->uploadDataRate.getDataRateAverage();
     return lhsDataRate < rhsDataRate;
 }
 

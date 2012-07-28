@@ -182,9 +182,9 @@ void Choker::chokeAlgorithm(bool optimisticRound) {
 
     // All other interested peers are choked, except for the optimistic unchoke
     for (; it != end; ++it) {
-        PeerStatus const& peer = *it;
-        int peerId = peer.getPeerId();
-        if (!this->optimisticSlots.count(peerId) && peer.isInterested()) {
+        PeerStatus const* peer = *it;
+        int peerId = peer->getPeerId();
+        if (!this->optimisticSlots.count(peerId) && peer->isInterested()) {
             this->bitTorrentClient->chokePeer(this->infoHash, peerId);
             std::string out = "Choke peer " + toStr(peerId);
             this->printDebugMsg(out);
@@ -196,20 +196,20 @@ void Choker::regularUnchoke(PeerVectorIt & it, PeerVectorIt const& end) {
     this->regularSlots.clear();
     std::string out = "Regular unchokes - ";
     for (; it != end && this->regularSlots.size() < this->numRegular; ++it) {
-        PeerStatus const& peer = (*it);
-        int peerId = peer.getPeerId();
+        PeerStatus const* peer = (*it);
+        int peerId = peer->getPeerId();
 
         // don't consider optimistically unchoked peers
         if (this->optimisticSlots.count(peerId)) {
             continue;
         }
         // remove snubbed connections from the active slots
-        if (peer.isSnubbed()) {
+        if (peer->isSnubbed()) {
             this->bitTorrentClient->chokePeer(this->infoHash, peerId);
             out += "choke_snubbed(" + toStr(peerId) + ") ";
         } else {
             // only interested peers can occupy upload slots
-            if (peer.isInterested()) {
+            if (peer->isInterested()) {
                 this->regularSlots.insert(peerId);
                 out += "interested(" + toStr(peerId) + ") ";
             } else {
@@ -233,12 +233,12 @@ void Choker::optimisticUnchoke(PeerVectorIt & it, PeerVectorIt & end) {
     std::string out = "Optimistic unchokes - ";
     for (; it != end && this->optimisticSlots.size() < this->numOptimistic;
         ++it) {
-        PeerStatus const& peer = (*it);
-        int peerId = peer.getPeerId();
+        PeerStatus const* peer = (*it);
+        int peerId = peer->getPeerId();
 
         // The top interested Peers that are not snubbed are optimistically unchoked
-        if (peer.isInterested()) {
-            if (peer.isSnubbed()) {
+        if (peer->isInterested()) {
+            if (peer->isSnubbed()) {
                 this->bitTorrentClient->chokePeer(this->infoHash, peerId);
                 out += "choke_snubbed(" + toStr(peerId) + ") ";
             } else {

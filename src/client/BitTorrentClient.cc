@@ -184,27 +184,19 @@ PeerVector BitTorrentClient::getFastestToDownload(int infoHash) const {
     Swarm const& swarm = this->getSwarm(infoHash);
     PeerMap const& peerMap = swarm.peerMap;
     PeerVector orderedPeers;
-    orderedPeers.reserve(peerMap.size());
     if (peerMap.size()) {
+        orderedPeers.reserve(peerMap.size());
         PeerMapConstIt it = peerMap.begin();
         int i = 0;
         for (; it != peerMap.end(); ++it) {
-            orderedPeers.push_back(it->second);
+            PeerStatus const* peerStatus = &it->second;
+            orderedPeers.push_back(peerStatus);
         }
-        std::cerr << "Fastest to download: ";
-        BOOST_FOREACH(PeerStatus const& p, orderedPeers) {
-            std::cerr << p.getPeerId() << ": " << p.getDownloadRate() << ","; 
-        }
-        std::cerr << "\n";
         
         // Order from lowest to largest, and we want the reverse order
         std::sort(orderedPeers.rbegin(), orderedPeers.rend(),
             PeerStatus::sortByDownloadRate);
     }
-    BOOST_FOREACH(PeerStatus const& p, orderedPeers) {
-        std::cerr << p.getPeerId() << ": " << p.getDownloadRate() << ","; 
-    }
-    std::cerr << "\n"; 
 
     return orderedPeers;
 }
@@ -213,22 +205,23 @@ PeerVector BitTorrentClient::getFastestToUpload(int infoHash) const {
     Swarm const& swarm = this->getSwarm(infoHash);
     PeerMap const& peerMap = swarm.peerMap;
     int peerMapSize = peerMap.size();
-    PeerVector vector;
+    PeerVector orderedPeers;
     if (peerMapSize) {
-        vector.reserve(peerMapSize);
+        orderedPeers.reserve(peerMapSize);
         PeerMapConstIt it = peerMap.begin();
         std::ostringstream out;
         out << "Connected peers: ";
         for (; it != peerMap.end(); ++it) {
             out << it->second.getPeerId() << " ";
-            vector.push_back(it->second);
+            PeerStatus const* peerStatus = &it->second;
+            orderedPeers.push_back(peerStatus);
         }
         this->printDebugMsg(out.str());
 
-        std::sort(vector.begin(), vector.end(), PeerStatus::sortByUploadRate);
+        std::sort(orderedPeers.begin(), orderedPeers.end(), PeerStatus::sortByUploadRate);
     }
 
-    return vector;
+    return orderedPeers;
 }
 void BitTorrentClient::unchokePeer(int infoHash, int peerId) {
     Enter_Method("unchokePeer(infoHash: %d, peerId: %d)", infoHash, peerId);
