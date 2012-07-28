@@ -187,13 +187,24 @@ PeerVector BitTorrentClient::getFastestToDownload(int infoHash) const {
     orderedPeers.reserve(peerMap.size());
     if (peerMap.size()) {
         PeerMapConstIt it = peerMap.begin();
+        int i = 0;
         for (; it != peerMap.end(); ++it) {
             orderedPeers.push_back(it->second);
         }
-
-        std::sort(orderedPeers.begin(), orderedPeers.end(),
+        std::cerr << "Fastest to download: ";
+        BOOST_FOREACH(PeerStatus const& p, orderedPeers) {
+            std::cerr << p.getPeerId() << ": " << p.getDownloadRate() << ","; 
+        }
+        std::cerr << "\n";
+        
+        // Order from lowest to largest, and we want the reverse order
+        std::sort(orderedPeers.rbegin(), orderedPeers.rend(),
             PeerStatus::sortByDownloadRate);
     }
+    BOOST_FOREACH(PeerStatus const& p, orderedPeers) {
+        std::cerr << p.getPeerId() << ": " << p.getDownloadRate() << ","; 
+    }
+    std::cerr << "\n"; 
 
     return orderedPeers;
 }
