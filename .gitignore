@@ -1,5 +1,5 @@
 run
-out
+/out
 *_m.cc
 *_m.h
 /Makefile.vc
