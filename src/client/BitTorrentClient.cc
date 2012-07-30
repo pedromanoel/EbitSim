@@ -140,7 +140,6 @@ void BitTorrentClient::addUnconnectedPeers(int infoHash,
     // if seeding or closing, don't add unconnected peers
     if (!(swarm.seeding || swarm.closing)) {
         std::ostringstream out;
-
         UnconnectedList & unconnectedList = swarm.unconnectedList;
         out << "Prev list: ";
         BOOST_FOREACH(PeerConnInfo p, unconnectedList) {
@@ -190,7 +189,11 @@ PeerVector BitTorrentClient::getFastestToDownload(int infoHash) const {
         int i = 0;
         for (; it != peerMap.end(); ++it) {
             PeerStatus const* peerStatus = &it->second;
-            orderedPeers.push_back(peerStatus);
+            if (peerStatus->isInterested()) {
+                // will unchoke only interested peers
+                // the list ordered is much smaller
+                orderedPeers.push_back(peerStatus);
+            }
         }
         
         // Order from lowest to largest, and we want the reverse order
@@ -209,16 +212,16 @@ PeerVector BitTorrentClient::getFastestToUpload(int infoHash) const {
     if (peerMapSize) {
         orderedPeers.reserve(peerMapSize);
         PeerMapConstIt it = peerMap.begin();
-        std::ostringstream out;
-        out << "Connected peers: ";
         for (; it != peerMap.end(); ++it) {
-            out << it->second.getPeerId() << " ";
             PeerStatus const* peerStatus = &it->second;
-            orderedPeers.push_back(peerStatus);
+            if (peerStatus->isInterested()) {
+                // will unchoke only interested peers
+                // the list ordered is much smaller
+                orderedPeers.push_back(peerStatus);
+            }
         }
-        this->printDebugMsg(out.str());
 
-        std::sort(orderedPeers.begin(), orderedPeers.end(), PeerStatus::sortByUploadRate);
+        std::sort(orderedPeers.rbegin(), orderedPeers.rend(), PeerStatus::sortByUploadRate);
     }
 
     return orderedPeers;
