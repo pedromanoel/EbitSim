@@ -740,6 +740,7 @@ void UploadMap_InterestingUnchoking::Exit(UploadSMContext& context)
     PeerWireThread& ctxt(context.getOwner());
 
     ctxt.stopUploadTimers();
+    ctxt.cancelUploadRequests();
     return;
 }
 
@@ -812,7 +813,6 @@ void UploadMap_InterestingUnchoking::chokePeer(UploadSMContext& context)
     context.clearState();
     try
     {
-        ctxt.cancelUploadRequests();
         ctxt.outgoingPeerWireMsg_ConnectionSM(ctxt.getChokeMsg());
         if (context.getDebugFlag() == true)
         {

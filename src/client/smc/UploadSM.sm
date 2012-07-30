@@ -175,6 +175,7 @@ Entry {
 }
 Exit {
     stopUploadTimers();
+    cancelUploadRequests();
 }
 {
     cancelMsg(msg: CancelMsg const&)
@@ -204,7 +205,6 @@ Exit {
     chokePeer
         InterestingChoking
             {
-                cancelUploadRequests();
                 outgoingPeerWireMsg_ConnectionSM(ctxt.getChokeMsg());
             }
     stopMachine
