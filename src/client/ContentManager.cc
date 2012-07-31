@@ -751,7 +751,7 @@ void ContentManager::insertRequestInBundle(cPacketQueue * const bundle,
     // create the request and insert it in the bundle
     RequestMsg *request;
     std::ostringstream name;
-    name << "RequestMsg(" << pieceIndex << ", " << blockIndex << ")";
+    name << "RequestMsg(" << pieceIndex << "," << blockIndex << ")";
     request = new RequestMsg(name.str().c_str());
     request->setIndex(pieceIndex);
     request->setBegin(blockIndex * this->subPieceSize);
@@ -759,7 +759,7 @@ void ContentManager::insertRequestInBundle(cPacketQueue * const bundle,
     // set the size of the request
     request->setByteLength(request->getHeaderLen() + request->getPayloadLen());
 
-    bundleMsgName << "(" << pieceIndex << ", " << blockIndex << ")";
+    bundleMsgName << "(" << pieceIndex << "," << blockIndex << ")";
     bundle->insert(request);
 }
 void ContentManager::getRemainingPieces(cPacketQueue * const bundle,

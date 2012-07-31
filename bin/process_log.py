@@ -25,9 +25,12 @@ def process_log(log_file):
         for line in in_file:
             import re
             # see if the current line matches a peer log
-            s = re.search(peer_regexp_str, line)
-            if s:
-                peer_id = int(s.group(2))
+            # log lines are separated by semicolons
+            # EVENT;TIME;MODULE;Peer #;...;Message
+            s = line.split(";")
+            if len(s) > 1:
+                # s[2] is "Peer #"
+                peer_id = int(s[3][5:])
 
                 # initialize the list for this peer_id
                 # initialize the dictionary for this peer_id
@@ -35,7 +38,7 @@ def process_log(log_file):
                     list_of_peers[peer_id] = []
 
                 # group lines with the same event number by removing the first char 
-                ev = s.group(1)
+                ev = s[0]
                 if ev != prev_ev:
                     prev_ev = ev
 
