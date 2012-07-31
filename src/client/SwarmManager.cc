@@ -355,6 +355,7 @@ void SwarmManager::enterSwarm(TorrentMetadata const& torrent, bool seeder,
     this->bitTorrentClient->createSwarm(torrent.infoHash, torrent.numOfPieces,
         torrent.numOfSubPieces, torrent.subPieceSize, seeder);
     emit(this->enterSwarmSignal, simTime());
+    emit(this->emittedPeerId_Signal, this->localPeerId);
 }
 void SwarmManager::leaveSwarm(int infoHash) {
     this->callbacksByInfoHash.at(infoHash)->sendAnnounce(A_STOPPED);
