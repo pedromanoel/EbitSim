@@ -189,13 +189,9 @@ PeerVector BitTorrentClient::getFastestToDownload(int infoHash) const {
         int i = 0;
         for (; it != peerMap.end(); ++it) {
             PeerStatus const* peerStatus = &it->second;
-            if (peerStatus->isInterested()) {
-                // will unchoke only interested peers
-                // the list ordered is much smaller
-                orderedPeers.push_back(peerStatus);
-            }
+            orderedPeers.push_back(peerStatus);
         }
-        
+
         // Order from lowest to largest, and we want the reverse order
         std::sort(orderedPeers.rbegin(), orderedPeers.rend(),
             PeerStatus::sortByDownloadRate);
@@ -214,14 +210,11 @@ PeerVector BitTorrentClient::getFastestToUpload(int infoHash) const {
         PeerMapConstIt it = peerMap.begin();
         for (; it != peerMap.end(); ++it) {
             PeerStatus const* peerStatus = &it->second;
-            if (peerStatus->isInterested()) {
-                // will unchoke only interested peers
-                // the list ordered is much smaller
-                orderedPeers.push_back(peerStatus);
-            }
+            orderedPeers.push_back(peerStatus);
         }
 
-        std::sort(orderedPeers.rbegin(), orderedPeers.rend(), PeerStatus::sortByUploadRate);
+        std::sort(orderedPeers.rbegin(), orderedPeers.rend(),
+            PeerStatus::sortByUploadRate);
     }
 
     return orderedPeers;
@@ -450,12 +443,7 @@ bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
 
             // If active, already checked the slots at attemptActiveConnections()
             successful = active || availSlots > 0;
-
-            if (active) {
-                this->printDebugMsg("Accept active connection");
-            } else if (availSlots > 0) {
-                this->printDebugMsg("Can connect");
-            } else {
+            if (!active && availSlots == 0) {
                 this->printDebugMsg("No slots available for connection");
             }
         }
@@ -558,7 +546,7 @@ void BitTorrentClient::attemptActiveConnections(Swarm & swarm, int infoHash) {
         }
         // Either the active slots are full or the unconnected list is empty
         // If more than half of the active slots is unoccupied, ask for more peers
-        if (swarm.numActive < this->numActiveConn/2) {
+        if (swarm.numActive < this->numActiveConn / 2) {
             this->swarmManager->askMorePeers(infoHash);
         }
     }

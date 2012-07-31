@@ -107,7 +107,8 @@ void PeerWireThread::connected() {
     this->contentManager->addEmptyBitField(this->remotePeerId);
 
     std::ostringstream out;
-    out << "Connection established.";
+    out << this->activeConnection? "Active":"Passive";
+    out << " connection established.";
     this->printDebugMsgConnection(out.str());
 }
 void PeerWireThread::closeLocalConnection() {
