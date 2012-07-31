@@ -86,24 +86,46 @@ network BasicTopology extends BasicNetwork
             source=BitTorrentClient_UnchokeSent;
             title="Sum of Unchokes sent"; record=sum);
     
+    
         @signal[SwarmManager_EnterSwarm];
+        @signal[SwarmManager_LeaveSwarm];
+        @signal[SwarmManager_EmittedPeerId];
         @statistic[EnterSwarm](
             source=SwarmManager_EnterSwarm;
             title="Enter Swarm Time";
             record=vector;
         );
-        @signal[SwarmManager_LeaveSwarm];
         @statistic[LeaveSwarm](
             source=SwarmManager_LeaveSwarm;
             title="Leave Swarm Time";
             record=vector;
         );
-        @signal[ContentManager_100_percentDownloadMarkTime];
+        @statistic[SwarmEmittedPeerId](
+            source=SwarmManager_EmittedPeerId;
+            title="Peer Swarm Signal Emitted";
+            record=vector;
+        );
+        
+//        @signal[ContentManager_BecameSeeder];
+//        @signal[ContentManager_PieceDownloadTime];
+//        @signal[ContentManager_PieceDownloaded];
+//        @signal[ContentManager_TotalBytesDownloaded];
+//        @signal[ContentManager_TotalBytesUploaded];
+//        @signal[ContentManager_25_percentDownloadTime];
+//        @signal[ContentManager_50_percentDownloadTime];
+//        @signal[ContentManager_75_percentDownloadTime];
+        @signal[ContentManager_100_percentDownloadTime];
         @statistic[DownloadComplete](
-            source=ContentManager_100_percentDownloadMarkTime;
+            source=ContentManager_100_percentDownloadTime;
             title="Download Complete";
             unit=s;
             record=vector,histogram
+        );
+        @signal[ContentManager_EmittedPeerId];
+        @statistic[DownloadEmittedPeerId](
+            source=ContentManager_EmittedPeerId;
+            title="Peer Download Signal Emitted";
+            record=vector
         );
 
     submodules:

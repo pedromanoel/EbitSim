@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
   <inputs>
     <inputs name="/EbitSim/simulations/results/Test-*.vec"/>
     <inputs name="/EbitSim/simulations/results/Test-*.sca"/>
   </inputs>
-  <datasets/>
-  <chartSheets/>
+  <datasets>
+    <datasets name="All">
+      <items xsi:type="scave:Add" filterPattern="*" type="VECTOR"/>
+      <items xsi:type="scave:ScatterChart" name="" xDataPattern="module(BasicTopology) AND name(DownloadEmittedPeerId:vector)">
+        <filters xsi:type="scave:Select" filterPattern="attr:runnumber(0)  AND (name(DownloadComplete:vector) OR name(DownloadEmittedPeerId:vector))" type="VECTOR"/>
+      </items>
+    </datasets>
+  </datasets>
+  <chartSheets>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1"/>
+  </chartSheets>
 </scave:Analysis>

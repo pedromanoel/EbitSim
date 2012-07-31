@@ -364,6 +364,7 @@ void SwarmManager::leaveSwarm(int infoHash) {
     delete this->callbacksByInfoHash.at(infoHash);
     this->callbacksByInfoHash.erase(infoHash);
     emit(this->leaveSwarmSignal, simTime());
+    emit(this->emittedPeerId_Signal, this->localPeerId);
 }
 
 // Handle message methods
@@ -468,4 +469,5 @@ void SwarmManager::registerEmittedSignals() {
     this->uploadRateSignal = registerSignal("SwarmManager_UploadRate");
     this->enterSwarmSignal = registerSignal("SwarmManager_EnterSwarm");
     this->leaveSwarmSignal = registerSignal("SwarmManager_LeaveSwarm");
+    this->emittedPeerId_Signal = registerSignal("SwarmManager_EmittedPeerId");
 }

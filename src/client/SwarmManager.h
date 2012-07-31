@@ -190,6 +190,8 @@ private:
     //!Signal emitted when the swarm is created.
     simsignal_t enterSwarmSignal;
     simsignal_t leaveSwarmSignal;
+    // t this peerId emitted a signal
+    simsignal_t emittedPeerId_Signal;
     //@}
 
     //! Register all signals this module is going to emit.

@@ -86,28 +86,34 @@ package br.larc.usp.client;
 simple ContentManager
 {
     parameters:
-        @signal[ContentManager_100_percentDownloadMarkTime];
-//        @signal[ContentManager_DownloadPiece];
+        // All signals emitted by this module
+        @signal[ContentManager_BecameSeeder];
+        @signal[ContentManager_PieceDownloadTime];
+        @signal[ContentManager_PieceDownloaded];
         @signal[ContentManager_TotalBytesDownloaded];
+    
         @signal[ContentManager_TotalBytesUploaded];
+        @signal[ContentManager_25_percentDownloadTime];
+        @signal[ContentManager_50_percentDownloadTime];
+        @signal[ContentManager_75_percentDownloadTime];
+        @signal[ContentManager_100_percentDownloadTime];
+        @signal[ContentManager_EmittedPeerId];
+    
         @statistic[PiecesDownloaded](
-            source=ContentManager_DownloadPiece;
+            source=ContentManager_PieceDownloaded;
             title="Pieces Downloaded";
-//            interpolationmode=none;
             record=vector
         );
         @statistic[TotalBytesDownloaded](
             source=ContentManager_TotalBytesDownloaded;
             title="Total of Bytes Downloaded";
             unit=B;
-//            interpolationmode=linear;
             record=vector
         );
         @statistic[TotalBytesUploaded](
             source=ContentManager_TotalBytesUploaded;
             title="Total of Bytes Uploaded";
             unit=B;
-//            interpolationmode=linear;
             record=vector
         );
         // X axis

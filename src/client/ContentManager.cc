@@ -866,7 +866,7 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
     // Gather statistics in the completion time
     emit(this->pieceDownloadTime_Signal,
         simTime() - this->pieceRequestTime.at(pieceIndex));
-    emit(this->downloadPiece_Signal, pieceIndex);
+    emit(this->pieceDownloaded_Signal, pieceIndex);
     // request time already used, so delete it
     this->pieceRequestTime.erase(pieceIndex);
 
@@ -878,20 +878,18 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
     if (!this->firstMarkEmitted
         && this->clientBitField.getCompletedPercentage() >= 25.0) {
         this->firstMarkEmitted = emitCompletionSignal = true;
-        markTime_Signal = this->_25_percentDownloadMarkTime_Signal;
+        markTime_Signal = this->_25_percentDownloadTime_Signal;
     } else if (!this->secondMarkEmitted
         && this->clientBitField.getCompletedPercentage() >= 50.0) {
         this->secondMarkEmitted = emitCompletionSignal = true;
-        markTime_Signal = this->_50_percentDownloadMarkTime_Signal;
+        markTime_Signal = this->_50_percentDownloadTime_Signal;
     } else if (!this->thirdMarkEmitted
         && this->clientBitField.getCompletedPercentage() >= 75.0) {
         this->thirdMarkEmitted = emitCompletionSignal = true;
-        markTime_Signal = this->_75_percentDownloadMarkTime_Signal;
+        markTime_Signal = this->_75_percentDownloadTime_Signal;
     } else if (this->clientBitField.full()) {
         emitCompletionSignal = true;
-        markTime_Signal = this->_100_percentDownloadMarkTime_Signal;
-        emit(this->totalDownloadTime_Signal,
-            simTime() - this->downloadStartTime);
+        markTime_Signal = this->_100_percentDownloadTime_Signal;
 
         // send signal warning this ContentManager became a seeder
         emit(this->becameSeeder_Signal, this->infoHash);
@@ -907,7 +905,7 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
 
         this->printDebugMsg(out.str());
 
-        emit(this->downloadMarkPeerId_Signal, this->localPeerId);
+        emit(this->emittedPeerId_Signal, this->localPeerId);
         emit(markTime_Signal, downloadInterval);
     }
 }
@@ -938,17 +936,16 @@ void ContentManager::registerEmittedSignals() {
 #define SIGNAL(X, Y) this->X = registerSignal("ContentManager_" #Y)
     SIGNAL(becameSeeder_Signal, BecameSeeder);
     SIGNAL(pieceDownloadTime_Signal, PieceDownloadTime);
-    SIGNAL(totalDownloadTime_Signal, TotalDownloadTime);
     SIGNAL(totalBytesDownloaded_Signal, TotalBytesDownloaded);
 
     SIGNAL(totalBytesUploaded_Signal, TotalBytesUploaded);
-    SIGNAL(_25_percentDownloadMarkTime_Signal, 25_percentDownloadMarkTime);
-    SIGNAL(_50_percentDownloadMarkTime_Signal, 50_percentDownloadMarkTime);
-    SIGNAL(_75_percentDownloadMarkTime_Signal, 75_percentDownloadMarkTime);
-    SIGNAL(_100_percentDownloadMarkTime_Signal, 100_percentDownloadMarkTime);
+    SIGNAL(_25_percentDownloadTime_Signal, 25_percentDownloadTime);
+    SIGNAL(_50_percentDownloadTime_Signal, 50_percentDownloadTime);
+    SIGNAL(_75_percentDownloadTime_Signal, 75_percentDownloadTime);
+    SIGNAL(_100_percentDownloadTime_Signal, 100_percentDownloadTime);
 
-    SIGNAL(downloadMarkPeerId_Signal, DownloadMarkPeerId);
-    SIGNAL(downloadPiece_Signal, DownloadPiece);
+    SIGNAL(emittedPeerId_Signal, EmittedPeerId);
+    SIGNAL(pieceDownloaded_Signal, PieceDownloaded);
 #undef SIGNAL
 }
 // module methods
