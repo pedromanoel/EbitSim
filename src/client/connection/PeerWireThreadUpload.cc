@@ -101,10 +101,11 @@ void PeerWireThread::calculateUploadRate() {
         this->remotePeerId);
     double upRate = this->btClient->updateUploadRate(this->infoHash,
         this->remotePeerId, totalUploaded);
-
+#ifdef DEBUG_MSG
     std::string out = "Upload rate: "
         + boost::lexical_cast<std::string>(upRate);
     this->printDebugMsg(out);
+#endif
 }
 void PeerWireThread::callChokeAlgorithm() {
     // The choke algorithm is called when the upload machine stops, even when

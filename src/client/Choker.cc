@@ -104,7 +104,9 @@ Choker::Choker() :
 Choker::~Choker() {
     cancelEvent(&this->roundTimer);
     cancelEvent(&this->chokeAlgorithmTimer);
+#ifdef DEBUG_MSG
     this->printDebugMsg("Deleting Choker module");
+#endif
 }
 void Choker::callChokeAlgorithm() {
     Enter_Method("callChokeAlgorithm()");
@@ -115,7 +117,9 @@ void Choker::callChokeAlgorithm() {
 }
 void Choker::stopChokerRounds() {
     Enter_Method("stopChoker()");
+#ifdef DEBUG_MSG
     this->printDebugMsg("Stop choke rounds");
+#endif
     cancelEvent(&this->roundTimer);
 }
 
@@ -124,23 +128,27 @@ void Choker::addInterestedPeer(int peerId) {
     if (this->regularSlots.size() < this->numRegular) {
         this->regularSlots.insert(peerId);
         this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
-
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << "Peer " << peerId;
         out << " unchoked to fill the regular upload slots";
         this->printDebugMsg(out.str());
+#endif
     } else if (this->optimisticSlots.size() < this->numOptimistic) {
         this->optimisticSlots.insert(peerId);
         this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
-
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << "Peer " << peerId;
         out << " unchoked to fill the optimistic upload slots";
         this->printDebugMsg(out.str());
+#endif
     }
     // Start the rounds
     if (!this->roundTimer.isScheduled()) {
+#ifdef DEBUG_MSG
         this->printDebugMsg("Start the choke round timer");
+#endif
         scheduleAt(simTime() + this->roundInterval, &this->roundTimer);
     }
     this->printUploadSlots();
@@ -153,12 +161,13 @@ void Choker::removePeer(int peerId) {
     int count = this->regularSlots.erase(peerId);
     count += this->optimisticSlots.erase(peerId);
 
-    // call the next choke round
+#ifdef DEBUG_MSG
     if (count > 0) {
         std::ostringstream out;
         out << "removing peer " << peerId << " from upload slot";
         this->printDebugMsg(out.str());
     }
+#endif
 }
 
 void Choker::chokeAlgorithm(bool optimisticRound) {
@@ -187,15 +196,19 @@ void Choker::chokeAlgorithm(bool optimisticRound) {
         int peerId = peer->getPeerId();
         if (!this->optimisticSlots.count(peerId) && peer->isInterested()) {
             this->bitTorrentClient->chokePeer(this->infoHash, peerId);
+#ifdef DEBUG_MSG
             std::string out = "Choke peer " + toStr(peerId);
             this->printDebugMsg(out);
+#endif
         }
     }
     this->printUploadSlots();
 }
 void Choker::regularUnchoke(PeerVectorIt & it, PeerVectorIt const& end) {
     this->regularSlots.clear();
+#ifdef DEBUG_MSG
     std::string out = "Regular unchokes - ";
+#endif
     for (; it != end && this->regularSlots.size() < this->numRegular; ++it) {
         PeerStatus const* peer = (*it);
         int peerId = peer->getPeerId();
@@ -207,14 +220,18 @@ void Choker::regularUnchoke(PeerVectorIt & it, PeerVectorIt const& end) {
         // remove snubbed connections from the active slots
         if (peer->isSnubbed()) {
             this->bitTorrentClient->chokePeer(this->infoHash, peerId);
+#ifdef DEBUG_MSG
             out += "choke_snubbed(" + toStr(peerId) + ") ";
+#endif
         } else {
             // only interested peers can occupy upload slots
             if (peer->isInterested()) {
                 this->regularSlots.insert(peerId);
+#ifdef DEBUG_MSG
                 out += "interested(" + toStr(peerId) + ") ";
             } else {
                 out += "not-interested(" + toStr(peerId) + ") ";
+#endif
             }
 
             // Unchoke the fastest peers until the regular slots are
@@ -223,7 +240,9 @@ void Choker::regularUnchoke(PeerVectorIt & it, PeerVectorIt const& end) {
             this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
         }
     }
+#ifdef DEBUG_MSG
     this->printDebugMsg(out);
+#endif
 }
 void Choker::optimisticUnchoke(PeerVectorIt & it, PeerVectorIt & end) {
     this->optimisticSlots.clear();
@@ -231,7 +250,9 @@ void Choker::optimisticUnchoke(PeerVectorIt & it, PeerVectorIt & end) {
     std::random_shuffle(it, end, intrand);
     // run until all of the upload slots are occupied or until there are
     // no more peers to unchoke
+#ifdef DEBUG_MSG
     std::string out = "Optimistic unchokes - ";
+#endif
     for (; it != end && this->optimisticSlots.size() < this->numOptimistic;
         ++it) {
         PeerStatus const* peer = (*it);
@@ -241,17 +262,24 @@ void Choker::optimisticUnchoke(PeerVectorIt & it, PeerVectorIt & end) {
         if (peer->isInterested()) {
             if (peer->isSnubbed()) {
                 this->bitTorrentClient->chokePeer(this->infoHash, peerId);
+#ifdef DEBUG_MSG
                 out += "choke_snubbed(" + toStr(peerId) + ") ";
+#endif
             } else {
                 this->optimisticSlots.insert(peerId);
                 this->bitTorrentClient->unchokePeer(this->infoHash, peerId);
+#ifdef DEBUG_MSG
                 out += "unchoke(" + toStr(peerId) + ") ";
+#endif
             }
         }
     }
+#ifdef DEBUG_MSG
     this->printDebugMsg(out);
+#endif
 }
 void Choker::printUploadSlots() {
+#ifdef DEBUG_MSG
     std::ostringstream out;
     std::ostream_iterator<int> out_it(out, " ");
     out << "regular upload slots: ";
@@ -260,8 +288,10 @@ void Choker::printUploadSlots() {
     std::copy(this->optimisticSlots.begin(), this->optimisticSlots.end(),
         out_it);
     this->printDebugMsg(out.str());
+#endif
 }
 void Choker::printDebugMsg(std::string s) {
+#ifdef DEBUG_MSG
     if (this->debugFlag) {
         // debug "header"
         std::cerr << simulation.getEventNumber();
@@ -270,6 +300,7 @@ void Choker::printDebugMsg(std::string s) {
         std::cerr << ";infoHash " << this->infoHash << ";";
         std::cerr << s << "\n";
     }
+#endif
 }
 void Choker::updateStatusString() {
     //    if (ev.isGUI()) {
@@ -313,10 +344,11 @@ void Choker::handleMessage(cMessage *msg) {
             optimisticRound = !(this->optimisticCounter
                 % this->optimisticRoundRateInLeech);
         }
-
+#ifdef DEBUG_MSG
         std::string out = (optimisticRound ? "Optimistic " : "Normal ")
             + std::string("choke round");
         this->printDebugMsg(out);
+#endif
 
         this->chokeAlgorithm(optimisticRound);
 
@@ -325,9 +357,13 @@ void Choker::handleMessage(cMessage *msg) {
         ++this->optimisticCounter;
     } else if (msg->isSelfMessage() && msg == &this->chokeAlgorithmTimer) {
         // Call the choke algorithm without changing the round counter.
+#ifdef DEBUG_MSG
         this->printDebugMsg("Extra choke call");
+#endif
         this->chokeAlgorithm();
+#ifdef DEBUG_MSG
     } else {
         this->printDebugMsg("Whaaaa?");
+#endif
     }
 }

@@ -131,8 +131,10 @@ void PeerWireThread::peerClosed() {
     this->sendApplicationMessage(APP_TCP_REMOTE_CLOSE);
 }
 void PeerWireThread::dataArrived(cMessage *msg, bool urgent) {
+#ifdef DEBUG_MSG
     std::string out = std::string(msg->getName()) + "\" arrived";
     this->printDebugMsg(out);
+#endif
     this->sendPeerWireMessage(msg);
 }
 void PeerWireThread::established() {
@@ -150,6 +152,7 @@ void PeerWireThread::established() {
     }
 }
 void PeerWireThread::failure(int code) {
+#ifdef DEBUG_MSG
     std::ostringstream out;
     out << "Connection failure - ";
     switch (code) {
@@ -164,6 +167,7 @@ void PeerWireThread::failure(int code) {
         break;
     }
     this->printDebugMsg(out.str());
+#endif
     throw std::logic_error("TCP connection failure");
 }
 void PeerWireThread::init(TCPSrvHostApp* hostmodule, TCPSocket* socket) {
@@ -199,6 +203,7 @@ std::string PeerWireThread::getThreadId() {
     return out.str();
 }
 void PeerWireThread::printDebugMsg(std::string s) {
+#ifdef DEBUG_MSG
     std::ostringstream out;
     if (this->remotePeerId != -1) {
         out << "peerId " << this->remotePeerId;
@@ -209,6 +214,7 @@ void PeerWireThread::printDebugMsg(std::string s) {
     out << ";" << s;
 
     this->btClient->printDebugMsg(out.str());
+#endif
 }
 
 // Private methods
@@ -216,16 +222,20 @@ void PeerWireThread::cancelMessages() {
     // cancel all messages that were going to be executed
     while (!this->messageQueue.empty()) {
         cObject * msg = this->messageQueue.pop();
+#ifdef DEBUG_MSG
         std::string name(msg->getName());
         std::string out = "Canceled message \"" + name + "\"";
         this->printDebugMsg(out);
+#endif
         delete msg;
     }
     while (!this->postProcessingAppMsg.empty()) {
         cObject * msg = this->postProcessingAppMsg.pop();
+#ifdef DEBUG_MSG
         std::string name(msg->getName());
         std::string out = "Canceled post-message \"" + name + "\"";
         this->printDebugMsg(out);
+#endif
         delete msg;
     }
 }
@@ -254,8 +264,9 @@ simtime_t PeerWireThread::startProcessing() {
 void PeerWireThread::finishProcessing() {
     // finish processing this thread
     this->busy = false;
-
+#ifdef DEBUG_MSG
     this->printDebugMsg("Post-processing.");
+#endif
     // process all application messages that were generated during the
     // processing of the last PeerWire message.
     while (!this->postProcessingAppMsg.empty()) {
@@ -265,7 +276,9 @@ void PeerWireThread::finishProcessing() {
     }
     // Process all ApplicationMsg until a PeerWireMsg is found
     this->processAppMessages();
+#ifdef DEBUG_MSG
     this->printDebugMsg("Finished processing.");
+#endif
 
     if (this->terminating) {
         cMessage * deleteMsg = new cMessage("Delete thread");
@@ -319,7 +332,9 @@ void PeerWireThread::sendApplicationMessage(int id) {
         break;
     }
 #undef CASE
+#ifdef DEBUG_MSG
     this->printDebugMsg(std::string(debugMsg));
+#endif
     ApplicationMsg* appMessage = new ApplicationMsg(name);
     appMessage->setMessageId(id);
     // If this application message is being issued in the same event as the
@@ -350,10 +365,11 @@ void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
         msg = NULL;
         throw std::logic_error("Wrong type of message");
     }
-
+#ifdef DEBUG_MSG
     std::string msgName = msg->getName();
     std::string debugString = "Processing " + msgName;
     this->printDebugMsg(debugString);
+#endif
     try {
         switch (msgId) {
 #define CONST_CAST(X) static_cast<X const&>(*msg)

@@ -140,24 +140,27 @@ void BitTorrentClient::addUnconnectedPeers(int infoHash,
 
     // if seeding or closing, don't add unconnected peers
     if (!(swarm.seeding || swarm.closing)) {
-        std::ostringstream out;
         UnconnectedList & unconnectedList = swarm.unconnectedList;
+
+#ifdef DEBUG_MSG
+        std::ostringstream out;
         out << "Prev list: ";
         BOOST_FOREACH(PeerConnInfo p, unconnectedList) {
             out << boost::get<0>(p) << ", ";
         }
-
+#endif
         unconnectedList.splice(unconnectedList.end(), peers);
         // sort the unconnected list in order to remove the duplicates
         unconnectedList.sort();
         unconnectedList.unique();
 
+#ifdef DEBUG_MSG
         out << " Adding " << peers.size() << " peers: ";
         BOOST_FOREACH(PeerConnInfo p, unconnectedList) {
             out << boost::get<0>(p) << ", ";
         }
         this->printDebugMsg(out.str());
-
+#endif
         // try to connect to more peers, if possible
         this->attemptActiveConnections(swarm, infoHash);
 
@@ -350,7 +353,9 @@ void BitTorrentClient::createSwarm(int infoHash, int numOfPieces,
 }
 void BitTorrentClient::deleteSwarm(int infoHash) {
     Enter_Method("removeSwarm(infoHash: %d)", infoHash);
+#ifdef DEBUG_MSG
     this->printDebugMsg("Leaving swarm");
+#endif
     Swarm & swarm = this->getSwarm(infoHash);
     // Since it is not possible to delete the swarm before closing the threads,
     // set the closing flag to true and delete the swarm when all peers disconnect.
@@ -421,20 +426,21 @@ bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
 
     SwarmMapConstIt it = this->swarmMap.find(infoHash);
     if (it == this->swarmMap.end()) {
+#ifdef DEBUG_MSG
         std::string out = "No swarm " + toStr(infoHash) + " found";
         this->printDebugMsg(out);
+#endif
     } else if (it->second.closing) {
+#ifdef DEBUG_MSG
         std::string out = "Swarm " + toStr(infoHash) + " closing";
         this->printDebugMsg(out);
+#endif
     } else {
         Swarm const& swarm = it->second;
         PeerMap const& peerMap = swarm.peerMap;
 
         // can't connect if already in the PeerMap
-        if (peerMap.count(peerId)) {
-            std::string out = "Peer " + toStr(peerId) + " already connected";
-            this->printDebugMsg(out);
-        } else {
+        if (!peerMap.count(peerId)) {
             // check if there is a free passive slot for connecting
             // if seeding, also count the active slots
             int availSlots = this->numPassiveConn - swarm.numPassive;
@@ -444,9 +450,14 @@ bool BitTorrentClient::canConnect(int infoHash, int peerId, bool active) const {
 
             // If active, already checked the slots at attemptActiveConnections()
             successful = active || availSlots > 0;
+#ifdef DEBUG_MSG
             if (!active && availSlots == 0) {
                 this->printDebugMsg("No slots available for connection");
             }
+        } else {
+            std::string out = "Peer " + toStr(peerId) + " already connected";
+            this->printDebugMsg(out);
+#endif
         }
     }
     return successful;
@@ -476,32 +487,41 @@ void BitTorrentClient::processNextThread() {
         // increment the nextThreadIt until a thread with messages is found or
         // until a full circle is reached
         bool hasMessages = false;
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << "== Next thread: ";
         out << (*nextThreadIt)->getThreadId();
+#endif
         do {
             ++nextThreadIt;
             if (nextThreadIt == this->allThreads.end()) {
                 nextThreadIt = this->allThreads.begin();
             }
+#ifdef DEBUG_MSG
             out << " > " << (*nextThreadIt)->getThreadId();
+#endif
             hasMessages = (*nextThreadIt)->hasMessagesToProcess();
         } while (nextThreadIt != this->threadInProcessingIt && !hasMessages);
-
+#ifdef DEBUG_MSG
         out << " ==";
+#endif
 
         if (hasMessages) {
+#ifdef DEBUG_MSG
             this->printDebugMsg(out.str());
+#endif
             this->threadInProcessingIt = nextThreadIt;
             simtime_t processingTime =
                 (*this->threadInProcessingIt)->startProcessing();
             emit(this->processingTime_Signal, processingTime);
             this->scheduleAt(simTime() + processingTime,
                 &this->endOfProcessingTimer);
+#ifdef DEBUG_MSG
         } else {
             std::string out_str = "== Thread " + (*nextThreadIt)->getThreadId()
                 + " idle ==";
             this->printDebugMsg(out_str);
+#endif
         }
     }
 }
@@ -565,11 +585,12 @@ void BitTorrentClient::connect(int infoHash, PeerConnInfo const& peer) {
 
     TCPSocket * socket = new TCPSocket();
     this->createThread(socket, infoHash, peerId);
-
+#ifdef DEBUG_MSG
     std::ostringstream out;
     out << "connect with " << ip << ":" << port;
     out << " peerId " << toStr(peerId) << " infoHash " << infoHash;
     this->printDebugMsg(out.str());
+#endif
     socket->connect(ip, port);
 }
 //void BitTorrentClient::closeListeningSocket() {
@@ -692,6 +713,7 @@ void BitTorrentClient::peerWireStatistics(cMessage const*msg, bool sending =
     }
 }
 void BitTorrentClient::printDebugMsg(std::string s) const {
+#ifdef DEBUG_MSG
     if (this->debugFlag) {
         // debug "header"
         std::cerr << simulation.getEventNumber();
@@ -699,17 +721,19 @@ void BitTorrentClient::printDebugMsg(std::string s) const {
         std::cerr << ";(btclient);Peer " << this->localPeerId << ";";
         std::cerr << s << "\n";
     }
+#endif
 }
 
 void BitTorrentClient::printDebugMsgConnections(std::string methodName,
     int infoHash, Swarm const&swarm) const {
+#ifdef DEBUG_MSG
     std::ostringstream out;
-
     out << methodName << "(" << infoHash << "): ";
     out << " Num Active=" << swarm.numActive;
     out << " Num Passive=" << swarm.numPassive;
     out << " PeerMap size=" << swarm.peerMap.size();
     this->printDebugMsg(out.str());
+#endif
 }
 
 void BitTorrentClient::createThread(TCPSocket * socket, int infoHash,
@@ -736,7 +760,9 @@ void BitTorrentClient::createThread(TCPSocket * socket, int infoHash,
 
 }
 void BitTorrentClient::removeThread(PeerWireThread *thread) {
+#ifdef DEBUG_MSG
     thread->printDebugMsg("Thread removed");
+#endif
     if (*this->threadInProcessingIt == thread) {
         // Delete the current thread and set the iterator so that when
         // incremented, the thread after this one will be executed.

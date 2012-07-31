@@ -279,9 +279,11 @@ public:
                 // Don't send the next announce until this one has been responded
                 this->pending = true;
                 std::string const& typeStr = getEventStr(type);
+#ifdef DEBUG_MSG
                 this->parent->printDebugMsg(
                     typeStr + " "
                         + toStr(this->announceRequestBase.getInfoHash()));
+#endif
                 this->lastAnnounceType = type;
                 // Connect the socket and send a new announce request
                 AnnounceRequestMsg *announceRequest = announceRequestBase.dup();
@@ -293,7 +295,9 @@ public:
             } else {
                 // The next announce will have this type
                 this->lastAnnounceType = type;
+#ifdef DEBUG_MSG
                 this->parent->printDebugMsg("Don't send the announce");
+#endif
             }
         }
     }
@@ -315,7 +319,9 @@ SwarmManager::~SwarmManager() {
 
 void SwarmManager::askMorePeers(int infoHash) {
     Enter_Method("askMorePeers(%d)", infoHash);
+#ifdef DEBUG_MSG
     this->printDebugMsg("Ask for more peers for swarm " + toStr(infoHash));
+#endif
     TrackerSocketCallback * socketCallback = this->callbacksByInfoHash.at(
         infoHash);
     socketCallback->sendAnnounce(A_NORMAL);
@@ -324,7 +330,9 @@ void SwarmManager::askMorePeers(int infoHash) {
 void SwarmManager::finishedDownload(int infoHash) {
     // tell simulator that this method is being called.
     Enter_Method("finishedDownload(%d)", infoHash);
+#ifdef DEBUG_MSG
     this->printDebugMsg("Finished download for swarm " + toStr(infoHash));
+#endif
 
     TrackerSocketCallback * socketCallback = this->callbacksByInfoHash.at(
         infoHash);
@@ -404,6 +412,7 @@ void SwarmManager::treatTCPMessage(cMessage * msg) {
 }
 
 void SwarmManager::printDebugMsg(std::string s) {
+#ifdef DEBUG_MSG
     if (this->debugFlag) {
         // debug "header"
         std::cerr << simulation.getEventNumber();
@@ -411,6 +420,7 @@ void SwarmManager::printDebugMsg(std::string s) {
         std::cerr << ";(smanager);Peer " << this->localPeerId << ";";
         std::cerr << s << "\n";
     }
+#endif
 }
 void SwarmManager::setStatusString(const char * s) {
     if (ev.isGUI()) {

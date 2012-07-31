@@ -197,10 +197,11 @@ public:
         RequestQueue & peerQueue = this->sendQueues.at(peerId);
         Request * pieceRequest = peerQueue.front();
         peerQueue.pop();
-
+#ifdef DEBUG_MSG
         std::string out = "Piece " + this->getRequestName(pieceRequest)
             + " taken by peer " + toStr(peerId);
         this->contentManager->printDebugMsg(out);
+#endif
 
         std::string name = "PieceMsg" + this->getRequestName(pieceRequest);
         PieceMsg* pieceMsg = new PieceMsg(name.c_str());
@@ -230,10 +231,11 @@ public:
         pieceRequest->begin = begin;
         pieceRequest->index = index;
         pieceRequest->reqLength = reqLength;
-
+#ifdef DEBUG_MSG
         std::string out = "Request " + this->getRequestName(pieceRequest)
             + " made by peer " + toStr(peerId);
         this->contentManager->printDebugMsg(out);
+#endif
 
         this->requestQueues[peerId].push(pieceRequest);
         // Fix the iterator, since the queue is definitely not empty anymore
@@ -267,13 +269,16 @@ public:
         // Erase the request queue
         RequestQueueMapIt reqIt = this->requestQueues.find(peerId);
         if (reqIt != this->requestQueues.end()) {
+#ifdef DEBUG_MSG
             out << " In bucket: ";
+#endif
 
             RequestQueue & requestQueue = reqIt->second;
             while (!requestQueue.empty()) {
                 Request * pieceRequest = requestQueue.front();
-
+#ifdef DEBUG_MSG
                 out << this->getRequestName(pieceRequest);
+#endif
 
                 delete pieceRequest;
                 requestQueue.pop();
@@ -287,10 +292,11 @@ public:
                 this->requestQueues.erase(reqIt);
             }
         }
-
+#ifdef DEBUG_MSG
         out << " (" << (this->tokens - currentTokens)
             << " tokens returned) for peer " << peerId;
         this->contentManager->printDebugMsg(out.str());
+#endif
     }
     /*!
      * Handle the increment timer by adding tokenSize to the bucket. If the
@@ -355,20 +361,22 @@ private:
                 int peerId = this->currentQueueIt->first;
                 Request * pieceRequest = currentQueueRef.front();
                 this->sendQueues[peerId].push(pieceRequest);
-
+#ifdef DEBUG_MSG
                 std::string out = "Request "
                     + this->getRequestName(pieceRequest)
                     + " ready to send to peer " + toStr(peerId);
                 this->contentManager->printDebugMsg(out);
+#endif
 
                 currentQueueRef.pop();
                 // If empty, erase the request queue and forward the current it
                 if (currentQueueRef.empty()) {
                     this->requestQueues.erase(this->currentQueueIt++);
-
+#ifdef DEBUG_MSG
                     std::string out = "No more requests pending for peer "
                         + toStr(peerId);
                     this->contentManager->printDebugMsg(out);
+#endif
                 } else {
                     ++this->currentQueueIt;
                 }
@@ -409,6 +417,7 @@ ContentManager::ContentManager() :
 }
 ContentManager::~ContentManager() {
     delete this->tokenBucket;
+#ifdef DEBUG_MSG
     double completePerc = this->clientBitField.getCompletedPercentage();
     std::ostringstream out;
     out << "Completed " << completePerc << "% of the download";
@@ -418,6 +427,7 @@ ContentManager::~ContentManager() {
     }
 
     this->printDebugMsg(out.str());
+#endif
 }
 
 void ContentManager::addEmptyBitField(int peerId) {
@@ -458,10 +468,11 @@ void ContentManager::addPeerBitField(BitField const& bitField, int peerId) {
 void ContentManager::removePeerBitField(int peerId) {
     Enter_Method("removePeerBitField(id: %d)", peerId);
     assert(this->peerBitFields.count(peerId));
-
+#ifdef DEBUG_MSG
     std::ostringstream out;
     out << "removing peer " << peerId;
     this->printDebugMsg(out.str());
+#endif
 
     // subtract BitField from pieceCount
     this->rarestPieceCounter.removeBitField(this->peerBitFields[peerId]);
@@ -486,23 +497,28 @@ void ContentManager::cancelDownloadRequests(int peerId) {
     Enter_Method("cancelDownloadRequests(index: %d)", peerId);
     // The peer must be registered here
     assert(this->peerBitFields.count(peerId));
-
+#ifdef DEBUG_MSG
     std::ostringstream out;
     out << "Canceling requested pieces: ";
+#endif
 
     std::multimap<int, int>::iterator begin, end;
     boost::tie(begin, end) = this->requestedPieces.equal_range(peerId);
     while (begin != end) {
         // Restore the requests that were not responded.
         this->missingBlocks.at(begin->second).resetRequests();
+#ifdef DEBUG_MSG
         out << begin->second << " ";
+#endif
         ++begin;
     }
     // Remove the requested pieces so others can request them
     this->requestedPieces.erase(peerId);
     // Clear the number of pending requests
     this->numPendingRequests.at(peerId) = 0;
+#ifdef DEBUG_MSG
     this->printDebugMsg(out.str());
+#endif
 }
 void ContentManager::cancelUploadRequests(int peerId) {
     Enter_Method("cancelUploadRequests(index: %d)", peerId);
@@ -558,14 +574,18 @@ PeerWireMsgBundle* ContentManager::getNextRequestBundle(int peerId) {
             requestBundle->setBundle(bundle);
         } else {
             delete bundle;
+#ifdef DEBUG_MSG
             std::ostringstream out;
             out << "There are no blocks available for download";
             this->printDebugMsg(out.str());
+#endif
         }
     } else {
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << "There are blocks pending";
         this->printDebugMsg(out.str());
+#endif
     }
     return requestBundle;
 }
@@ -662,11 +682,13 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
 
         // If the piece became complete, perform the needed cleanups
         if (req.isComplete()) {
+#ifdef DEBUG_MSG
             {
                 std::ostringstream out;
                 out << "Downloaded piece " << pieceIndex;
                 this->printDebugMsg(out.str());
             }
+#endif
 
             // If this piece was not requested to peerId, it may have been
             // requested to a different peerId. That's why it is necessary to
@@ -699,7 +721,9 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
                 pieceIndex);
 
             if (this->clientBitField.full()) { // became seeder
+#ifdef DEBUG_MSG
                 this->printDebugMsg("Became a seeder");
+#endif
                 // warn the tracker
                 this->bitTorrentClient->finishedDownload(this->infoHash);
             }
@@ -731,16 +755,24 @@ void ContentManager::processHaveMsg(int pieceIndex, int peerId) {
 
     // Last piece resulted in the Peer becoming a seeder
     if (peerBitField.full()) {
+#ifdef DEBUG_MSG
         std::string out;
         std::string peerIdStr = toStr(peerId);
+#endif
         if (this->clientBitField.full()) {
+#ifdef DEBUG_MSG
             out = "Both the Client and Peer " + peerIdStr + " are seeders.";
+#endif
             // the connection between two seeders is useless. Drop it.
             this->bitTorrentClient->closeConnection(this->infoHash, peerId);
+#ifdef DEBUG_MSG
         } else {
             out = "Peer " + peerIdStr + " became a seeder.";
+#endif
         }
+#ifdef DEBUG_MSG
         this->printDebugMsg(out);
+#endif
     }
 }
 
@@ -897,13 +929,14 @@ void ContentManager::generateDownloadStatistics(int pieceIndex) {
 
     if (emitCompletionSignal) {
         simtime_t downloadInterval = simTime() - this->downloadStartTime;
-
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << "Start: " << this->downloadStartTime;
         out << "Now: " << simTime();
         out << "Interval: " << downloadInterval;
 
         this->printDebugMsg(out.str());
+#endif
 
         emit(this->emittedPeerId_Signal, this->localPeerId);
         emit(markTime_Signal, downloadInterval);
@@ -919,9 +952,11 @@ void ContentManager::verifyInterestOnAllPeers() {
         BitField const& peerBitField = this->peerBitFields.at(peerId);
         // Drop this connection because it is no longer useful.
         if (peerBitField.full() && this->clientBitField.full()) {
+#ifdef DEBUG_MSG
             std::string out = "Both the Client and Peer " + toStr(peerId)
                 + " are seeders.";
             this->printDebugMsg(out);
+#endif
             this->bitTorrentClient->closeConnection(this->infoHash, peerId);
         } else if (!this->isPeerInteresting(peerId)) {
             // not interesting anymore
@@ -950,6 +985,7 @@ void ContentManager::registerEmittedSignals() {
 }
 // module methods
 void ContentManager::printDebugMsg(std::string s) {
+#ifdef DEBUG_MSG
     if (this->debugFlag) {
         // debug "header"
         std::cerr << simulation.getEventNumber();
@@ -959,6 +995,7 @@ void ContentManager::printDebugMsg(std::string s) {
         std::cerr << s << "\n";
         std::cerr.flush();
     }
+#endif
 }
 void ContentManager::updateStatusString() {
     if (ev.isGUI()) {

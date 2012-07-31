@@ -105,11 +105,12 @@ void PeerWireThread::connected() {
     // start an empty BitField for this connection
     assert(this->contentManager);
     this->contentManager->addEmptyBitField(this->remotePeerId);
-
+#ifdef DEBUG_MSG
     std::ostringstream out;
     out << (this->activeConnection? "Active":"Passive");
     out << " connection established.";
     this->printDebugMsg(out.str());
+#endif
 }
 void PeerWireThread::closeLocalConnection() {
     // close the connection
@@ -178,16 +179,20 @@ void PeerWireThread::sendPeerWireMsg(cPacket * msg) {
     if (this->getSocket()->getState() != TCPSocket::CONNECTED) {
         // tried to send a message, but the connection is not established.
         // log this event and delete the message
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << "Tried to send message \"" << msg->getName();
         out << "\", but the socket is not connected";
         this->printDebugMsg(out.str());
+#endif
         delete msg;
     } else {
+#ifdef DEBUG_MSG
         std::ostringstream out;
         out << msg->getName();
         out << "\" sent";
         this->printDebugMsg(out.str());
+#endif
         // claim ownership over the message since it may not have been created in
         // this module.
         this->btClient->take(msg);
@@ -247,12 +252,14 @@ bool PeerWireThread::checkHandshake(Handshake const& hs) {
         // attach the swarm modules to this connection
         this->choker = modules.first;
         this->contentManager = modules.second;
+#ifdef DEBUG_MSG
     } else {
         std::string out = "Handshake refused: ";
         if (!validPeerId)  out += "(invalid peerId)";
         if (!canConnect)  out += "(can't connect)";
         if (!swarmExists)  out += "(swarm don't exist)";
         this->printDebugMsg(out);
+#endif
     }
 
     return validPeerId && canConnect && swarmExists;
