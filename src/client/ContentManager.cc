@@ -96,9 +96,9 @@ std::string toStr(long i) {
 /*!
  * Object that keeps track of pending requests for a piece.
  */
-class ContentManager::PieceRequests {
+class ContentManager::PieceBlocks {
 public:
-    PieceRequests(int pieceIndex, int numOfBlocks) :
+    PieceBlocks(int pieceIndex, int numOfBlocks) :
         numOfBlocks(numOfBlocks), pieceIndex(pieceIndex), blocks(numOfBlocks) {
         for (unsigned int i = 0; i < this->numOfBlocks; ++i) {
             this->requests.push_back(std::make_pair(this->pieceIndex, i));
@@ -114,9 +114,14 @@ public:
         }
         this->requests = requests;
     }
-    //! Set the passed block inside the piece. Return true if the piece is completed.
+    //! Set the passed block inside the piece. Return true if the block was unset.
     bool setBlock(int blockIndex) {
+        bool unset = !this->blocks.test(blockIndex);
         this->blocks[blockIndex] = 1;
+        return unset;
+    }
+    //! Return true if all blocks were set already.
+    bool isComplete() {
         return this->blocks.count() == this->numOfBlocks;
     }
     /*!
@@ -493,7 +498,7 @@ void ContentManager::cancelDownloadRequests(int peerId) {
     boost::tie(begin, end) = this->requestedPieces.equal_range(peerId);
     while (begin != end) {
         // Restore the requests that were not responded.
-        this->remainingRequests.at(begin->second).resetRequests();
+        this->missingBlocks.at(begin->second).resetRequests();
         out << begin->second << " ";
         ++begin;
     }
@@ -532,26 +537,28 @@ PeerWireMsgBundle* ContentManager::getNextRequestBundle(int peerId) {
     Enter_Method("getNextRequestBundle(index: %d)", peerId);
     // The peer must be registered here
     assert(this->peerBitFields.count(peerId));
-    int & numPendingRequests = this->numPendingRequests.at(peerId);
     PeerWireMsgBundle* requestBundle = NULL;
 
-    // make new request only if there are no pending ones
-    if (numPendingRequests == 0) {
+    int numWantedRequests = this->requestBundleSize
+        - this->numPendingRequests.at(peerId);
+    // make new request only if there is space
+    if (numWantedRequests > 0) {
         // The bundle to be filled with blocks
         cPacketQueue* bundle = new cPacketQueue();
-        std::ostringstream bundleMsgName;
-        bundleMsgName << "RequestBundle(";
+        std::ostringstream name_o;
+        name_o << "RequestBundle(";
 
-        this->getRemainingPieces(bundle, bundleMsgName, peerId);
-        this->getInterestingPieces(bundle, bundleMsgName, peerId);
+        this->getRemainingPieces(bundle, name_o, peerId, numWantedRequests);
+        assert(bundle->getLength() <= numWantedRequests);
+        this->getInterestingPieces(bundle, name_o, peerId,
+            numWantedRequests - bundle->getLength());
+        assert(bundle->getLength() <= numWantedRequests);
 
-        // The bundle must not be larger then the requestBundleSize
-        assert(bundle->getLength() <= this->requestBundleSize);
-        numPendingRequests += bundle->getLength();
+        this->numPendingRequests.at(peerId) += bundle->getLength();
 
         if (!bundle->empty()) {
-            bundleMsgName << ")";
-            requestBundle = new PeerWireMsgBundle(bundleMsgName.str().c_str());
+            name_o << ")";
+            requestBundle = new PeerWireMsgBundle(name_o.str().c_str());
             requestBundle->setBundle(bundle);
         } else {
             delete bundle;
@@ -630,31 +637,44 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
     this->totalDownloadedByPeer[peerId] += blockSize;
     this->totalBytesDownloaded += blockSize;
     emit(this->totalBytesDownloaded_Signal, this->totalBytesDownloaded);
-    // Decrement the number of pending requests
-    --this->numPendingRequests.at(peerId);
 
     // ignore block if the piece is already complete
     if (!this->clientBitField.hasPiece(pieceIndex)) {
-        // Return the incomplete piece, or create a new one
-        // similar to operator[], but not using the default constructor
-        // http://cplusplus.com/reference/stl/map/operator[]/
-        PieceRequests & req =
-            this->remainingRequests.insert(
-                std::make_pair(pieceIndex,
-                    PieceRequests(pieceIndex, this->numberOfSubPieces))).first->second;
-        int blockIndex = begin / blockSize;
-        // set the block into the Piece, and verify if the piece is now complete
-        if (req.setBlock(blockIndex)) {
-            // piece no longer incomplete
-            this->remainingRequests.erase(pieceIndex);
+        // Try to find the piece in the missing blocks. If not found, create it
+        typedef std::map<int, PieceBlocks>::iterator map_it;
+        map_it lb = this->missingBlocks.lower_bound(pieceIndex);
+        if (lb == this->missingBlocks.end() || lb->first != pieceIndex) {
+            std::pair<int, PieceBlocks> const& p = std::make_pair(pieceIndex,
+                PieceBlocks(pieceIndex, this->numberOfSubPieces));
+            lb = this->missingBlocks.insert(lb, p);
+        }
 
-            // downloaded whole piece
+        // Set the piece and check if it was requested to this peerId. If so,
+        // then decrement the number of pending requests
+        PieceBlocks & req = lb->second;
+        int blockIndex = begin / blockSize;
+        if (req.setBlock(blockIndex)) {
+            std::multimap<int, int>::iterator it, end;
+            tie(it, end) = this->requestedPieces.equal_range(peerId);
+            for (/* empty */; it != end; ++it) {
+                if (it->second == pieceIndex) {
+                    --this->numPendingRequests.at(peerId);
+                    break;
+                }
+            }
+        }
+
+        // If the piece became complete, perform the needed cleanups
+        if (req.isComplete()) {
             {
                 std::ostringstream out;
                 out << "Downloaded piece " << pieceIndex;
                 this->printDebugMsg(out.str());
             }
-            // Erase all the requests from the same piece
+
+            // If this piece was not requested to peerId, it may have been
+            // requested to a different peerId. That's why it is necessary to
+            // go through the whole requestedPieces map
             std::multimap<int, int>::iterator it, end;
             it = this->requestedPieces.begin();
             end = this->requestedPieces.end();
@@ -665,13 +685,15 @@ void ContentManager::processBlock(int peerId, int pieceIndex, int begin,
                 }
             }
 
+            // First block fully downloaded, signaling the start of the download
             if (this->clientBitField.empty()) {
-                // First block fully downloaded, signaling the start of the download
                 this->downloadStartTime = simTime();
             }
 
-            // add the piece to the Client's BitField
+            // "Move" the piece from the missingBlocks to the clientBitField
+            this->missingBlocks.erase(pieceIndex);
             this->clientBitField.addPiece(pieceIndex);
+
             // Check if the connected peers continue to be interesting
             this->verifyInterestOnAllPeers();
             // Statistics
@@ -745,7 +767,7 @@ void ContentManager::insertRequestInBundle(cPacketQueue * const bundle,
     bundle->insert(request);
 }
 void ContentManager::getRemainingPieces(cPacketQueue * const bundle,
-    std::ostringstream & bundleMsgName, int peerId) {
+    std::ostringstream & bundleMsgName, int peerId, int requestBundleSize) {
     assert(bundle->getLength() == 0); // Bundle starts empty
     // get blocks from pieces previously requested by this peerId
     std::multimap<int, int>::iterator it;
@@ -753,7 +775,7 @@ void ContentManager::getRemainingPieces(cPacketQueue * const bundle,
     tie(it, end) = this->requestedPieces.equal_range(peerId);
     typedef std::pair<int, int> pair_t;
     while (it != end) {
-        PieceRequests & req = this->remainingRequests.at(it->second);
+        PieceBlocks & req = this->missingBlocks.at(it->second);
         std::list<pair_t> & blocks = req.getRequests();
         while (!blocks.empty()) {
             pair_t block = blocks.front();
@@ -761,19 +783,19 @@ void ContentManager::getRemainingPieces(cPacketQueue * const bundle,
                 block.second);
             blocks.pop_front();
             // exit the loop because the bundle is full
-            if (bundle->getLength() == this->requestBundleSize) break;
+            if (bundle->getLength() == requestBundleSize) break;
         }
 
         // exit the loop because the bundle is full
-        if (bundle->getLength() == this->requestBundleSize) break;
+        if (bundle->getLength() == requestBundleSize) break;
         ++it;
     }
 }
 void ContentManager::getInterestingPieces(cPacketQueue * const bundle,
-    std::ostringstream & bundleMsgName, int peerId) {
+    std::ostringstream & bundleMsgName, int peerId, int requestBundleSize) {
 
-    // If there is still space in the bundle, add blocks from interesting pieces
-    if (bundle->getLength() == this->requestBundleSize) {
+    // Don't do anything if there's no space in the bundle
+    if (requestBundleSize == 0) {
         return;
     }
 
@@ -796,10 +818,17 @@ void ContentManager::getInterestingPieces(cPacketQueue * const bundle,
             // Return the incomplete piece, or create a new one
             // similar to operator[], but without the default constructor
             // http://cplusplus.com/reference/stl/map/operator[]/
-            PieceRequests & req =
-                this->remainingRequests.insert(
-                    std::make_pair(pieceIndex,
-                        PieceRequests(pieceIndex, this->numberOfSubPieces))).first->second;
+
+            // Try to find the piece in the missing blocks. If not found, create it
+            typedef std::map<int, PieceBlocks>::iterator map_it;
+            map_it lb = this->missingBlocks.lower_bound(pieceIndex);
+            if (lb == this->missingBlocks.end() || lb->first != pieceIndex) {
+                std::pair<int, PieceBlocks> const& p = std::make_pair(
+                    pieceIndex,
+                    PieceBlocks(pieceIndex, this->numberOfSubPieces));
+                lb = this->missingBlocks.insert(lb, p);
+            }
+            PieceBlocks & req = lb->second;
 
             // Add the piece to the requested map
             this->requestedPieces.insert(std::make_pair(peerId, pieceIndex));
@@ -815,11 +844,11 @@ void ContentManager::getInterestingPieces(cPacketQueue * const bundle,
                     block.second);
                 blocks.pop_front();
                 // exit the loop because the bundle is full
-                if (bundle->getLength() == this->requestBundleSize) break;
+                if (bundle->getLength() == requestBundleSize) break;
             }
 
             // exit the loop because the bundle is full
-            if (bundle->length() == this->requestBundleSize) break;
+            if (bundle->getLength() == requestBundleSize) break;
         }
     }
 }

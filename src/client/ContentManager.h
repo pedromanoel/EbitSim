@@ -141,7 +141,6 @@ public:
     void cancelUploadRequests(int peerId);
     //! Schedule to send the BitField of the Client.
     BitFieldMsg* getClientBitFieldMsg() const;
-    void getRemainingPieces(cPacket const * bundle);
     /*!
      * Schedule to send a bundle of request messages if the pending request
      * queue is empty, or NULL otherwise.
@@ -182,7 +181,7 @@ public:
 private:
     //!@name Pimpl classes
     //@{
-    class PieceRequests;
+    class PieceBlocks;
     class TokenBucket;
     friend class TokenBucket;
     //! Token Bucket object
@@ -222,7 +221,8 @@ private:
     //@{
     /*!
      * Map the peer id to the pieces requested to it. May have more than one
-     * piece requested per Peer.
+     * piece requested per Peer, but never the same piece requested by two
+     * different peers.
      */
     std::multimap<int, int> requestedPieces;
     /*!
@@ -230,10 +230,10 @@ private:
      */
     std::map<int, int> numPendingRequests;
     /*!
-     * Store incomplete pieces. When the piece becomes complete, it is removed
-     * from the pieceBuffer and added to the Client's BitField.
+     * Store the blocks of incomplete pieces. When the piece becomes complete,
+     * it is removed from the missingBlocks and added to the Client's BitField.
      */
-    std::map<int, PieceRequests> remainingRequests;
+    std::map<int, PieceBlocks> missingBlocks;
     //@}
 
     //!@name Bitfield related
@@ -326,7 +326,7 @@ private:
      * @param peerId [in] The id of the Peer.
      */
     void getRemainingPieces(cPacketQueue *const bundle,
-        std::ostringstream & bundleMsgName, int peerId);
+        std::ostringstream & bundleMsgName, int peerId, int requestBundleSize);
     /*!
      *
      * @param bundle [inout] The bundle where to insert the requests.
@@ -334,7 +334,7 @@ private:
      * @param interestingBitField [in] The bundle where to insert the requests.
      */
     void getInterestingPieces(cPacketQueue *const bundle,
-        std::ostringstream & bundleMsgName, int peerId);
+        std::ostringstream & bundleMsgName, int peerId, int requestBundleSize);
     //! Return true if the peer's BitField is interesting
     bool isPeerInteresting(int peerId) const;
     //! Generate download statistics.
