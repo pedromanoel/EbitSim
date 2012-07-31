@@ -72,7 +72,8 @@
 
 #include "Choker.h"
 
-#include <stdexcept>
+#include <iostream>
+#include <iomanip>
 #include <algorithm>
 #include <iterator>
 #include <boost/lexical_cast.hpp>
@@ -263,10 +264,10 @@ void Choker::printUploadSlots() {
 void Choker::printDebugMsg(std::string s) {
     if (this->debugFlag) {
         // debug "header"
-        std::cerr << simulation.getEventNumber() << " (T=";
-        std::cerr << simulation.getSimTime() << ")(Choker) - ";
-        std::cerr << "Peer " << this->localPeerId;
-        std::cerr << ": infoHash " << this->infoHash << " - ";
+        std::cerr << simulation.getEventNumber();
+        std::cerr << ";" << simulation.getSimTime();
+        std::cerr << ";(choker);Peer " << this->localPeerId;
+        std::cerr << ";infoHash " << this->infoHash << ";";
         std::cerr << s << "\n";
     }
 }

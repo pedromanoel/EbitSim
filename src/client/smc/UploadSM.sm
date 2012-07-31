@@ -98,8 +98,8 @@
 %%
 Stopped
 Entry {
+    printDebugMsg("uploadSM - Stopped");
     stopUploadTimers();
-    printDebugMsgUpload("Entering state Closed");
 }
 {
     startMachine
@@ -108,13 +108,13 @@ Entry {
     Default
         nil
             {
-                printDebugMsgUpload("Thread terminated");
+                printDebugMsg("uploadSM - Thread terminated");
             }
 }
 
 NotInterestingChoking
 Entry {
-    printDebugMsgUpload("Entering state NotInterestingChoking");
+    printDebugMsg("uploadSM - NotInterestingChoking");
 }
 {
     interestedMsg
@@ -131,7 +131,7 @@ Entry {
 }
 InterestingChoking
 Entry {
-    printDebugMsgUpload("Entering state InterestingChoking");
+    printDebugMsg("uploadSM - InterestingChoking");
 }
 {
     notInterestedMsg
@@ -153,7 +153,7 @@ Entry {
 }
 NotInterestingUnchoking
 Entry {
-    printDebugMsgUpload("Entering state NotInterestingUnchoking");
+    printDebugMsg("uploadSM - NotInterestingUnchoking");
 }
 {
     interestedMsg
@@ -170,7 +170,7 @@ Entry {
 }
 InterestingUnchoking
 Entry {
-    printDebugMsgUpload("Entering state InterestingUnchoking");
+    printDebugMsg("uploadSM - InterestingUnchoking");
     startUploadTimers();
 }
 Exit {
@@ -225,7 +225,7 @@ Default
     sendPieceMsg()
         nil
             {
-                printDebugMsgUpload("sendPieceMsg out of place");
+                printDebugMsg("sendPieceMsg out of place");
             }
     stopMachine
         Stopped

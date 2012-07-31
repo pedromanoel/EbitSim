@@ -131,13 +131,12 @@ void PeerWireThread::peerClosed() {
     this->sendApplicationMessage(APP_TCP_REMOTE_CLOSE);
 }
 void PeerWireThread::dataArrived(cMessage *msg, bool urgent) {
-    std::string out = "Message \"" + std::string(msg->getName()) + "\" arrived";
+    std::string out = std::string(msg->getName()) + "\" arrived";
     this->printDebugMsg(out);
     this->sendPeerWireMessage(msg);
 }
 void PeerWireThread::established() {
     // first transition, issued directly to the state machine
-    std::ostringstream out;
 
     IPvXAddress localAddr = this->sock->getLocalAddress();
     IPvXAddress remoteAddr = this->sock->getRemoteAddress();
@@ -146,15 +145,9 @@ void PeerWireThread::established() {
 
     if (this->activeConnection) {
         this->connectionSm.tcpActiveConnection();
-        out << "Active connection with (";
     } else {
         this->connectionSm.tcpPassiveConnection();
-        out << "Passive connection with (";
     }
-
-    out << localAddr << ":" << localPort;
-    out << ", " << remoteAddr << ":" << remotePort << ")";
-    this->printDebugMsg(out.str());
 }
 void PeerWireThread::failure(int code) {
     std::ostringstream out;
@@ -200,59 +193,20 @@ void PeerWireThread::timerExpired(cMessage *timer) {
 // public methods
 std::string PeerWireThread::getThreadId() {
     std::ostringstream out;
-    out << this->sock->getConnectionId() << "(";
-    out << this->remotePeerId << ")";
+//    out << this->sock->getConnectionId() << "(";
+//    out << this->remotePeerId << ")";
+    out << this->remotePeerId;
     return out.str();
 }
 void PeerWireThread::printDebugMsg(std::string s) {
     std::ostringstream out;
-    out << "(Thread) connId " << this->sock->getConnectionId();
     if (this->remotePeerId != -1) {
-        out << ", peerId " << this->remotePeerId;
+        out << "peerId " << this->remotePeerId;
+        out << " info " << this->infoHash;
+    } else {
+        out << "connId " << this->sock->getConnectionId();
     }
-    if (this->infoHash != -1) {
-        out << ", infoHash " << this->infoHash;
-    }
-    out << " - " << s;
-
-    this->btClient->printDebugMsg(out.str());
-}
-void PeerWireThread::printDebugMsgUpload(std::string s) {
-    std::ostringstream out;
-    out << "(ThreadUpload) connId " << this->sock->getConnectionId();
-    if (this->remotePeerId != -1) {
-        out << ", peerId " << this->remotePeerId;
-    }
-    if (this->infoHash != -1) {
-        out << ", infoHash " << this->infoHash;
-    }
-    out << " - " << s;
-
-    this->btClient->printDebugMsg(out.str());
-}
-void PeerWireThread::printDebugMsgDownload(std::string s) {
-    std::ostringstream out;
-    out << "(ThreadDownload) connId " << this->sock->getConnectionId();
-    if (this->remotePeerId != -1) {
-        out << ", peerId " << this->remotePeerId;
-    }
-    if (this->infoHash != -1) {
-        out << ", infoHash " << this->infoHash;
-    }
-    out << " - " << s;
-
-    this->btClient->printDebugMsg(out.str());
-}
-void PeerWireThread::printDebugMsgConnection(std::string s) {
-    std::ostringstream out;
-    out << "(ThreadConnection) connId " << this->sock->getConnectionId();
-    if (this->remotePeerId != -1) {
-        out << ", peerId " << this->remotePeerId;
-    }
-    if (this->infoHash != -1) {
-        out << ", infoHash " << this->infoHash;
-    }
-    out << " - " << s;
+    out << ";" << s;
 
     this->btClient->printDebugMsg(out.str());
 }
@@ -338,7 +292,7 @@ void PeerWireThread::sendApplicationMessage(int id) {
     switch (id) {
 #define CASE(X) case X:\
         name = #X;\
-        debugMsg = "ApplicationMsg " #X " issued.";\
+        debugMsg = #X " issued.";\
         break
     // Content Manager events
     CASE(APP_CLOSE);
@@ -399,33 +353,25 @@ void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
 
     std::string msgName = msg->getName();
     std::string debugString = "Processing " + msgName;
+    this->printDebugMsg(debugString);
     try {
         switch (msgId) {
 #define CONST_CAST(X) static_cast<X const&>(*msg)
 #define CASE_CONN( X , Y ) case X:\
-            this->printDebugMsgConnection(debugString);\
-            this->connectionSm.Y;\
-            break
-#define CASE_APP_CONN( X , Y ) case X:\
-            this->printDebugMsg(debugString);\
             this->connectionSm.Y;\
             break
 #define CASE_DOWNLOAD( X , Y ) case X:\
-            this->printDebugMsgDownload(debugString);\
             this->connectionSm.incomingPeerWireMsg();\
             this->downloadSm.Y;\
             break
 #define CASE_APP_DOWNLOAD( X , Y ) case X:\
-            this->printDebugMsg(debugString);\
             this->downloadSm.Y;\
             break
 #define CASE_UPLOAD( X , Y ) case X:\
-            this->printDebugMsgUpload(debugString);\
             this->connectionSm.incomingPeerWireMsg();\
             this->uploadSm.Y;\
             break
 #define CASE_APP_UPLOAD( X , Y ) case X:\
-            this->printDebugMsg(debugString);\
             this->uploadSm.Y;\
             break
 
@@ -433,14 +379,14 @@ void PeerWireThread::issueTransition(cMessage const* msg) { // get message Id
         CASE_CONN(PW_KEEP_ALIVE_MSG, incomingPeerWireMsg());
         CASE_CONN(PW_HANDSHAKE_MSG, handshakeMsg(CONST_CAST(Handshake)));
             // connectionSM Application transitions
-        CASE_APP_CONN(APP_CLOSE, applicationClose());
-        CASE_APP_CONN(APP_TCP_REMOTE_CLOSE, remoteClose());
-        CASE_APP_CONN(APP_TCP_LOCAL_CLOSE, localClose());
-        CASE_APP_CONN(APP_TCP_ACTIVE_CONNECTION, tcpActiveConnection());
-        CASE_APP_CONN(APP_TCP_PASSIVE_CONNECTION, tcpPassiveConnection());
+        CASE_CONN(APP_CLOSE, applicationClose());
+        CASE_CONN(APP_TCP_REMOTE_CLOSE, remoteClose());
+        CASE_CONN(APP_TCP_LOCAL_CLOSE, localClose());
+        CASE_CONN(APP_TCP_ACTIVE_CONNECTION, tcpActiveConnection());
+        CASE_CONN(APP_TCP_PASSIVE_CONNECTION, tcpPassiveConnection());
             // connectionSM timers
-        CASE_APP_CONN(APP_KEEP_ALIVE_TIMER, keepAliveTimer());
-        CASE_APP_CONN(APP_TIMEOUT_TIMER, timeout());
+        CASE_CONN(APP_KEEP_ALIVE_TIMER, keepAliveTimer());
+        CASE_CONN(APP_TIMEOUT_TIMER, timeout());
 
             // downloadSm PeerWire transitions
         CASE_DOWNLOAD(PW_CHOKE_MSG, chokeMsg());

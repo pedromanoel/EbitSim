@@ -107,9 +107,9 @@ void PeerWireThread::connected() {
     this->contentManager->addEmptyBitField(this->remotePeerId);
 
     std::ostringstream out;
-    out << this->activeConnection? "Active":"Passive";
+    out << (this->activeConnection? "Active":"Passive");
     out << " connection established.";
-    this->printDebugMsgConnection(out.str());
+    this->printDebugMsg(out.str());
 }
 void PeerWireThread::closeLocalConnection() {
     // close the connection
@@ -181,13 +181,13 @@ void PeerWireThread::sendPeerWireMsg(cPacket * msg) {
         std::ostringstream out;
         out << "Tried to send message \"" << msg->getName();
         out << "\", but the socket is not connected";
-        this->printDebugMsgConnection(out.str());
+        this->printDebugMsg(out.str());
         delete msg;
     } else {
         std::ostringstream out;
-        out << "Message \"" << msg->getName();
+        out << msg->getName();
         out << "\" sent";
-        this->printDebugMsgConnection(out.str());
+        this->printDebugMsg(out.str());
         // claim ownership over the message since it may not have been created in
         // this module.
         this->btClient->take(msg);
@@ -252,7 +252,7 @@ bool PeerWireThread::checkHandshake(Handshake const& hs) {
         if (!validPeerId)  out += "(invalid peerId)";
         if (!canConnect)  out += "(can't connect)";
         if (!swarmExists)  out += "(swarm don't exist)";
-        this->printDebugMsgConnection(out);
+        this->printDebugMsg(out);
     }
 
     return validPeerId && canConnect && swarmExists;

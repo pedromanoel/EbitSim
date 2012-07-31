@@ -109,8 +109,8 @@
 %%
 Stopped
 Entry {
+    printDebugMsg("downloadSM - Stopped");
     stopDownloadTimers();
-    printDebugMsgDownload("Entering state Closed");
 }
 {
     startMachine
@@ -119,13 +119,13 @@ Entry {
     Default
         nil
             {
-                printDebugMsgDownload("Thread terminated");
+                printDebugMsg("downloadSM - Thread terminated");
             }
 }
 
 NotInterestedChoked
 Entry {
-    printDebugMsgDownload("Entering state NotInterestedChoked");
+    printDebugMsg("downloadSM - NotInterestedChoked");
 }
 {
     bitFieldMsg(msg: BitFieldMsg const&)
@@ -150,7 +150,7 @@ Entry {
 }
 InterestedChoked
 Entry {
-    printDebugMsgDownload("Entering state InterestedChoked");
+    printDebugMsg("downloadSM - InterestedChoked");
 }
 {
     chokeMsg
@@ -178,7 +178,7 @@ Entry {
 }
 NotInterestedUnchoked
 Entry {
-    printDebugMsgDownload("Entering state NotInterestedUnchoked");
+    printDebugMsg("downloadSM - NotInterestedUnchoked");
 }
 {
     chokeMsg
@@ -204,7 +204,7 @@ Entry {
 }
 InterestedUnchoked
 Entry {
-    printDebugMsgDownload("Entering state InterestedUnchoked");
+    printDebugMsg("downloadSM - InterestedUnchoked");
     startDownloadTimers();
     setSnubbed(false);
 }

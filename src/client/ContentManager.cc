@@ -73,6 +73,7 @@
 #include "ContentManager.h"
 #include <cassert>
 #include <iostream>
+#include <iomanip>
 #include <queue>
 #include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
@@ -326,16 +327,11 @@ private:
      */
     bool addTokens(unsigned long tokenSize) {
         std::string out;
-        out = "Tokens added. ";
         // cap the number of tokens
         this->tokens += tokenSize;
         if (this->tokens > this->bucketSize) {
             this->tokens = this->bucketSize;
-            out = "Max tokens reached: ";
-        } else {
-            out = "Current: ";
         }
-        this->contentManager->printDebugMsg(out + toStr(this->tokens));
         return this->tokens < this->bucketSize;
     }
     /*!
@@ -959,10 +955,10 @@ void ContentManager::registerEmittedSignals() {
 void ContentManager::printDebugMsg(std::string s) {
     if (this->debugFlag) {
         // debug "header"
-        std::cerr << simulation.getEventNumber() << " (T=";
-        std::cerr << simulation.getSimTime() << ")(ContentManager) - ";
-        std::cerr << "Peer " << this->localPeerId;
-        std::cerr << ": infoHash " << this->infoHash << " - ";
+        std::cerr << simulation.getEventNumber();
+        std::cerr << ";" << simulation.getSimTime();
+        std::cerr << ";(cmanager);Peer " << this->localPeerId;
+        std::cerr << ";infoHash " << this->infoHash << ";";
         std::cerr << s << "\n";
         std::cerr.flush();
     }

@@ -368,6 +368,15 @@ void ConnectionMap_Unconnected::tcpPassiveConnection(ConnectionSMContext& contex
     return;
 }
 
+void ConnectionMap_HandshakeSent::Entry(ConnectionSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.printDebugMsg("connSM - HandshakeSent");
+    return;
+}
+
 void ConnectionMap_HandshakeSent::handshakeMsg(ConnectionSMContext& context, Handshake const& hs)
 {
     PeerWireThread& ctxt(context.getOwner());
@@ -460,6 +469,15 @@ void ConnectionMap_HandshakeSent::handshakeMsg(ConnectionSMContext& context, Han
         (context.getState()).Entry(context);
     }
 
+    return;
+}
+
+void ConnectionMap_WaitHandshake::Entry(ConnectionSMContext& context)
+
+{
+    PeerWireThread& ctxt(context.getOwner());
+
+    ctxt.printDebugMsg("connSM - WaitHandshake");
     return;
 }
 
@@ -573,7 +591,7 @@ void ConnectionMap_Connected::Entry(ConnectionSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgConnection("Entering state Connected");
+    ctxt.printDebugMsg("connSM - Connected");
     ctxt.startMachines();
     ctxt.connected();
     ctxt.startHandshakeTimers();
@@ -799,7 +817,7 @@ void ConnectionMap_ClosingConnection::Entry(ConnectionSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgConnection("Entering state ClosingConnection");
+    ctxt.printDebugMsg("connSM - ClosingConnection");
     ctxt.stopHandshakeTimers();
     ctxt.closeLocalConnection();
     return;
@@ -909,7 +927,7 @@ void ConnectionMap_LocalClosed::Entry(ConnectionSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgConnection("Entering state LocalClosed");
+    ctxt.printDebugMsg("connSM - LocalClosed");
     return;
 }
 
@@ -983,7 +1001,7 @@ void ConnectionMap_RemoteClosed::Entry(ConnectionSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgConnection("Entering state RemoteClosed");
+    ctxt.printDebugMsg("connSM - RemoteClosed");
     return;
 }
 
@@ -1057,7 +1075,7 @@ void ConnectionMap_Closed::Entry(ConnectionSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgConnection("Entering state Closed");
+    ctxt.printDebugMsg("connSM - Closed");
     ctxt.removeFromSwarm();
     return;
 }

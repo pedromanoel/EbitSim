@@ -332,8 +332,8 @@ void DownloadMap_Stopped::Entry(DownloadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
+    ctxt.printDebugMsg("downloadSM - Stopped");
     ctxt.stopDownloadTimers();
-    ctxt.printDebugMsgDownload("Entering state Closed");
     return;
 }
 
@@ -362,7 +362,7 @@ void DownloadMap_Stopped::Default(DownloadSMContext& context)
     context.clearState();
     try
     {
-        ctxt.printDebugMsgDownload("Thread terminated");
+        ctxt.printDebugMsg("downloadSM - Thread terminated");
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();
@@ -421,7 +421,7 @@ void DownloadMap_NotInterestedChoked::Entry(DownloadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgDownload("Entering state NotInterestedChoked");
+    ctxt.printDebugMsg("downloadSM - NotInterestedChoked");
     return;
 }
 
@@ -585,7 +585,7 @@ void DownloadMap_InterestedChoked::Entry(DownloadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgDownload("Entering state InterestedChoked");
+    ctxt.printDebugMsg("downloadSM - InterestedChoked");
     return;
 }
 
@@ -760,7 +760,7 @@ void DownloadMap_NotInterestedUnchoked::Entry(DownloadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgDownload("Entering state NotInterestedUnchoked");
+    ctxt.printDebugMsg("downloadSM - NotInterestedUnchoked");
     return;
 }
 
@@ -925,7 +925,7 @@ void DownloadMap_InterestedUnchoked::Entry(DownloadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgDownload("Entering state InterestedUnchoked");
+    ctxt.printDebugMsg("downloadSM - InterestedUnchoked");
     ctxt.startDownloadTimers();
     ctxt.setSnubbed(false);
     return;

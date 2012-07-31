@@ -195,7 +195,7 @@ void UploadMap_Default::sendPieceMsg(UploadSMContext& context)
     context.clearState();
     try
     {
-        ctxt.printDebugMsgUpload("sendPieceMsg out of place");
+        ctxt.printDebugMsg("sendPieceMsg out of place");
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();
@@ -296,8 +296,8 @@ void UploadMap_Stopped::Entry(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
+    ctxt.printDebugMsg("uploadSM - Stopped");
     ctxt.stopUploadTimers();
-    ctxt.printDebugMsgUpload("Entering state Closed");
     return;
 }
 
@@ -326,7 +326,7 @@ void UploadMap_Stopped::Default(UploadSMContext& context)
     context.clearState();
     try
     {
-        ctxt.printDebugMsgUpload("Thread terminated");
+        ctxt.printDebugMsg("uploadSM - Thread terminated");
         if (context.getDebugFlag() == true)
         {
             std::ostream& str = context.getDebugStream();
@@ -385,7 +385,7 @@ void UploadMap_NotInterestingChoking::Entry(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgUpload("Entering state NotInterestingChoking");
+    ctxt.printDebugMsg("uploadSM - NotInterestingChoking");
     return;
 }
 
@@ -485,7 +485,7 @@ void UploadMap_InterestingChoking::Entry(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgUpload("Entering state InterestingChoking");
+    ctxt.printDebugMsg("uploadSM - InterestingChoking");
     return;
 }
 
@@ -629,7 +629,7 @@ void UploadMap_NotInterestingUnchoking::Entry(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgUpload("Entering state NotInterestingUnchoking");
+    ctxt.printDebugMsg("uploadSM - NotInterestingUnchoking");
     return;
 }
 
@@ -729,7 +729,7 @@ void UploadMap_InterestingUnchoking::Entry(UploadSMContext& context)
 {
     PeerWireThread& ctxt(context.getOwner());
 
-    ctxt.printDebugMsgUpload("Entering state InterestingUnchoking");
+    ctxt.printDebugMsg("uploadSM - InterestingUnchoking");
     ctxt.startUploadTimers();
     return;
 }

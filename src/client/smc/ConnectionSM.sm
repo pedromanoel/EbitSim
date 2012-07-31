@@ -129,6 +129,9 @@ Exit
 }
 
 HandshakeSent
+Entry {
+    printDebugMsg("connSM - HandshakeSent");
+}
 {
     // The handshake is invalid
     handshakeMsg(hs: Handshake const&)[!ctxt.checkHandshake(hs)]
@@ -147,6 +150,9 @@ HandshakeSent
 }
 
 WaitHandshake
+Entry {
+    printDebugMsg("connSM - WaitHandshake");
+}
 {
     // The handshake is invalid
     handshakeMsg(hs: Handshake const&)[!ctxt.checkHandshake(hs)]
@@ -168,7 +174,7 @@ WaitHandshake
 }
 Connected
 Entry {
-	printDebugMsgConnection("Entering state Connected");
+	printDebugMsg("connSM - Connected");
     startMachines();
     connected();
     startHandshakeTimers();
@@ -209,7 +215,7 @@ Exit {
 
 ClosingConnection
 Entry {
-	printDebugMsgConnection("Entering state ClosingConnection");
+    printDebugMsg("connSM - ClosingConnection");
     stopHandshakeTimers();
     closeLocalConnection();
 }
@@ -228,7 +234,7 @@ Entry {
 
 LocalClosed
 Entry {
-	printDebugMsgConnection("Entering state LocalClosed");
+    printDebugMsg("connSM - LocalClosed");
 }
 {
     // For when the ContentManager closes, and the SwarmManager closes again
@@ -242,7 +248,7 @@ Entry {
 
 RemoteClosed
 Entry {
-	printDebugMsgConnection("Entering state RemoteClosed");
+    printDebugMsg("connSM - RemoteClosed");
 }
 {
     // For when the ContentManager closes, and the SwarmManager closes again
@@ -256,7 +262,7 @@ Entry {
 
 Closed
 Entry {
-	printDebugMsgConnection("Entering state Closed");
+    printDebugMsg("connSM - Closed");
     removeFromSwarm();
 }
 {

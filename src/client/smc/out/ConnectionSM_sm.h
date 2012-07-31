@@ -109,6 +109,7 @@ public:
     : ConnectionMap_Default(name, stateId)
     {};
 
+    void Entry(ConnectionSMContext&);
     void handshakeMsg(ConnectionSMContext& context, Handshake const& hs);
 };
 
@@ -120,6 +121,7 @@ public:
     : ConnectionMap_Default(name, stateId)
     {};
 
+    void Entry(ConnectionSMContext&);
     void handshakeMsg(ConnectionSMContext& context, Handshake const& hs);
 };
 

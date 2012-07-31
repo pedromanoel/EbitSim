@@ -74,6 +74,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <IPAddressResolver.h>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
@@ -476,7 +477,7 @@ void BitTorrentClient::processNextThread() {
         // until a full circle is reached
         bool hasMessages = false;
         std::ostringstream out;
-        out << "====== Next thread: ";
+        out << "== Next thread: ";
         out << (*nextThreadIt)->getThreadId();
         do {
             ++nextThreadIt;
@@ -487,10 +488,10 @@ void BitTorrentClient::processNextThread() {
             hasMessages = (*nextThreadIt)->hasMessagesToProcess();
         } while (nextThreadIt != this->threadInProcessingIt && !hasMessages);
 
-        out << " ======";
-        this->printDebugMsg(out.str());
+        out << " ==";
 
         if (hasMessages) {
+            this->printDebugMsg(out.str());
             this->threadInProcessingIt = nextThreadIt;
             simtime_t processingTime =
                 (*this->threadInProcessingIt)->startProcessing();
@@ -498,7 +499,9 @@ void BitTorrentClient::processNextThread() {
             this->scheduleAt(simTime() + processingTime,
                 &this->endOfProcessingTimer);
         } else {
-            this->printDebugMsg("Idle");
+            std::string out_str = "== Thread " + (*nextThreadIt)->getThreadId()
+                + " idle ==";
+            this->printDebugMsg(out_str);
         }
     }
 }
@@ -563,10 +566,10 @@ void BitTorrentClient::connect(int infoHash, PeerConnInfo const& peer) {
     TCPSocket * socket = new TCPSocket();
     this->createThread(socket, infoHash, peerId);
 
-    std::string out = "connId ";
-    out += toStr(socket->getConnectionId());
-    out += ", Opening connection with " + ip.str() + ":" + toStr(port);
-    this->printDebugMsg(out);
+    std::ostringstream out;
+    out << "connect with " << ip << ":" << port;
+    out << " peerId " << toStr(peerId) << " infoHash " << infoHash;
+    this->printDebugMsg(out.str());
     socket->connect(ip, port);
 }
 //void BitTorrentClient::closeListeningSocket() {
@@ -691,9 +694,9 @@ void BitTorrentClient::peerWireStatistics(cMessage const*msg, bool sending =
 void BitTorrentClient::printDebugMsg(std::string s) const {
     if (this->debugFlag) {
         // debug "header"
-        std::cerr << simulation.getEventNumber() << " (T=";
-        std::cerr << simulation.getSimTime() << ")(BitTorrentClient) - ";
-        std::cerr << "Peer " << this->localPeerId << ": ";
+        std::cerr << simulation.getEventNumber();
+        std::cerr << ";" << simulation.getSimTime();
+        std::cerr << ";(btclient);Peer " << this->localPeerId << ";";
         std::cerr << s << "\n";
     }
 }

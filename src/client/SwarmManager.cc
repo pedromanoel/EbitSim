@@ -74,6 +74,8 @@
 
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <iomanip>
 #include <string>
 #include <IPAddressResolver.h>
 
@@ -402,9 +404,9 @@ void SwarmManager::treatTCPMessage(cMessage * msg) {
 void SwarmManager::printDebugMsg(std::string s) {
     if (this->debugFlag) {
         // debug "header"
-        std::cerr << simulation.getEventNumber() << " (T=";
-        std::cerr << simulation.getSimTime() << ")(SwarmManager) - ";
-        std::cerr << "Peer " << this->localPeerId << ": ";
+        std::cerr << simulation.getEventNumber();
+        std::cerr << ";" << simulation.getSimTime();
+        std::cerr << ";(smanager);Peer " << this->localPeerId << ";";
         std::cerr << s << "\n";
     }
 }

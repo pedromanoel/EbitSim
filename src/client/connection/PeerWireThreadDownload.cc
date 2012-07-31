@@ -100,7 +100,7 @@ void PeerWireThread::calculateDownloadRate() {
         this->remotePeerId, totalDownloaded);
     std::string out = "Download rate: "
         + boost::lexical_cast<std::string>(downRate);
-    this->printDebugMsgDownload(out);
+    this->printDebugMsg(out);
 }
 void PeerWireThread::cancelDownloadRequests() {
     assert(this->contentManager);
@@ -118,7 +118,7 @@ PeerWireMsgBundle * PeerWireThread::getRequestMsgBundle() {
     PeerWireMsgBundle * bundle = this->contentManager->getNextRequestBundle(
         this->remotePeerId);
     if (bundle == NULL) {
-        this->printDebugMsgDownload("Didn't return a Bundle");
+        this->printDebugMsg("Didn't return a Bundle");
     }
     return bundle;
 }
@@ -143,9 +143,9 @@ void PeerWireThread::renewSnubbedTimer() {
 }
 void PeerWireThread::setSnubbed(bool snubbed) {
     if (snubbed) {
-        this->printDebugMsgDownload("Peer snubbed");
+        this->printDebugMsg("Peer snubbed");
     } else {
-        this->printDebugMsgDownload("Peer not snubbed");
+        this->printDebugMsg("Peer not snubbed");
     }
     // snubbed starts as false and is set to true if the timeout occurs
     this->btClient->setSnubbed(snubbed, this->infoHash, this->remotePeerId);

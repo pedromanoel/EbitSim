@@ -227,9 +227,6 @@ public:
     //! Print a debug message with information about the thread.
     std::string getThreadId();
     void printDebugMsg(std::string s);
-    void printDebugMsgUpload(std::string s);
-    void printDebugMsgDownload(std::string s);
-    void printDebugMsgConnection(std::string s);
 private:
     //!@name BitTorrent State Machines
     //@{

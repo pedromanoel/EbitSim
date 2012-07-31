@@ -104,7 +104,7 @@ void PeerWireThread::calculateUploadRate() {
 
     std::string out = "Upload rate: "
         + boost::lexical_cast<std::string>(upRate);
-    this->printDebugMsgUpload(out);
+    this->printDebugMsg(out);
 }
 void PeerWireThread::callChokeAlgorithm() {
     // The choke algorithm is called when the upload machine stops, even when
