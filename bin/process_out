@@ -8,9 +8,9 @@ set -e
 
 # Get the simulation root
 PWD=$(pwd) # save the current directory in order to get back later
-cd -P "$( dirname "${BASH_SOURCE[0]}" )/../"
+#cd -P "$( dirname "${BASH_SOURCE[0]}" )/../"
 # Enter the logs directory
-cd run/run_logs
+#cd run/run_logs
 
 for INPUT_FILE in *.out.log
 do

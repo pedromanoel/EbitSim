@@ -79,52 +79,37 @@ import inet.applications.tcpapp.TCPSrvHostApp;
 simple BitTorrentClient extends TCPSrvHostApp
 {
     parameters:
-//        @statistic[BitTorrentClient_PeerWireBytesSent](
-//            title="BitTorrent Bytes Sent";
-//            record=sum
-//        );
-//        @statistic[BitTorrentClient_PeerWireBytesReceived](
-//            title="BitTorrent Bytes Received";
-//            record=sum
-//        );
-//        @statistic[BitTorrentClient_ContentBytesSent](
-//            title="Content Bytes Sent";
-//            record=sum
-//        );
-//        @statistic[BitTorrentClient_ContentBytesReceived](
-//            title="Content Bytes Received";
-//            record=sum
-//        );
-//        @statistic[BitTorrentClient_PieceReceived](
-//            title="Number of Handshakes Received";
-//            record=count
-//        );
-//        @statistic[BitTorrentClient_PieceSent](
-//            title="Number of Handshakes Sent";
-//            record=count
-//        );
-//        @statistic[BitTorrentClient_HandshakeReceived](
-//            title="Number of Handshakes Received";
-//            record=count
-//        );
-//        @statistic[BitTorrentClient_HandshakeSent](
-//            title="Number of Handshakes Sent";
-//            record=count
-//        );
-//        @statistic[BitTorrentClient_NumUnconnected](
-//            title="Number of Unconnected Peers";
-//            record=vector
-//        );
-//        @statistic[BitTorrentClient_NumConnected](
-//            title="Number of Connected Peers";
-//            record=vector,max
-//        );
+        @signal[BitTorrentClient_NumUnconnected];
+        @signal[BitTorrentClient_NumConnected];
         @signal[BitTorrentClient_ProcessingTime];
-        @statistic[ProcessingTime](
-            source=BitTorrentClient_ProcessingTime;
-            title="Time in processing";
-            record=sum
-        );
+    
+        @signal[BitTorrentClient_PeerWireBytesSent];
+        @signal[BitTorrentClient_PeerWireBytesReceived];
+        @signal[BitTorrentClient_ContentBytesSent];
+        @signal[BitTorrentClient_ContentBytesReceived];
+    
+        @signal[BitTorrentClient_BitFieldSent];
+        @signal[BitTorrentClient_BitFieldReceived];
+        @signal[BitTorrentClient_CancelSent];
+        @signal[BitTorrentClient_CancelReceived];
+        @signal[BitTorrentClient_ChokeSent];
+        @signal[BitTorrentClient_ChokeReceived];
+        @signal[BitTorrentClient_HandshakeSent];
+        @signal[BitTorrentClient_HandshakeReceived];
+        @signal[BitTorrentClient_HaveSent];
+        @signal[BitTorrentClient_HaveReceived];
+        @signal[BitTorrentClient_InterestedSent];
+        @signal[BitTorrentClient_InterestedReceived];
+        @signal[BitTorrentClient_KeepAliveSent];
+        @signal[BitTorrentClient_KeepAliveReceived];
+        @signal[BitTorrentClient_NotInterestedSent];
+        @signal[BitTorrentClient_NotInterestedReceived];
+        @signal[BitTorrentClient_PieceSent];
+        @signal[BitTorrentClient_PieceReceived];
+        @signal[BitTorrentClient_RequestSent];
+        @signal[BitTorrentClient_RequestReceived];
+        @signal[BitTorrentClient_UnchokeSent];
+        @signal[BitTorrentClient_UnchokeReceived];
         
         @display("i=misc/globe,green");
         @class(BitTorrentClient); // tell omnet++ to use this class instead of TCPSrvHostApp
@@ -142,6 +127,6 @@ simple BitTorrentClient extends TCPSrvHostApp
         double timeoutInterval @unit(s) = default(120s);
         double uploadRateInterval @unit(s) = default(1s);
         int globalNumberOfPeers = default(30);
-        int numberOfActivePeers = default(5);
-        int numberOfPassivePeers = default(5);
+        int numberOfActivePeers = default(4);
+        int numberOfPassivePeers = default(6);
 }

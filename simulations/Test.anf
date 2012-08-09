@@ -10,9 +10,12 @@
       <items xsi:type="scave:ScatterChart" name="" xDataPattern="module(BasicTopology) AND name(DownloadEmittedPeerId:vector)">
         <filters xsi:type="scave:Select" filterPattern="attr:runnumber(0)  AND (name(DownloadComplete:vector) OR name(DownloadEmittedPeerId:vector))" type="VECTOR"/>
       </items>
+      <items xsi:type="scave:ScatterChart" name="" xDataPattern="module(BasicTopology) AND name(SwarmEmittedPeerId:vector)">
+        <filters xsi:type="scave:Select" filterPattern="attr:runnumber(0)  AND (name(EnterSwarm:vector) OR name(LeaveSwarm:vector) OR name(SwarmEmittedPeerId:vector))" type="VECTOR"/>
+      </items>
     </datasets>
   </datasets>
   <chartSheets>
-    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1"/>
+    <chartSheets name="default" charts="//@datasets/@datasets.0/@items.1 //@datasets/@datasets.0/@items.2"/>
   </chartSheets>
 </scave:Analysis>
